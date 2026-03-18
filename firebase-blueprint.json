@@ -1,0 +1,286 @@
+{
+  "entities": {
+    "Customer": {
+      "title": "Customer",
+      "description": "System customers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "email": { "type": "string" },
+        "document": { "type": "string" },
+        "address": { "type": "object" }
+      },
+      "required": ["id", "name", "whatsapp"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Service orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "osNumber": { "type": "integer" },
+        "customerId": { "type": "string" },
+        "equipment": { "type": "object" },
+        "checklist": { "type": "object" },
+        "checklistNotes": { "type": "string" },
+        "defect": { "type": "string" },
+        "technicianNotes": { "type": "string" },
+        "service": { "type": "string" },
+        "financials": { "type": "object" },
+        "signatures": { "type": "object" },
+        "status": { "type": "string" },
+        "priority": { "type": "string" },
+        "history": { "type": "array" },
+        "completionData": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "osNumber", "customerId", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transactions (entries and exits)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["entrada", "saida"] },
+        "description": { "type": "string" },
+        "value": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["Dinheiro", "PIX", "Cartão", "Transferência"] },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "osId": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "type", "description", "value", "paymentMethod", "date"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Products for sale",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "image": { "type": "string", "description": "Base64 image data" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "barcode": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "stock": { "type": "integer" },
+        "minStock": { "type": "integer" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "stock"]
+    },
+    "ProductHistory": {
+      "title": "ProductHistory",
+      "description": "Stock movement history",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "type": { "type": "string", "enum": ["entrada", "saida"] },
+        "quantity": { "type": "number" },
+        "reason": { "type": "string", "enum": ["venda", "os", "reposicao", "ajuste", "inicial"] },
+        "referenceId": { "type": "string", "description": "ID of the sale or OS" },
+        "date": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["productId", "type", "quantity", "reason", "date"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "Product sales records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" },
+              "price": { "type": "number" },
+              "total": { "type": "number" }
+            }
+          }
+        },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["date", "items", "total", "paymentMethod"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Accounts payable / Expenses",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "value": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["pago", "pendente"] },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "description", "value", "dueDate", "status"]
+    },
+    "Receivable": {
+      "title": "Receivable",
+      "description": "Accounts receivable",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "value": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["recebido", "pendente"] },
+        "receivedDate": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "customerName": { "type": "string" },
+        "osId": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "description", "value", "dueDate", "status"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A task assigned to a technician.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "technicianId": { "type": "string" },
+        "technicianName": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Baixa", "Média", "Alta"] },
+        "status": { "type": "string", "enum": ["Pendente", "Em andamento", "Concluída"] },
+        "type": { "type": "string", "enum": ["manual", "os"] },
+        "osId": { "type": "string" },
+        "osNumber": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "title", "date", "technicianId", "priority", "status", "type"]
+    },
+    "CashSession": {
+      "title": "CashSession",
+      "description": "Daily cash session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "openingValue": { "type": "number" },
+        "closingValue": { "type": "number" },
+        "openingTime": { "type": "string" },
+        "closingTime": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "date", "status", "openingValue"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System user account information",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["companyName", "email", "role", "createdAt"]
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "User profile within a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["ADM", "Financeiro", "Técnico", "Atendente"] },
+        "role": { "type": "string" },
+        "photo": { "type": "string" }
+      },
+      "required": ["name", "type", "role"]
+    },
+    "Test": {
+      "title": "Test",
+      "description": "Connection test document",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Collection of customers"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of service orders"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Collection of financial transactions"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of products"
+    },
+    "/productHistory/{historyId}": {
+      "schema": "ProductHistory",
+      "description": "Collection of stock movements"
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Collection of sales records"
+    },
+    "/cashSessions/{sessionId}": {
+      "schema": "CashSession",
+      "description": "Collection of daily cash sessions"
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Collection of expenses and accounts payable"
+    },
+    "/receivables/{receivableId}": {
+      "schema": "Receivable",
+      "description": "Collection of accounts receivable"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Collection of technician tasks"
+    },
+    "/test/{docId}": {
+      "schema": "Test",
+      "description": "Collection for connection testing"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user account information"
+    },
+    "/users/{userId}/profiles/{profileId}": {
+      "schema": "Profile",
+      "description": "Subcollection of user profiles"
+    }
+  }
+}
