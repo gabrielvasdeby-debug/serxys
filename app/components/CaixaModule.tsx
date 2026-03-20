@@ -7,12 +7,7 @@ import {
   TrendingUp, TrendingDown, Wallet, History, Save,
   ShieldAlert, AlertCircle, Barcode, FileDown
 } from 'lucide-react';
-import { db, auth } from '../firebase';
-import { 
-  collection, query, where, onSnapshot, addDoc, 
-  deleteDoc, doc, orderBy, getDocs, setDoc, writeBatch
-} from 'firebase/firestore';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { supabase } from '../supabase';
 import { generateCashReportPDF } from '../utils/pdfGenerator';
 
 export interface Transaction {
@@ -73,6 +68,8 @@ interface TransactionData {
   paymentMethod?: string;
   date: string;
   time: string;
+  supplierId?: string;
+  productName?: string;
 }
 
 interface SaleData {
@@ -107,7 +104,10 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
   const [products, setProducts] = useState<Product[]>([]);
   const [sessions, setSessions] = useState<CashSession[]>([]);
   const [currentSession, setCurrentSession] = useState<CashSession | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [filterType, setFilterType] = useState<'all' | 'entrada' | 'saida'>('all');
   const [filterPayment, setFilterPayment] = useState<string>('all');
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -116,74 +116,100 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [isOpeningModalOpen, setIsOpeningModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
+  const [availableSuppliers, setAvailableSuppliers] = useState<{ id: string, company_name: string }[]>([]);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    setLoading(true);
 
-    // Listen to selected date's session
-    const qSession = query(
-      collection(db, 'cashSessions'),
-      where('date', '==', selectedDate)
-    );
+    const fetchData = async () => {
+      // 1. Fetch current session for the selected date
+      const { data: sessionData, error: sessionFetchError } = await supabase
+        .from('cash_sessions')
+        .select('*')
+        .eq('date', selectedDate)
+        .maybeSingle();
+      
+      if (sessionFetchError) {
+        console.error('Error fetching session:', sessionFetchError);
+      }
 
-    const unsubSession = onSnapshot(qSession, (snapshot) => {
-      if (!snapshot.empty) {
-        setCurrentSession({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as CashSession);
+      if (sessionData) {
+        setCurrentSession({
+          id: sessionData.id,
+          date: sessionData.date,
+          status: sessionData.status,
+          openingTime: sessionData.opened_at ? new Date(sessionData.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
+          openingUser: sessionData.opened_by,
+          openingUserName: sessionData.opened_by_name || 'Usuário',
+          initialValue: sessionData.opening_balance,
+          closingTime: sessionData.closed_at ? new Date(sessionData.closed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : undefined,
+          finalValue: sessionData.closing_balance
+        } as CashSession);
       } else {
         setCurrentSession(null);
       }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'cashSessions');
-    });
 
-    // Listen to selected date's transactions
-    const qTrans = query(
-      collection(db, 'transactions'),
-      where('date', '==', selectedDate)
-    );
-
-    const unsubTrans = onSnapshot(qTrans, (snapshot) => {
-      const transData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Transaction[];
+      // 2. Fetch transactions
+      const { data: transData } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('date', selectedDate)
+        .order('created_at', { ascending: false });
       
-      const sortedData = transData.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      
-      setTransactions(sortedData);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'transactions');
-    });
+      if (transData) {
+        setTransactions(transData.map(t => ({
+          id: t.id,
+          type: t.type,
+          description: t.description,
+          value: t.value,
+          paymentMethod: t.payment_method,
+          date: t.date,
+          time: t.time,
+          osId: t.os_id,
+          userId: t.user_id,
+          createdAt: t.created_at
+        })) as Transaction[]);
+      }
 
-    // Fetch products for quick sale
-    const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-      const prodData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      setProducts(prodData);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'products');
-    });
+      // 3. Fetch products
+      const { data: prodData } = await supabase.from('products').select('*');
+      if (prodData) {
+        setProducts(prodData.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          stock: p.stock,
+          category: p.category,
+          minStock: p.min_stock,
+          barcode: p.barcode
+        })) as Product[]);
+      }
 
-    // Fetch all sessions for history
-    const unsubAllSessions = onSnapshot(query(collection(db, 'cashSessions'), orderBy('date', 'desc')), (snapshot) => {
-      const sessionData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as CashSession[];
-      setSessions(sessionData);
-    });
+      // 4. Fetch suppliers
+      const { data: supData } = await supabase.from('suppliers').select('id, company_name').order('company_name');
+      if (supData) {
+        setAvailableSuppliers(supData);
+      }
 
-    return () => {
-      unsubSession();
-      unsubTrans();
-      unsubProducts();
-      unsubAllSessions();
+      // 4. Fetch all sessions
+      const { data: allSessions } = await supabase.from('cash_sessions').select('*').order('date', { ascending: false });
+      if (allSessions) {
+        setSessions(allSessions.map(s => ({
+          id: s.id,
+          date: s.date,
+          status: s.status,
+          openingTime: s.opened_at,
+          initialValue: s.opening_balance,
+          finalValue: s.closing_balance
+        })) as CashSession[]);
+      }
+
+      setLoading(false);
     };
+
+    fetchData();
   }, [selectedDate]);
 
   const totals = useMemo<Totals>(() => {
@@ -227,66 +253,104 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
 
   const handleOpenCash = async (initialValue: number, date: string) => {
     try {
-      // Check if there is ANY open session first
-      const qOpen = query(collection(db, 'cashSessions'), where('status', '==', 'open'));
-      const snapOpen = await getDocs(qOpen);
-      if (!snapOpen.empty) {
-        onShowToast('É preciso fechar o caixa aberto antes de abrir em outra data');
+      const { data: openSessions, error: openError } = await supabase
+        .from('cash_sessions')
+        .select('id, date')
+        .eq('status', 'open');
+
+      if (openError) throw openError;
+
+      if (openSessions && openSessions.length > 0) {
+        const openDate = openSessions[0].date;
+        const [y, m, d] = openDate.split('-');
+        onShowToast(`Existe um caixa aberto em ${d}/${m}/${y}. Feche-o antes de abrir um novo.`);
         return;
       }
 
       // Check if session already exists for this specific date
-      const q = query(collection(db, 'cashSessions'), where('date', '==', date));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
+      const { data: existingSession, error: checkError } = await supabase
+        .from('cash_sessions')
+        .select('id')
+        .eq('date', date)
+        .maybeSingle(); // Use maybeSingle to avoid error if 0 results
+
+      if (checkError) throw checkError;
+
+      if (existingSession) {
         onShowToast('Já existe um registro de caixa para esta data');
         return;
       }
 
-      await addDoc(collection(db, 'cashSessions'), {
+      const { data, error: insertError } = await supabase.from('cash_sessions').insert({
+        id: crypto.randomUUID(), // Provide manual UUID to satisfy not-null constraint
         date: date,
         status: 'open',
-        openingTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        openingUser: profile.id,
-        openingUserName: profile.name,
-        initialValue,
-        createdAt: new Date().toISOString()
-      });
-      setSelectedDate(date);
-      onShowToast('Caixa aberto com sucesso');
-      setIsOpeningModalOpen(false);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'cashSessions');
+        opening_balance: initialValue,
+        opened_by: profile.id,
+        opened_at: new Date().toISOString()
+      }).select().single();
+
+      if (insertError) throw insertError;
+
+      if (data) {
+        setCurrentSession({
+          id: data.id,
+          date: data.date,
+          status: data.status,
+          openingTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          openingUser: data.opened_by,
+          openingUserName: profile.name,
+          initialValue: data.opening_balance
+        } as CashSession);
+
+        setSelectedDate(date);
+        onShowToast('Caixa aberto com sucesso');
+        setIsOpeningModalOpen(false);
+      }
+    } catch (error: any) {
+      console.error('Error opening cash:', error);
+      const msg = error.message || (typeof error === 'string' ? error : JSON.stringify(error));
+      onShowToast(`Erro ao abrir caixa: ${msg}`);
     }
   };
 
   const handleCloseCash = async (closingData: ClosingData) => {
     if (!currentSession) return;
     try {
-      await setDoc(doc(db, 'cashSessions', currentSession.id), {
-        ...currentSession,
-        ...closingData,
+      const { error } = await supabase.from('cash_sessions').update({
         status: 'closed',
-        closingTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        closingUser: profile.id,
-        closingUserName: profile.name,
-        updatedAt: new Date().toISOString()
-      });
+        closing_balance: closingData.finalValue,
+        closed_by: profile.id,
+        closed_at: new Date().toISOString()
+      }).eq('id', currentSession.id);
+
+      if (error) throw error;
+
       onShowToast('Caixa fechado com sucesso');
+      setCurrentSession(prev => prev ? { ...prev, status: 'closed' } : null);
       setIsClosingModalOpen(false);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'cashSessions');
+      console.error('Error closing cash:', error);
+      onShowToast('Erro ao fechar caixa');
     }
   };
 
   const handleExportPastSession = async (session: CashSession) => {
     try {
-      const q = query(
-        collection(db, 'transactions'),
-        where('date', '==', session.date)
-      );
-      const snapshot = await getDocs(q);
-      const trans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Transaction[];
+      const { data: transData } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('date', session.date);
+      
+      const trans = (transData || []).map(t => ({
+        id: t.id,
+        type: t.type,
+        description: t.description,
+        value: t.value,
+        paymentMethod: t.payment_method,
+        date: t.date,
+        time: t.time
+      })) as Transaction[];
       
       const initial = session.initialValue || 0;
       const entriesByType = trans
@@ -318,7 +382,8 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
 
       generateCashReportPDF(session, trans, pastTotals);
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'transactions');
+      console.error('Error exporting session:', error);
+      onShowToast('Erro ao exportar relatório');
     }
   };
 
@@ -328,14 +393,19 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
       return;
     }
     try {
-      await setDoc(doc(db, 'cashSessions', session.id), {
-        ...session,
+      const { error } = await supabase.from('cash_sessions').update({
         status: 'open',
-        updatedAt: new Date().toISOString()
-      });
+        closed_at: null,
+        closed_by: null
+      }).eq('id', session.id);
+
+      if (error) throw error;
+      
+      setCurrentSession(prev => prev ? { ...prev, status: 'open' } : null);
       onShowToast('Caixa reaberto');
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'cashSessions');
+      console.error('Error reopening cash:', error);
+      onShowToast('Erro ao reabrir caixa');
     }
   };
 
@@ -350,7 +420,10 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
       message: 'Deseja realmente excluir esta transação? Esta ação não pode ser desfeita.',
       onConfirm: async () => {
         try {
-          await deleteDoc(doc(db, 'transactions', id));
+          const { error } = await supabase.from('transactions').delete().eq('id', id);
+          if (error) throw error;
+
+          setTransactions(prev => prev.filter(t => t.id !== id));
           onShowToast('Transação excluída');
         } catch (error) {
           console.error(error);
@@ -380,7 +453,7 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col">
       <header className="bg-[#141414] border-b border-zinc-800 p-4 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
@@ -448,7 +521,7 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6 overflow-x-hidden">
         {currentSession?.status === 'open' && (
           <div className="bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -788,25 +861,50 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
         )}
       </AnimatePresence>
 
-      {/* Transaction Modal */}
       <AnimatePresence>
         {isTransactionModalOpen && (
           <TransactionModal 
             type={transactionModalType}
             selectedDate={selectedDate}
+            suppliers={availableSuppliers}
             onClose={() => setIsTransactionModalOpen(false)}
             onShowToast={onShowToast}
             onSave={async (data) => {
               try {
-                await addDoc(collection(db, 'transactions'), {
-                  ...data,
-                  userId: auth.currentUser?.uid || profile.id || 'system',
-                  createdAt: new Date().toISOString()
-                });
+                const { data: newTrans, error } = await supabase.from('transactions').insert({
+                  id: crypto.randomUUID(),
+                  type: data.type,
+                  description: data.description,
+                  value: data.value,
+                  payment_method: data.paymentMethod,
+                  date: data.date,
+                  time: data.time,
+                  user_id: profile.id,
+                  session_id: currentSession?.id,
+                  supplier_id: data.supplierId,
+                  product_name: data.productName
+                }).select().single();
+
+                if (error) throw error;
+
+                if (newTrans) {
+                  setTransactions(prev => [{
+                    id: newTrans.id,
+                    type: newTrans.type,
+                    description: newTrans.description,
+                    value: newTrans.value,
+                    paymentMethod: newTrans.payment_method,
+                    date: newTrans.date,
+                    time: newTrans.time,
+                    createdAt: newTrans.created_at
+                  } as Transaction, ...prev]);
+                }
+
                 onShowToast(`${transactionModalType === 'entrada' ? 'Entrada' : 'Saída'} registrada`);
                 setIsTransactionModalOpen(false);
               } catch (error) {
-                handleFirestoreError(error, OperationType.WRITE, 'transactions');
+                console.error('Error saving transaction:', error);
+                onShowToast('Erro ao salvar transação');
               }
             }}
           />
@@ -822,66 +920,81 @@ export default function CaixaModule({ profile, onBack, onShowToast }: CaixaModul
             onShowToast={onShowToast}
             onSave={async (saleData) => {
               try {
-                const batch = writeBatch(db);
-                
-                // 1. Add Transaction
-                const transRef = doc(collection(db, 'transactions'));
+                // 1. Create Transaction
                 const description = saleData.items.length === 1 
                   ? `Venda Rápida: ${saleData.items[0].productName}`
                   : `Venda Rápida: ${saleData.items.length} itens`;
 
-                batch.set(transRef, {
+                const { data: trans, error: transError } = await supabase.from('transactions').insert({
+                  id: crypto.randomUUID(),
                   type: 'entrada',
                   description,
                   value: saleData.total,
-                  paymentMethod: saleData.paymentMethod,
+                  payment_method: saleData.paymentMethod,
                   date: selectedDate,
                   time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                  userId: auth.currentUser?.uid || profile.id || 'system',
-                  createdAt: new Date().toISOString()
-                });
+                  user_id: profile.id,
+                  session_id: currentSession?.id
+                }).select().single();
 
-                // 2. Add Sale Record
-                const saleRef = doc(collection(db, 'sales'));
-                batch.set(saleRef, {
+                if (transError) throw transError;
+
+                // 2. Create Sale Record for Product Analytics
+                const { error: saleError } = await supabase.from('sales').insert({
+                  id: crypto.randomUUID(),
                   date: selectedDate,
-                  items: saleData.items,
+                  items: saleData.items, // Nested JSON array
                   total: saleData.total,
-                  paymentMethod: saleData.paymentMethod,
-                  userId: auth.currentUser?.uid || profile.id || 'system',
-                  createdAt: new Date().toISOString()
+                  payment_method: saleData.paymentMethod,
+                  user_id: profile.id,
+                  created_at: new Date().toISOString()
                 });
 
-                // 3. Update Product Stock and History for each item
+                if (saleError) {
+                  const errorTrace = `ERRO SUPABASE (Sales Table): [${saleError.code}] ${saleError.message} | Detalhes: ${saleError.details} | Dica: ${saleError.hint}`;
+                  console.error(errorTrace);
+                  onShowToast('Atenção: A venda foi registrada no caixa, mas houve erro nas estatísticas (Tabela "sales" pode não existir).');
+                }
+
+                // 3. Update Stocks and Add History
                 for (const item of saleData.items) {
-                  const productRef = doc(db, 'products', item.productId);
                   const product = products.find(p => p.id === item.productId);
                   if (product) {
-                    batch.update(productRef, {
-                      stock: Math.max(0, product.stock - item.quantity),
-                      updatedAt: new Date().toISOString()
-                    });
+                    await supabase.from('products')
+                      .update({ stock: Math.max(0, product.stock - item.quantity) })
+                      .eq('id', item.productId);
                   }
 
-                  const historyRef = doc(collection(db, 'productHistory'));
-                  batch.set(historyRef, {
-                    productId: item.productId,
+                  await supabase.from('product_history').insert({
+                    id: crypto.randomUUID(),
+                    product_id: item.productId,
                     type: 'saida',
                     quantity: item.quantity,
                     reason: 'venda',
-                    referenceId: saleRef.id,
                     date: selectedDate,
-                    userId: auth.currentUser?.uid || profile.id || 'system',
-                    createdAt: new Date().toISOString()
+                    user_id: profile.id
                   });
                 }
 
-                await batch.commit();
+                // Update local state
+                if (trans) {
+                  setTransactions(prev => [{
+                    id: trans.id,
+                    type: trans.type,
+                    description: trans.description,
+                    value: trans.value,
+                    paymentMethod: trans.payment_method,
+                    date: trans.date,
+                    time: trans.time,
+                    createdAt: trans.created_at
+                  } as Transaction, ...prev]);
+                }
                 
                 onShowToast('Venda finalizada com sucesso');
                 setIsQuickSaleOpen(false);
               } catch (error) {
-                handleFirestoreError(error, OperationType.WRITE, 'transactions');
+                console.error('Error saving sale:', error);
+                onShowToast('Erro ao processar venda');
               }
             }}
           />
@@ -1261,29 +1374,63 @@ function CashClosingModal({ totals, transactions, session, onClose, onConfirm }:
   );
 }
 
-function TransactionModal({ type, selectedDate, onClose, onSave, onShowToast }: { type: 'entrada' | 'saida', selectedDate: string, onClose: () => void, onSave: (data: TransactionData) => void, onShowToast: (msg: string) => void }) {
+function TransactionModal({ 
+  type, 
+  selectedDate, 
+  suppliers = [],
+  onClose, 
+  onSave, 
+  onShowToast 
+}: { 
+  type: 'entrada' | 'saida', 
+  selectedDate: string, 
+  suppliers?: { id: string, company_name: string }[],
+  onClose: () => void, 
+  onSave: (data: TransactionData) => void, 
+  onShowToast: (msg: string) => void 
+}) {
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Dinheiro' | 'PIX' | 'Cartão' | 'Transferência'>('Dinheiro');
+  const [outflowType, setOutflowType] = useState<'common' | 'purchase'>('common');
+  const [selectedSupplierId, setSelectedSupplierId] = useState('');
+  const [productName, setProductName] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description) {
+    
+    if (type === 'saida' && outflowType === 'purchase') {
+      if (!selectedSupplierId) {
+        onShowToast('Selecione um fornecedor');
+        return;
+      }
+      if (!productName) {
+        onShowToast('Informe o nome do produto');
+        return;
+      }
+    } else if (!description) {
       onShowToast('Por favor, insira uma descrição');
       return;
     }
+
     if (!value || parseFloat(value.replace(',', '.')) <= 0) {
       onShowToast('Por favor, insira um valor válido');
       return;
     }
 
+    const finalDescription = type === 'saida' && outflowType === 'purchase' 
+      ? `Compra: ${productName} (${suppliers.find(s => s.id === selectedSupplierId)?.company_name})`
+      : description;
+
     onSave({
       type,
-      description,
+      description: finalDescription,
       value: parseFloat(value.replace(',', '.')),
       paymentMethod,
       date: selectedDate,
-      time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      supplierId: outflowType === 'purchase' ? selectedSupplierId : undefined,
+      productName: outflowType === 'purchase' ? productName : undefined
     });
   };
 
@@ -1309,49 +1456,96 @@ function TransactionModal({ type, selectedDate, onClose, onSave, onShowToast }: 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Descrição</label>
-            <input 
-              autoFocus
-              type="text" 
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Ex: Pagamento de aluguel, Venda de cabo..."
-              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {type === 'saida' && (
+            <div className="flex bg-[#0A0A0A] p-1 rounded-xl border border-zinc-800">
+              <button 
+                type="button" 
+                onClick={() => setOutflowType('common')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${outflowType === 'common' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}
+              >
+                SAÍDA COMUM
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setOutflowType('purchase')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${outflowType === 'purchase' ? 'bg-blue-600 text-white shadow-lg' : 'text-zinc-500'}`}
+              >
+                COMPRA DE PRODUTO
+              </button>
+            </div>
+          )}
+
+          {type === 'saida' && outflowType === 'purchase' ? (
+            <>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Fornecedor</label>
+                <select 
+                  value={selectedSupplierId}
+                  onChange={e => setSelectedSupplierId(e.target.value)}
+                  className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none"
+                >
+                  <option value="">Selecione um fornecedor...</option>
+                  {suppliers.map(s => (
+                    <option key={s.id} value={s.id}>{s.company_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Produto Comprado</label>
+                <input 
+                  type="text" 
+                  value={productName}
+                  onChange={e => setProductName(e.target.value)}
+                  placeholder="Ex: 10 Telas iPhone 11, Lote de cabos..."
+                  className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Descrição</label>
+              <input 
+                autoFocus
+                type="text" 
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="Ex: Aluguel, Luz, Vale funcionário..."
+                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Valor (R$)</label>
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Valor (R$)</label>
             <input 
               type="number" 
               step="0.01"
               value={value}
               onChange={e => setValue(e.target.value)}
               placeholder="0,00"
-              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white text-2xl font-bold focus:outline-none focus:border-zinc-600 transition-colors"
+              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white text-2xl font-bold focus:outline-none focus:border-zinc-600 transition-colors font-mono"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Forma de Pagamento</label>
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Forma de Pagamento</label>
             <div className="grid grid-cols-2 gap-2">
               {(['Dinheiro', 'PIX', 'Cartão', 'Transferência'] as const).map(method => (
                 <button
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[11px] font-bold transition-all transition-all ${
                     paymentMethod === method 
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-inner' 
+                    ? 'bg-zinc-800 border-zinc-600 text-white' 
                     : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
                   }`}
                 >
-                  {method === 'Dinheiro' && <Banknote size={16} />}
-                  {method === 'PIX' && <QrCode size={16} />}
-                  {method === 'Cartão' && <CreditCard size={16} />}
-                  {method === 'Transferência' && <TrendingUp size={16} />}
+                  {method === 'Dinheiro' && <Banknote size={14} />}
+                  {method === 'PIX' && <QrCode size={14} />}
+                  {method === 'Cartão' && <CreditCard size={14} />}
+                  {method === 'Transferência' && <TrendingUp size={14} />}
                   {method}
                 </button>
               ))}
@@ -1360,7 +1554,7 @@ function TransactionModal({ type, selectedDate, onClose, onSave, onShowToast }: 
 
           <button 
             type="submit"
-            className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg ${
+            className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg mt-2 ${
               type === 'entrada' 
               ? 'bg-emerald-500 hover:bg-emerald-600 text-black shadow-emerald-500/20' 
               : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'

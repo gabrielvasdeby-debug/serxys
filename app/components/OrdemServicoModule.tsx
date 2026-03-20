@@ -10,64 +10,13 @@ import { Customer, DeviceType } from './ClientesModule';
 import { Transaction } from './CaixaModule';
 import PatternLock from './PatternLock';
 import SignatureCanvas from 'react-signature-canvas';
-import { db, auth } from '../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { supabase } from '../supabase';
+import OrderPrintTemplate from './OrderPrintTemplate';
+import ThermalReceiptTemplate from './ThermalReceiptTemplate';
+import VisualController from './VisualController';
+import { Order, OrderStatus, OrderPriority, OrderCompletionData } from '../types';
+// Removed firebase imports to use Supabase instead.
 
-export type OrderStatus = 'Entrada Registrada' | 'Orçamento em Elaboração' | 'Em Análise Técnica' | 'Aguardando Aprovação' | 'Aguardando Peça' | 'Em Manutenção' | 'Reparo Concluído' | 'Equipamento Retirado' | 'Orçamento Cancelado' | 'Sem Reparo' | 'Garantia';
-export type OrderPriority = 'Baixa' | 'Média' | 'Alta' | 'Urgente';
-
-export interface OrderHistoryEvent {
-  date: string;
-  user: string;
-  description: string;
-}
-
-export interface OrderCompletionData {
-  servicesPerformed: string;
-  exitChecklist: Record<string, 'works' | 'broken' | 'untested'>;
-  supplier: string;
-  partsUsed: string;
-  warrantyDays?: number;
-  warrantyDescription?: string;
-}
-
-export interface Order {
-  id: string;
-  osNumber: number;
-  customerId: string;
-  equipment: {
-    type: string;
-    brand: string;
-    model: string;
-    serial: string;
-    color: string;
-    passwordType: 'text' | 'pattern' | 'none';
-    passwordValue: string;
-  };
-  checklist: Record<string, 'works' | 'broken' | 'untested'>;
-  checklistNotes: string;
-  defect: string;
-  technicianNotes: string;
-  service: string;
-  financials: {
-    totalValue: number;
-    paymentType: 'Dinheiro' | 'PIX' | 'Cartão' | 'Transferência' | 'Outro' | '';
-    paymentStatus: 'Total' | 'Parcial' | 'Pendente';
-    amountPaid: number;
-  };
-  signatures: {
-    technician: string | null;
-    client: string | null;
-  };
-  status: OrderStatus;
-  priority: OrderPriority;
-  history: OrderHistoryEvent[];
-  completionData?: OrderCompletionData;
-  productsUsed?: { id: string, name: string, quantity: number, price: number }[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface OrdemServicoModuleProps {
   profile: {
@@ -83,8 +32,10 @@ interface OrdemServicoModuleProps {
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
   orders: Order[];
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-  osSettings: { nextOsNumber: number, checklistItems: string[], whatsappMessages: Record<string, string> };
-  setOsSettings: React.Dispatch<React.SetStateAction<{ nextOsNumber: number, checklistItems: string[], whatsappMessages: Record<string, string> }>>;
+  osSettings: any;
+  setOsSettings: (v: any) => void | Promise<void>;
+  companySettings: any;
+  initialOrder?: Order | null;
 }
 
 // Signature Pad Component
@@ -235,6 +186,8 @@ const SignaturePad = ({ title, onSave, onClear }: { title: string, onSave: (data
   );
 };
 
+
+
 export default function OrdemServicoModule({
   profile,
   onBack,
@@ -244,7 +197,9 @@ export default function OrdemServicoModule({
   orders,
   setOrders,
   osSettings,
-  setOsSettings
+  setOsSettings,
+  companySettings,
+  initialOrder
 }: OrdemServicoModuleProps) {
   const [step, setStep] = useState<'CLIENT' | 'DETAILS'>('CLIENT');
   
@@ -283,18 +238,13 @@ export default function OrdemServicoModule({
     passwordValue: ''
   });
   
-  const [checklist, setChecklist] = useState<Order['checklist']>(() => {
-    const initialChecklist: Record<string, 'works' | 'broken' | 'untested'> = {};
-    osSettings.checklistItems.forEach(item => {
-      initialChecklist[item] = 'untested';
-    });
-    return initialChecklist;
-  });
+  const [checklist, setChecklist] = useState<Order['checklist']>({});
   const [checklistNotes, setChecklistNotes] = useState('');
   const [defect, setDefect] = useState('');
   const [technicianNotes, setTechnicianNotes] = useState('');
   const [service, setService] = useState('');
   const [priority, setPriority] = useState<OrderPriority>('Média');
+  const [showVisualChecklist, setShowVisualChecklist] = useState(false);
   
   const [financials, setFinancials] = useState<Order['financials']>({
     totalValue: 0,
@@ -308,31 +258,68 @@ export default function OrdemServicoModule({
     client: null
   });
 
+  const [availableServices, setAvailableServices] = useState<{ id: string, name: string, default_value: number, description: string }[]>([]);
+
   const [currentCashSession, setCurrentCashSession] = useState<{ id: string; [key: string]: unknown } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Listen for current cash session
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const today = new Date().toISOString().split('T')[0];
-    const q = query(
-      collection(db, 'cashSessions'),
-      where('date', '==', today)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        setCurrentCashSession({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+    const fetchSession = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('cash_sessions')
+        .select('*')
+        .eq('date', today)
+        .eq('status', 'open')
+        .single();
+      
+      if (data) {
+        setCurrentCashSession({ id: data.id, ...data });
       } else {
         setCurrentCashSession(null);
       }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'cashSessions');
-    });
+    };
 
-    return () => unsubscribe();
+    fetchSession();
+
+    // Fetch available services
+    const fetchServices = async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, name, default_value, description')
+        .order('name');
+      
+      if (error) {
+        console.error('SUPABASE ERROR (OS Fetch Services):', error.message, error.details, error.hint);
+      }
+      if (data) {
+        setAvailableServices(data);
+      }
+    };
+    fetchServices();
   }, []);
 
   const [isPatternModalOpen, setIsPatternModalOpen] = useState(false);
+
+  // Populate state if editing
+  useEffect(() => {
+    if (initialOrder) {
+      setStep('DETAILS');
+      const customer = customers.find(c => c.id === initialOrder.customerId);
+      if (customer) setSelectedCustomer(customer);
+      
+      setEquipment(initialOrder.equipment);
+      setChecklist(initialOrder.checklist);
+      setChecklistNotes(initialOrder.checklistNotes || '');
+      setDefect(initialOrder.defect);
+      setTechnicianNotes(initialOrder.technicianNotes || '');
+      setService(initialOrder.service || '');
+      setPriority(initialOrder.priority);
+      setFinancials(initialOrder.financials);
+      setSignatures(initialOrder.signatures);
+    }
+  }, [initialOrder, customers]);
   const [isPatternModalReadOnly, setIsPatternModalReadOnly] = useState(false);
 
   const [whatsappPrompt, setWhatsappPrompt] = useState<{ isOpen: boolean; newStatus: string; orderId?: string }>({ isOpen: false, newStatus: '' });
@@ -353,25 +340,40 @@ export default function OrdemServicoModule({
     
     try {
       const customerId = Date.now().toString();
-      const customerToAdd: Customer = {
+      const now = new Date().toISOString();
+      const customerToAdd = {
+        id: customerId,
+        name: newCustomer.name,
+        birth_date: newCustomer.birthDate || null,
+        phone: newCustomer.phone,
+        whatsapp: newCustomer.whatsapp,
+        email: newCustomer.email,
+        document: newCustomer.document,
+        address: newCustomer.address,
+        notes: newCustomer.notes,
+        devices: [],
+        created_at: now,
+        updated_at: now
+      };
+      
+      const { error } = await supabase.from('customers').insert(customerToAdd);
+      if (error) throw error;
+      
+      const customerForState: Customer = {
         ...newCustomer,
         id: customerId,
         devices: [],
-        createdAt: new Date().toISOString()
+        createdAt: now
       };
-      
-      // Save to Firestore
-      const { doc, setDoc } = await import('firebase/firestore');
-      await setDoc(doc(db, 'customers', customerId), customerToAdd);
-      
-      setCustomers([...customers, customerToAdd]);
-      setSelectedCustomer(customerToAdd);
+
+      setCustomers([...customers, customerForState]);
+      setSelectedCustomer(customerForState);
       setIsCreatingCustomer(false);
       setStep('DETAILS');
       onShowToast('Cliente cadastrado com sucesso');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating customer:', error);
-      onShowToast('Erro ao cadastrar cliente');
+      onShowToast(`Erro ao cadastrar cliente: ${error.message || ''}`);
     }
   };
 
@@ -390,47 +392,81 @@ export default function OrdemServicoModule({
     }
 
     // Check if cash session is open if there's a payment
-    if (financials.amountPaid > 0) {
+    if (financials.amountPaid > 0 && !initialOrder) {
       if (!currentCashSession) {
         onShowToast('É necessário abrir o caixa para registrar pagamentos.');
         return;
       }
-      if (currentCashSession.status === 'closed') {
-        onShowToast('O caixa do dia já foi fechado. Não é possível registrar novos pagamentos.');
-        return;
-      }
     }
 
+    setIsSaving(true);
     try {
-      const orderId = providedId || Date.now().toString();
-      const newOrder: Order = {
-        id: orderId,
-        osNumber: osSettings.nextOsNumber,
-        customerId: selectedCustomer.id,
+      const orderId = initialOrder?.id || providedId || Date.now().toString();
+      const now = new Date().toISOString();
+      
+      const osData: any = {
+        company_id: companySettings.id || 'main',
+        customer_id: selectedCustomer.id,
         equipment,
         checklist,
-        checklistNotes,
+        checklist_notes: checklistNotes,
         defect,
-        technicianNotes,
+        technician_notes: technicianNotes,
         service,
         financials,
         signatures,
-        status: 'Entrada Registrada',
         priority,
-        history: [{
-          date: new Date().toISOString(),
-          user: profile.name,
-          description: 'Ordem de Serviço criada'
-        }],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updated_at: now
       };
 
-      // Save to Firestore
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../firebase');
-      
-      await setDoc(doc(db, 'orders', orderId), newOrder);
+      if (initialOrder) {
+        osData.status = initialOrder.status;
+        osData.history = [
+          ...initialOrder.history,
+          {
+            date: now,
+            user: profile.name,
+            description: 'Ordem de Serviço editada'
+          }
+        ];
+
+        const { error: osError } = await supabase.from('orders').update(osData).eq('id', initialOrder.id);
+        if (osError) throw osError;
+
+        const updatedOrder: Order = {
+          ...initialOrder,
+          customerId: selectedCustomer.id,
+          equipment,
+          checklist,
+          checklistNotes,
+          defect,
+          technicianNotes,
+          service,
+          financials,
+          signatures,
+          priority,
+          updatedAt: now,
+          history: osData.history
+        };
+
+        setOrders(orders.map(o => o.id === initialOrder.id ? updatedOrder : o));
+        onShowToast(`OS #${initialOrder.osNumber} atualizada com sucesso`);
+        onBack();
+        return;
+      } else {
+        osData.id = orderId;
+        osData.os_number = osSettings.nextOsNumber;
+        osData.status = 'Entrada Registrada';
+        osData.created_at = now;
+        osData.history = [{
+          date: now,
+          user: profile.name,
+          description: 'Ordem de Serviço criada'
+        }];
+
+        const { error: osError } = await supabase.from('orders').insert(osData);
+        if (osError) throw osError;
+      }
 
       // Add device to customer if it's new
       const deviceExists = selectedCustomer.devices?.some(d => 
@@ -456,51 +492,76 @@ export default function OrdemServicoModule({
           devices: [...(selectedCustomer.devices || []), newDevice]
         };
         
-        await setDoc(doc(db, 'customers', updatedCustomer.id), updatedCustomer);
+        await supabase.from('customers').update({ 
+          devices: updatedCustomer.devices,
+          updated_at: now
+        }).eq('id', updatedCustomer.id);
+        
         setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
       }
 
       // Record transaction in Caixa if there's a payment
       if (financials.paymentStatus !== 'Pendente' && financials.amountPaid > 0) {
-        const transactionId = `trans_${Date.now()}`;
-        const newTransaction = {
+        await supabase.from('transactions').insert({
+          id: crypto.randomUUID(),
           type: 'entrada',
           description: `Pagamento OS #${osSettings.nextOsNumber} - ${selectedCustomer.name}`,
           value: financials.amountPaid,
-          paymentMethod: (['Dinheiro', 'PIX', 'Cartão', 'Transferência'].includes(financials.paymentType) ? financials.paymentType : 'Dinheiro') as Transaction['paymentMethod'],
-          date: new Date().toISOString().split('T')[0],
+          payment_method: (['Dinheiro', 'PIX', 'Cartão', 'Transferência'].includes(financials.paymentType) ? financials.paymentType : 'Dinheiro'),
+          date: now.split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          osId: osSettings.nextOsNumber.toString(),
-          userId: auth.currentUser?.uid || profile.id || 'system',
-          createdAt: new Date().toISOString()
-        };
-        await setDoc(doc(db, 'transactions', transactionId), newTransaction);
+          os_id: osSettings.nextOsNumber.toString(),
+          user_id: profile.id,
+          session_id: currentCashSession?.id
+        });
       }
 
       // Create Receivable if there is a balance
       const balance = financials.totalValue - (financials.amountPaid || 0);
       if (balance > 0) {
-        const { addDoc, collection } = await import('firebase/firestore');
-        await addDoc(collection(db, 'receivables'), {
+        await supabase.from('receivables').insert({
+          id: crypto.randomUUID(),
           description: `Saldo OS #${osSettings.nextOsNumber} - ${equipment.type} ${equipment.brand}`,
           value: balance,
-          dueDate: new Date().toISOString().split('T')[0], // Default to today
+          due_date: now.split('T')[0],
           status: 'pendente',
-          customerName: selectedCustomer.name,
-          osId: orderId,
-          notes: `Gerado automaticamente da OS #${osSettings.nextOsNumber}`,
-          createdAt: new Date().toISOString()
+          customer_name: selectedCustomer.name,
+          os_id: orderId
         });
       }
 
-      setOrders([...orders, newOrder]);
+      const orderForState: Order = {
+        id: orderId,
+        osNumber: osSettings.nextOsNumber,
+        customerId: selectedCustomer.id,
+        equipment,
+        checklist,
+        checklistNotes,
+        defect,
+        technicianNotes,
+        service,
+        financials,
+        signatures,
+        status: 'Entrada Registrada',
+        priority,
+        history: [{
+          date: now,
+          user: profile.name,
+          description: 'Ordem de Serviço criada'
+        }],
+        createdAt: now,
+        updatedAt: now
+      } as any;
+
+      setOrders([...orders, orderForState]);
       setOsSettings({ ...osSettings, nextOsNumber: osSettings.nextOsNumber + 1 });
       onShowToast(`OS #${osSettings.nextOsNumber} criada com sucesso`);
+      onBack();
       
-      // Trigger WhatsApp prompt
-      setWhatsappPrompt({ isOpen: true, newStatus: 'Entrada Registrada', orderId: newOrder.id });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'orders/transactions');
+      // Removed automatic whatsapp prompt here
+    } catch (error: any) {
+      console.error('Error saving OS:', error);
+      onShowToast(`Erro ao criar OS: ${error.message || ''}`);
     }
   };
 
@@ -510,17 +571,24 @@ export default function OrdemServicoModule({
       if (order) {
         if (!selectedCustomer.whatsapp) {
           onShowToast('Cliente sem número de WhatsApp cadastrado');
-          onBack();
           return;
         }
 
         const template = osSettings.whatsappMessages?.[whatsappPrompt.newStatus] || 
           `Olá [nome_cliente], o status da sua OS #[numero_os] foi atualizado para: [status].`;
         
+        const portalUrl = `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber}`;
+        
         const message = template
           .replace(/\[nome_cliente\]/g, selectedCustomer.name)
-          .replace(/\[numero_os\]/g, order.osNumber.toString())
-          .replace(/\[status\]/g, whatsappPrompt.newStatus);
+          .replace(/\[numero_os\]/g, order.osNumber.toString().padStart(4, '0'))
+          .replace(/\[status\]/g, whatsappPrompt.newStatus)
+          .replace(/\[marca\]/g, order.equipment.brand)
+          .replace(/\[modelo\]/g, order.equipment.model)
+          .replace(/\[defeito\]/g, order.defect)
+          .replace(/\[data_entrada\]/g, new Date(order.createdAt).toLocaleDateString('pt-BR'))
+          .replace(/\[nome_assistencia\]/g, companySettings.name)
+          .replace(/\[link_os\]/g, portalUrl);
 
         setWhatsappModal({
           isOpen: true,
@@ -528,10 +596,10 @@ export default function OrdemServicoModule({
           customerPhone: selectedCustomer.whatsapp
         });
       } else {
-        onBack();
+        // stay on screen
       }
     } else {
-      onBack();
+      // stay on screen
     }
     setWhatsappPrompt({ isOpen: false, newStatus: '' });
   };
@@ -565,43 +633,31 @@ export default function OrdemServicoModule({
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => {
+                  document.body.classList.add('print-a4');
+                  document.body.classList.remove('print-thermal');
                   window.print();
                 }}
                 className="bg-[#1A1A1A] hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors border border-zinc-700"
               >
                 <Printer size={16} />
-                <span className="hidden sm:inline">Imprimir</span>
+                <span className="hidden sm:inline">A4</span>
               </button>
               <button 
                 onClick={() => {
-                  if (!selectedCustomer?.whatsapp) {
-                    onShowToast('Cliente não possui WhatsApp cadastrado');
-                    return;
-                  }
-                  
-                  // Generate tracking link
-                  // We use the current timestamp as the ID, matching handleSaveOS
-                  const orderId = Date.now().toString();
-                  const trackingUrl = `${window.location.origin}/os/${orderId}`;
-                  
-                  const message = `Olá, *${selectedCustomer.name}*.\n\nSua ordem de serviço foi registrada com sucesso no sistema *Servyx*.\n\n*Número da OS:* #${osSettings.nextOsNumber.toString().padStart(4, '0')}\n\n*Equipamento:*\n${equipment.brand} ${equipment.model}\n\n*Defeito relatado:*\n${defect}\n\n*Status atual:*\nEntrada Registrada\n\n*Data de entrada:*\n${new Date().toLocaleDateString('pt-BR')}\n\nVocê pode acompanhar o andamento do seu reparo pelo link abaixo:\n\n${trackingUrl}\n\nAssistência técnica agradece a sua confiança!`;
-                  
-                  const whatsappUrl = `https://wa.me/${selectedCustomer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-                  window.open(whatsappUrl, '_blank');
-                  
-                  // Now save the OS with the same ID
-                  handleSaveOS(orderId);
+                  document.body.classList.add('print-thermal');
+                  document.body.classList.remove('print-a4');
+                  window.print();
                 }}
                 className="bg-[#1A1A1A] hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors border border-zinc-700"
               >
-                <MessageCircle size={16} className="text-green-500" />
-                <span className="hidden sm:inline">Enviar ao Cliente</span>
+                <Printer size={16} className="text-orange-400" />
+                <span className="hidden sm:inline">Cupom</span>
               </button>
               <button 
                 onClick={() => handleSaveOS()}
-                className="bg-[#00E676] hover:bg-[#00C853] text-black px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-lg shadow-[#00E676]/20 ml-2"
+                className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-[#00E676]/20 active:scale-[0.98]"
               >
-                <Save size={16} />
+                <Save size={18} />
                 Salvar OS
               </button>
             </div>
@@ -849,9 +905,9 @@ export default function OrdemServicoModule({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column: Equipment & Checklist */}
-                <div className="lg:col-span-2 space-y-6">
+              <div className="max-w-4xl mx-auto space-y-6">
+                
+                {/* Equipment Details */}
                   
                   {/* Equipment Details */}
                   <section className="bg-[#141414] border border-zinc-800 rounded-2xl p-6 shadow-sm">
@@ -881,6 +937,22 @@ export default function OrdemServicoModule({
                                     passwordType: 'none',
                                     passwordValue: ''
                                   });
+
+                                  // Set dynamic checklist based on type
+                                  const items = osSettings.checklistByCategory?.[device.type];
+                                  if (items) {
+                                    const newChecklist: Record<string, 'works' | 'broken' | 'untested'> = {};
+                                    items.forEach((item: string) => {
+                                      newChecklist[item] = 'untested';
+                                    });
+                                    setChecklist(newChecklist);
+                                  } else {
+                                    const initialChecklist: Record<string, 'works' | 'broken' | 'untested'> = {};
+                                    (osSettings.checklistByCategory?.['Outro'] || osSettings.checklistItems).forEach((item: string) => {
+                                      initialChecklist[item] = 'untested';
+                                    });
+                                    setChecklist(initialChecklist);
+                                  }
                                 }
                               }
                             }}
@@ -900,7 +972,27 @@ export default function OrdemServicoModule({
                         <label className="text-xs font-medium text-zinc-400">Tipo de Aparelho *</label>
                         <select
                           value={equipment.type}
-                          onChange={e => setEquipment({...equipment, type: e.target.value})}
+                          onChange={e => {
+                            const newType = e.target.value;
+                            setEquipment({...equipment, type: newType});
+                            
+                            // Set dynamic checklist based on type
+                            const items = osSettings.checklistByCategory?.[newType];
+                            if (items) {
+                              const newChecklist: Record<string, 'works' | 'broken' | 'untested'> = {};
+                              items.forEach((item: string) => {
+                                newChecklist[item] = 'untested';
+                              });
+                              setChecklist(newChecklist);
+                            } else {
+                              // Fallback
+                              const initialChecklist: Record<string, 'works' | 'broken' | 'untested'> = {};
+                              (osSettings.checklistByCategory?.['Outro'] || osSettings.checklistItems).forEach((item: string) => {
+                                initialChecklist[item] = 'untested';
+                              });
+                              setChecklist(initialChecklist);
+                            }
+                          }}
                           className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
                         >
                           <option value="">Selecione...</option>
@@ -909,6 +1001,7 @@ export default function OrdemServicoModule({
                           <option value="Notebook">Notebook</option>
                           <option value="Computador">Computador</option>
                           <option value="Videogame">Videogame</option>
+                          <option value="Controle">Controle de Videogame</option>
                           <option value="Outro">Outro</option>
                         </select>
                       </div>
@@ -954,84 +1047,98 @@ export default function OrdemServicoModule({
                       </div>
                     </div>
 
-                    {/* Password Section */}
-                    <div className="border-t border-zinc-800 pt-6">
-                      <h3 className="text-sm font-medium text-white mb-4">Senha de Desbloqueio</h3>
-                      <div className="flex gap-4 mb-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="pwdType" 
-                            checked={equipment.passwordType === 'none'}
-                            onChange={() => setEquipment({...equipment, passwordType: 'none', passwordValue: ''})}
-                            className="text-[#00E676] focus:ring-[#00E676] bg-zinc-800 border-zinc-700"
-                          />
-                          <span className="text-sm text-zinc-300">Sem Senha</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="pwdType" 
-                            checked={equipment.passwordType === 'text'}
-                            onChange={() => setEquipment({...equipment, passwordType: 'text', passwordValue: ''})}
-                            className="text-[#00E676] focus:ring-[#00E676] bg-zinc-800 border-zinc-700"
-                          />
-                          <span className="text-sm text-zinc-300">Texto/PIN</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="pwdType" 
-                            checked={equipment.passwordType === 'pattern'}
-                            onChange={() => setEquipment({...equipment, passwordType: 'pattern', passwordValue: ''})}
-                            className="text-[#00E676] focus:ring-[#00E676] bg-zinc-800 border-zinc-700"
-                          />
-                          <span className="text-sm text-zinc-300">Padrão (Desenho)</span>
-                        </label>
-                      </div>
-
-                      {equipment.passwordType === 'text' && (
-                        <input
-                          type="text"
-                          value={equipment.passwordValue}
-                          onChange={e => setEquipment({...equipment, passwordValue: e.target.value})}
-                          className="w-full max-w-xs bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="Digite a senha ou PIN"
-                        />
-                      )}
-                      
-                      {equipment.passwordType === 'pattern' && (
-                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-xl p-4 w-fit flex flex-col items-start gap-3">
-                          <p className="text-xs text-zinc-500">
-                            {equipment.passwordValue ? 'Senha padrão cadastrada.' : 'Nenhum padrão definido.'}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
+                    {/* Password Section (Hidden for Controllers) */}
+                    {equipment.type !== 'Controle' && (
+                      <div className="space-y-4 mb-8 bg-[#141414] border border-zinc-800 rounded-3xl p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+                            <PenTool size={16} />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-white uppercase tracking-widest">Senha / Padrão</h3>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="pwdType" 
+                              checked={equipment.passwordType === 'none'}
+                              onChange={() => setEquipment({...equipment, passwordType: 'none', passwordValue: ''})}
+                              className="text-[#00E676] focus:ring-[#00E676] bg-zinc-800 border-zinc-700"
+                            />
+                            <span className="text-sm text-zinc-300">Nenhum</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="pwdType" 
+                              checked={equipment.passwordType === 'text'}
+                              onChange={() => setEquipment({...equipment, passwordType: 'text', passwordValue: ''})}
+                              className="text-[#00E676] focus:ring-[#00E676] bg-zinc-800 border-zinc-700"
+                            />
+                            <span className="text-sm text-zinc-300">Texto/PIN</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="pwdType" 
+                              checked={equipment.passwordType === 'pattern'}
+                              onChange={() => {
+                                setEquipment({...equipment, passwordType: 'pattern', passwordValue: ''});
                                 setIsPatternModalReadOnly(false);
                                 setIsPatternModalOpen(true);
                               }}
-                              className="flex items-center gap-2 bg-[#1A1A1A] hover:bg-zinc-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700"
-                            >
-                              <Grid size={16} className="text-[#00E676]" />
-                              {equipment.passwordValue ? 'Alterar Padrão' : 'Definir Padrão'}
-                            </button>
-                            {equipment.passwordValue && (
+                              className="text-[#00E676] focus:ring-[#00E676] bg-zinc-800 border-zinc-700"
+                            />
+                            <span className="text-sm text-zinc-300">Padrão (Desenho)</span>
+                          </label>
+                        </div>
+
+                        {equipment.passwordType === 'text' && (
+                          <input
+                            type="text"
+                            value={equipment.passwordValue}
+                            onChange={e => setEquipment({...equipment, passwordValue: e.target.value})}
+                            className="w-full max-w-xs bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            placeholder="Digite a senha ou PIN"
+                          />
+                        )}
+                        
+                        {equipment.passwordType === 'pattern' && (
+                          <div className="bg-[#0A0A0A] border border-zinc-800 rounded-xl p-4 w-fit flex flex-col items-start gap-3">
+                            <p className="text-xs text-zinc-500">
+                              {equipment.passwordValue ? 'Senha padrão cadastrada.' : 'Nenhum padrão definido.'}
+                            </p>
+                            <div className="flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  setIsPatternModalReadOnly(true);
+                                  setIsPatternModalReadOnly(false);
                                   setIsPatternModalOpen(true);
                                 }}
                                 className="flex items-center gap-2 bg-[#1A1A1A] hover:bg-zinc-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700"
                               >
-                                <Eye size={16} className="text-blue-400" />
-                                Ver Padrão
+                                <Grid size={16} className="text-[#00E676]" />
+                                {equipment.passwordValue ? 'Alterar Padrão' : 'Definir Padrão'}
                               </button>
-                            )}
+                              {equipment.passwordValue && (
+                                <button
+                                  onClick={() => {
+                                    setIsPatternModalReadOnly(true);
+                                    setIsPatternModalOpen(true);
+                                  }}
+                                  className="flex items-center gap-2 bg-[#1A1A1A] hover:bg-zinc-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700"
+                                >
+                                  <Eye size={16} className="text-blue-400" />
+                                  Ver Padrão
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
                   </section>
 
                   {/* Pattern Lock Modal */}
@@ -1046,59 +1153,95 @@ export default function OrdemServicoModule({
 
                   {/* Checklist */}
                   <section className="bg-[#141414] border border-zinc-800 rounded-2xl p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-lg font-semibold flex items-center gap-2">
-                        <CheckCircle2 size={20} className="text-[#00E676]" />
-                        Checklist de Entrada
-                      </h2>
-                      <button 
-                        onClick={() => {
-                          const newChecklist = {...checklist};
-                          Object.keys(newChecklist).forEach(k => newChecklist[k] = 'untested');
-                          setChecklist(newChecklist);
-                        }}
-                        className="text-xs text-zinc-500 hover:text-white"
-                      >
-                        Limpar
-                      </button>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+                          <CheckCircle2 size={16} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Checklist de Entrada</h3>
+                        </div>
+                      </div>
+                      
+                      {equipment.type === 'Controle' && (
+                        <button 
+                          onClick={() => setShowVisualChecklist(!showVisualChecklist)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                            showVisualChecklist 
+                              ? 'bg-[#00E676] text-black border-[#00E676]' 
+                              : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'
+                          }`}
+                        >
+                          <Grid size={16} />
+                          {showVisualChecklist ? 'Lista Padrão' : 'Checklist Visual'}
+                        </button>
+                      )}
                     </div>
 
-                    {osSettings.checklistItems.length === 0 ? (
-                      <div className="text-center py-6 bg-[#0A0A0A] rounded-xl border border-zinc-800 border-dashed">
-                        <p className="text-sm text-zinc-500">Nenhum item de checklist configurado.</p>
-                        <p className="text-xs text-zinc-600 mt-1">Acesse Ajustes para configurar.</p>
+                    {showVisualChecklist && equipment.type === 'Controle' ? (
+                      <div className="bg-[#0A0A0A] border border-zinc-800 rounded-3xl p-6 mb-8 overflow-hidden">
+                        <VisualController 
+                          checklist={checklist} 
+                          onChange={(item, status) => setChecklist(prev => ({ ...prev, [item]: status }))} 
+                        />
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                        {osSettings.checklistItems.map(item => (
-                          <div key={item} className="bg-[#0A0A0A] border border-zinc-800 rounded-xl p-3 flex items-center justify-between">
-                            <span className="text-sm text-zinc-300">{item}</span>
-                            <div className="flex items-center gap-1 bg-[#141414] rounded-lg p-1 border border-zinc-800">
-                              <button
-                                onClick={() => setChecklist({...checklist, [item]: 'works'})}
-                                className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
-                                title="Funciona"
-                              >
-                                <Check size={14} />
-                              </button>
-                              <button
-                                onClick={() => setChecklist({...checklist, [item]: 'broken'})}
-                                className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
-                                title="Não Funciona"
-                              >
-                                <X size={14} />
-                              </button>
-                              <button
-                                onClick={() => setChecklist({...checklist, [item]: 'untested'})}
-                                className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
-                                title="Sem Teste"
-                              >
-                                <AlertCircle size={14} />
-                              </button>
-                            </div>
+                      <>
+                        <div className="flex items-center justify-between mb-6">
+                          <h2 className="text-lg font-semibold flex items-center gap-2">
+                            <CheckCircle2 size={20} className="text-[#00E676]" />
+                            Checklist de Entrada
+                          </h2>
+                          <button 
+                            onClick={() => {
+                              const newChecklist = {...checklist};
+                              Object.keys(newChecklist).forEach(k => newChecklist[k] = 'untested');
+                              setChecklist(newChecklist);
+                            }}
+                            className="text-xs text-zinc-500 hover:text-white"
+                          >
+                            Limpar
+                          </button>
+                        </div>
+
+                        {Object.keys(checklist).length === 0 ? (
+                          <div className="text-center py-6 bg-[#0A0A0A] rounded-xl border border-zinc-800 border-dashed">
+                            <p className="text-sm text-zinc-500">Nenhum item de checklist configurado.</p>
+                            <p className="text-xs text-zinc-600 mt-1">Selecione um aparelho ou configure em Ajustes.</p>
                           </div>
-                        ))}
-                      </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                            {Object.keys(checklist).map(item => (
+                              <div key={item} className="bg-[#0A0A0A] border border-zinc-800 rounded-xl p-3 flex items-center justify-between">
+                                <span className="text-sm text-zinc-300">{item}</span>
+                                <div className="flex items-center gap-1 bg-[#141414] rounded-lg p-1 border border-zinc-800">
+                                  <button
+                                    onClick={() => setChecklist({...checklist, [item]: 'works'})}
+                                    className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                    title="Funciona"
+                                  >
+                                    <Check size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => setChecklist({...checklist, [item]: 'broken'})}
+                                    className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                    title="Não Funciona"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => setChecklist({...checklist, [item]: 'untested'})}
+                                    className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                    title="Sem Teste"
+                                  >
+                                    <Grid size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                     
                     <div className="space-y-1">
@@ -1169,10 +1312,6 @@ export default function OrdemServicoModule({
                     )}
                   </section>
 
-                </div>
-
-                {/* Right Column: Service & Financials */}
-                <div className="space-y-6">
                   
                   {/* Service Details */}
                   <section className="bg-[#141414] border border-zinc-800 rounded-2xl p-6 shadow-sm">
@@ -1180,12 +1319,37 @@ export default function OrdemServicoModule({
                       <FileText size={20} className="text-[#00E676]" />
                       Serviço a Executar
                     </h2>
-                    <textarea
-                      value={service}
-                      onChange={e => setService(e.target.value)}
-                      className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
-                      placeholder="Descrição do serviço contratado (se já definido)..."
-                    />
+                    
+                    {availableServices.length > 0 && (
+                      <div className="mb-4 space-y-1">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Selecionar do Catálogo</label>
+                        <select 
+                          onChange={(e) => {
+                            const svc = availableServices.find(s => s.id === e.target.value);
+                            if (svc) {
+                              setService(svc.name + (svc.description ? ` - ${svc.description}` : ''));
+                              setFinancials(prev => ({ ...prev, totalValue: Number(svc.default_value) }));
+                            }
+                          }}
+                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
+                        >
+                          <option value="">Selecione um serviço cadastrado...</option>
+                          {availableServices.map(s => (
+                            <option key={s.id} value={s.id}>{s.name} - R$ {Number(s.default_value).toFixed(2)}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Descrição do Serviço</label>
+                      <textarea
+                        value={service}
+                        onChange={e => setService(e.target.value)}
+                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
+                        placeholder="Descrição do serviço contratado..."
+                      />
+                    </div>
                   </section>
 
                   {/* Financials */}
@@ -1292,128 +1456,66 @@ export default function OrdemServicoModule({
                     </div>
                   </section>
 
+                  <div className="pb-12" />
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
           )}
         </div>
       </main>
       </div>
 
-      {/* Print View */}
-      <div className="hidden print:block bg-white text-black p-8 absolute inset-0 z-50 min-h-screen print:static print:h-auto print:min-h-0 print:p-0">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold uppercase tracking-tight">Ordem de Serviço</h1>
-              <p className="text-lg text-gray-600 mt-1">Nº {osSettings.nextOsNumber.toString().padStart(4, '0')}</p>
-            </div>
-            <div className="text-right">
-              <p className="font-semibold text-xl">SERVYX</p>
-              <p className="text-sm text-gray-500">{new Date().toLocaleDateString('pt-BR')}</p>
-            </div>
-          </div>
+      <div className="print-a4-container">
+        <OrderPrintTemplate 
+          order={{
+            id: 'preview',
+            companyId: companySettings.id || 'main',
+            osNumber: osSettings.nextOsNumber,
+            customerId: selectedCustomer?.id || '',
+            signatures: { client: null, technician: null },
+            equipment,
+            defect,
+            service,
+            checklist,
+            checklistNotes,
+            technicianNotes: '',
+            financials,
+            status: 'Entrada Registrada',
+            priority,
+            history: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }}
+          customer={selectedCustomer || undefined}
+          companySettings={companySettings}
+          osSettings={osSettings}
+        />
+      </div>
 
-          {selectedCustomer && (
-            <div className="mb-8">
-              <h2 className="text-lg font-bold border-b border-gray-300 pb-2 mb-4 uppercase tracking-wider">Dados do Cliente</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Nome</p>
-                  <p className="font-medium">{selectedCustomer.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Documento</p>
-                  <p className="font-medium">{selectedCustomer.document || 'Não informado'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Telefone / WhatsApp</p>
-                  <p className="font-medium">{selectedCustomer.whatsapp || selectedCustomer.phone || 'Não informado'}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="mb-8">
-            <h2 className="text-lg font-bold border-b border-gray-300 pb-2 mb-4 uppercase tracking-wider">Dados do Aparelho</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Equipamento</p>
-                <p className="font-medium">{equipment.brand} {equipment.model}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Tipo</p>
-                <p className="font-medium capitalize">{equipment.type}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Nº Série / IMEI</p>
-                <p className="font-medium">{equipment.serial || 'Não informado'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Cor</p>
-                <p className="font-medium">{equipment.color || 'Não informado'}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-lg font-bold border-b border-gray-300 pb-2 mb-4 uppercase tracking-wider">Serviço e Valores</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-500">Defeito Relatado</p>
-                <p className="font-medium">{defect || 'Não informado'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Serviço a ser realizado</p>
-                <p className="font-medium">{service || 'A definir'}</p>
-              </div>
-              <div className="flex justify-between items-end pt-4 border-t border-gray-200">
-                <div>
-                  <p className="text-sm text-gray-500">Forma de Pagamento</p>
-                  <p className="font-medium">{financials.paymentType || 'A definir'}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Valor Total</p>
-                  <p className="text-2xl font-bold">R$ {financials.totalValue.toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-24 grid grid-cols-2 gap-16">
-            <div className="text-center">
-              {signatures.client ? (
-                <div className="h-24 flex items-end justify-center mb-2 relative">
-                  <Image src={signatures.client} alt="Assinatura Cliente" fill className="object-contain" unoptimized />
-                </div>
-              ) : (
-                <div className="h-24 mb-2"></div>
-              )}
-              <div className="border-t border-black pt-2">
-                <p className="font-medium">{selectedCustomer?.name || 'Cliente'}</p>
-                <p className="text-sm text-gray-500">Assinatura do Cliente</p>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              {signatures.technician ? (
-                <div className="h-24 flex items-end justify-center mb-2 relative">
-                  <Image src={signatures.technician} alt="Assinatura Técnico" fill className="object-contain" unoptimized />
-                </div>
-              ) : (
-                <div className="h-24 mb-2"></div>
-              )}
-              <div className="border-t border-black pt-2">
-                <p className="font-medium">{profile.name}</p>
-                <p className="text-sm text-gray-500">Assinatura do Técnico</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-16 text-center text-xs text-gray-400">
-            <p>Documento gerado pelo sistema SERVYX OS</p>
-          </div>
-        </div>
+      <div className="print-thermal-container">
+        <ThermalReceiptTemplate 
+          order={{
+            id: 'preview',
+            companyId: companySettings.id || 'main',
+            osNumber: osSettings.nextOsNumber,
+            customerId: selectedCustomer?.id || '',
+            signatures: { client: null, technician: null },
+            equipment,
+            defect,
+            service,
+            checklist,
+            checklistNotes,
+            technicianNotes: '',
+            financials,
+            status: 'Entrada Registrada',
+            priority,
+            history: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }}
+          customer={selectedCustomer || undefined}
+          companySettings={companySettings}
+          osSettings={osSettings}
+        />
       </div>
 
       <AnimatePresence>
@@ -1475,7 +1577,7 @@ export default function OrdemServicoModule({
                   <MessageCircle size={24} />
                   Enviar WhatsApp
                 </h2>
-                <button onClick={() => { setWhatsappModal({ isOpen: false, message: '', customerPhone: '' }); onBack(); }} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400">
+                <button onClick={() => setWhatsappModal({ isOpen: false, message: '', customerPhone: '' })} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400">
                   <X size={20} />
                 </button>
               </div>
@@ -1493,7 +1595,6 @@ export default function OrdemServicoModule({
                     const whatsappUrl = `https://wa.me/${whatsappModal.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappModal.message)}`;
                     window.open(whatsappUrl, '_blank');
                     setWhatsappModal({ isOpen: false, message: '', customerPhone: '' });
-                    onBack();
                   }}
                   className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-2xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                 >

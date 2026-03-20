@@ -5,8 +5,8 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #121212;
+  --foreground: #ededed;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,8 +16,203 @@
   }
 }
 
+/* ──────────────────────────────────────────
+   BASE / RESET
+────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Prevent horizontal overflow at page level */
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* The Inter font is applied via className in layout.tsx */
+  overflow-x: hidden;
+  min-height: 100dvh;
+  /* Prevent text from being too small on mobile */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ──────────────────────────────────────────
+   IMAGES / MEDIA
+────────────────────────────────────────── */
+img,
+video,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ──────────────────────────────────────────
+   LOGO SIZING
+────────────────────────────────────────── */
+.servyx-logo {
+  /* Mobile first */
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+  max-width: 380px;
+}
+
+/* Tablet and up */
+@media (min-width: 640px) {
+  .servyx-logo {
+    height: 110px;
+    max-width: 450px;
+  }
+}
+
+/* Desktop and up */
+@media (min-width: 1024px) {
+  .servyx-logo {
+    height: 140px;
+    max-width: 580px;
+  }
+}
+
+/* Logo in login / register screens – centred, a bit bigger */
+.servyx-logo-hero {
+  height: 140px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .servyx-logo-hero {
+    height: 220px;
+    max-width: 650px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .servyx-logo-hero {
+    height: 320px;
+    max-width: 950px;
+  }
+}
+
+/* ──────────────────────────────────────────
+   SCROLLBAR
+────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ──────────────────────────────────────────
+   OVERFLOW HELPERS
+────────────────────────────────────────── */
+.overflow-x-auto-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tables */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: inherit;
+}
+
+/* ──────────────────────────────────────────
+   LAYOUT CONTAINERS
+────────────────────────────────────────── */
+.page-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ──────────────────────────────────────────
+   TYPOGRAPHY SAFETY
+────────────────────────────────────────── */
+p, h1, h2, h3, h4, h5, h6, span, label {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ──────────────────────────────────────────
+   FORM ELEMENTS
+────────────────────────────────────────── */
+input, select, textarea {
+  /* Prevent zoom on iOS when focusing inputs < 16px */
+  font-size: max(16px, 1em);
+}
+
+@media (min-width: 640px) {
+  input, select, textarea {
+    font-size: 1em;
+  }
+}
+
+/* ──────────────────────────────────────────
+   CUSTOM UTILITIES (Premium Look)
+────────────────────────────────────────── */
+@layer utilities {
+  .bg-grid-pattern {
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .glass-panel {
+    background: rgba(26, 26, 26, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Safe bottom padding (for devices with home indicators) */
+  .pb-safe {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
 }

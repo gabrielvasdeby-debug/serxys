@@ -8,7 +8,7 @@ import {
   AlertTriangle, TrendingUp, ShoppingCart, 
   Barcode, Image as ImageIcon, 
   Edit2, Trash2, Save, X,
-  ArrowUpRight,
+  ArrowUpRight, Camera, Info, CheckCircle2,
   Download, Grid
 } from 'lucide-react';
 import { db, auth } from '../firebase';
@@ -584,6 +584,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
             product={editingProduct}
             onClose={() => setIsProductModalOpen(false)}
             onSave={handleSaveProduct}
+            onShowToast={onShowToast}
             categories={categories.filter(c => c !== 'Todas')}
           />
         )}
@@ -717,7 +718,7 @@ function ProductCard({ product, onEdit, onDelete, canEdit }: { product: Product,
   );
 }
 
-function ProductModal({ product, onClose, onSave, categories }: { product: Product | null, onClose: () => void, onSave: (data: Partial<Product>) => void, categories: string[] }) {
+function ProductModal({ product, onClose, onSave, onShowToast, categories }: { product: Product | null, onClose: () => void, onSave: (data: Partial<Product>) => void, onShowToast: (msg: string) => void, categories: string[] }) {
   const [formData, setFormData] = useState<Partial<Product>>(
     product || {
       name: '',
@@ -731,6 +732,82 @@ function ProductModal({ product, onClose, onSave, categories }: { product: Produ
       image: ''
     }
   );
+
+  const [isSearching, setIsSearching] = useState(false);
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+
+  // Verificação em tempo real de código duplicado
+  useEffect(() => {
+    const checkDuplicate = async () => {
+      // Usando query direta no Firestore por simplicidade e evitar quebrar dependências.
+      if (formData.barcode && formData.barcode.length > 5) {
+        try {
+            // Firestore SDK search
+            const { collection, query, where, getDocs } = await import('firebase/firestore');
+            const { db } = await import('../firebase');
+            const q = query(collection(db, 'products'), where('barcode', '==', formData.barcode));
+            const querySnapshot = await getDocs(q);
+            
+            let found = false;
+            querySnapshot.forEach((doc) => {
+                if (!product || doc.id !== product.id) {
+                    found = true;
+                }
+            });
+            setIsDuplicate(found);
+        } catch (e) {
+            console.error(e)
+            setIsDuplicate(false)
+        }
+      } else {
+        setIsDuplicate(false);
+      }
+    };
+    checkDuplicate();
+  }, [formData.barcode, product]);
+
+  const handleBarcodeSearch = async (codeToSearch?: string) => {
+    const code = codeToSearch || formData.barcode;
+    if (!code) {
+      onShowToast('Digite ou escaneie um código para buscar');
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const resp = await fetch(`/api/produtos/buscar-por-codigo/${code}`);
+      const data = await resp.json();
+
+      if (data.status) {
+        const newFields = new Set<string>();
+        const updates: Partial<Product> = { barcode: code };
+
+        if (data.nome && !formData.name) { updates.name = data.nome; newFields.add('name'); }
+        if (data.categoria && !formData.category) { updates.category = data.categoria; newFields.add('category'); }
+        if (data.image && !formData.image) { updates.image = data.image; newFields.add('image'); }
+        if (data.marca) {
+            updates.description = `Marca: ${data.marca}. ${formData.description || ''}`;
+            newFields.add('description');
+        }
+
+        setFormData(prev => ({ ...prev, ...updates }));
+        setAutoFilledFields(newFields);
+        onShowToast('Dados do produto encontrados automaticamente!');
+        
+        // Limpar os destaques após 3 segundos
+        setTimeout(() => setAutoFilledFields(new Set()), 3000);
+      } else {
+        onShowToast('Produto não encontrado. Você pode preencher os dados manualmente.');
+      }
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      onShowToast('Falha ao consultar base externa');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -753,179 +830,439 @@ function ProductModal({ product, onClose, onSave, categories }: { product: Produ
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl"
     >
       <motion.div 
-        initial={{ scale: 0.95, y: 20 }}
+        initial={{ scale: 0.9, y: 30 }}
         animate={{ scale: 1, y: 0 }}
-        className="bg-[#141414] border border-zinc-800 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
+        className="bg-[#0D0D0D] border border-white/10 rounded-[48px] w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
       >
-        <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            {product ? <Edit2 size={24} className="text-blue-500" /> : <Plus size={24} className="text-blue-500" />}
-            {product ? 'Editar Produto' : 'Novo Produto'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400">
-            <X size={20} />
+        {/* Header */}
+        <div className="px-10 py-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-white/[0.03] to-transparent">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                {product ? <Edit2 size={20} /> : <Package size={20} />}
+              </div>
+              <h2 className="text-3xl font-black text-white tracking-tight">
+                {product ? 'Editar Produto' : 'Novo Produto'}
+              </h2>
+            </div>
+            <p className="text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mt-2 ml-1">
+                Catálogo Inteligente SERVYX
+            </p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-zinc-400 hover:text-white border border-white/5 group"
+          >
+            <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Image Upload */}
-            <div className="space-y-4">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Foto do Produto</label>
-              <div className="aspect-square rounded-3xl border-2 border-dashed border-zinc-800 bg-zinc-900/50 overflow-hidden relative group">
-                {formData.image ? (
-                  <>
-                    <Image 
-                      src={formData.image} 
-                      alt="Preview" 
-                      fill
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                    <button 
-                      onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            {/* Left Column: Identification & Data */}
+            <div className="lg:col-span-8 space-y-10">
+              
+              {/* Secção: Identificação do Produto */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 bg-blue-500 rounded-full" />
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Identificação do Produto</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Barcode className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${isDuplicate ? 'text-red-500' : 'text-zinc-500'}`} size={22} />
+                      <input 
+                        type="text" 
+                        value={formData.barcode}
+                        onChange={e => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
+                        className={`w-full bg-black/60 border ${isDuplicate ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-blue-500/50'} rounded-[24px] pl-14 pr-4 py-5 text-white focus:outline-none transition-all font-black text-xl tracking-tight`}
+                        placeholder="Código EAN / GTIN"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleBarcodeSearch();
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button 
+                        type="button"
+                        onClick={() => handleBarcodeSearch()}
+                        disabled={isSearching}
+                        className="flex-1 sm:flex-none px-8 bg-blue-600 hover:bg-blue-500 text-white rounded-[24px] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                      >
+                        {isSearching ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Search size={18} />}
+                        {isSearching ? 'Buscando' : 'Buscar'}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setIsScannerOpen(true)}
+                        className="flex-1 sm:flex-none px-8 bg-zinc-800 hover:bg-zinc-700 text-white rounded-[24px] text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+                      >
+                        <Camera size={18} />
+                        Escanear
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {isDuplicate && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-2 text-red-500 text-[10px] font-bold uppercase tracking-widest px-4"
                     >
-                      <Trash2 size={16} />
-                    </button>
-                  </>
-                ) : (
-                  <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-800/50 transition-colors">
-                    <ImageIcon size={48} className="text-zinc-700 mb-2" />
-                    <span className="text-xs text-zinc-500 font-bold">Clique para upload</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  </label>
-                )}
-              </div>
-            </div>
-
-            {/* Basic Info */}
-            <div className="md:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Nome do Produto *</label>
-                  <input 
-                    type="text" 
-                    value={formData.name}
-                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="Ex: Tela iPhone 11 Original"
-                  />
+                        <AlertTriangle size={14} />
+                        Este produto já existe no sistema
+                    </motion.div>
+                  )}
+                  
+                  {!isDuplicate && formData.barcode && !isSearching && (
+                     <p className="text-[10px] text-zinc-600 font-medium px-4">
+                        Dica: Pressione ENTER ou clique em Buscar. Você também pode usar seu leitor USB aqui.
+                     </p>
+                  )}
                 </div>
+              </div>
+
+              {/* Secção: Dados do Produto */}
+              <div className="space-y-6 pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Dados Técnicos</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Nome do Produto</label>
+                    <div className="relative group">
+                      <input 
+                        type="text" 
+                        value={formData.name}
+                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        className={`w-full bg-black/40 border ${autoFilledFields.has('name') ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'border-white/5'} rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all font-bold group-hover:bg-white/[0.02]`}
+                        placeholder="Nome comercial do item"
+                      />
+                      {autoFilledFields.has('name') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-bounce" />}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Categoria</label>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        list="categories-list"
+                        value={formData.category}
+                        onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                        className={`w-full bg-black/40 border ${autoFilledFields.has('category') ? 'border-emerald-500' : 'border-white/5'} rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all font-bold`}
+                        placeholder="Ex: Telas, Baterias..."
+                      />
+                      <datalist id="categories-list">
+                        {categories.map(c => <option key={c} value={c} />)}
+                      </datalist>
+                      {autoFilledFields.has('category') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-bounce" />}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Categoria</label>
+                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Descrição Detalhada</label>
                   <div className="relative">
-                    <input 
-                      type="text" 
-                      list="categories-list"
-                      value={formData.category}
-                      onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                      className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                      placeholder="Ex: Telas, Baterias..."
+                    <textarea 
+                        value={formData.description}
+                        onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        className={`w-full bg-black/40 border ${autoFilledFields.has('description') ? 'border-emerald-500' : 'border-white/5'} rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all min-h-[100px] font-medium resize-none`}
+                        placeholder="Informações sobre marca, modelo e detalhes técnicos..."
                     />
-                    <datalist id="categories-list">
-                      {categories.map(c => <option key={c} value={c} />)}
-                    </datalist>
+                    {autoFilledFields.has('description') && <CheckCircle2 size={16} className="absolute right-4 top-4 text-emerald-500 animate-bounce" />}
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Descrição</label>
-                <textarea 
-                  value={formData.description}
-                  onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px]"
-                  placeholder="Detalhes técnicos, compatibilidade..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Código de Barras</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Barcode className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
-                    <input 
-                      type="text" 
-                      value={formData.barcode}
-                      onChange={e => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
-                      className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                      placeholder="Digite ou gere um código"
-                    />
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={generateBarcode}
-                    className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 rounded-xl text-xs font-bold transition-all"
-                  >
-                    Gerar Auto
-                  </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Preço Venda</label>
+                        <input 
+                            type="number" 
+                            step="0.01"
+                            value={formData.price || ''}
+                            onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-emerald-500 font-black text-xl focus:outline-none focus:border-emerald-500/30 transition-all"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Custo</label>
+                        <input 
+                            type="number" 
+                            step="0.01"
+                            value={formData.costPrice || ''}
+                            onChange={e => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-zinc-400 font-bold focus:outline-none focus:border-white/20 transition-all"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Estoque</label>
+                        <input 
+                            type="number" 
+                            value={formData.stock || ''}
+                            onChange={e => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white font-black text-xl focus:outline-none focus:border-white/20 transition-all"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Min.</label>
+                        <input 
+                            type="number" 
+                            value={formData.minStock || ''}
+                            onChange={e => setFormData(prev => ({ ...prev, minStock: parseInt(e.target.value) || 0 }))}
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-amber-500 font-black text-xl focus:outline-none focus:border-amber-500/50 transition-all"
+                        />
+                    </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-zinc-800">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Preço de Venda (R$)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={formData.price || ''}
-                onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-500 transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Preço de Custo (R$)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={formData.costPrice || ''}
-                onChange={e => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Estoque Atual</label>
-              <input 
-                type="number" 
-                value={formData.stock || ''}
-                onChange={e => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Estoque Mínimo</label>
-              <input 
-                type="number" 
-                value={formData.minStock || ''}
-                onChange={e => setFormData(prev => ({ ...prev, minStock: parseInt(e.target.value) || 0 }))}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-amber-500 transition-colors"
-              />
+            {/* Right Column: Image Preview */}
+            <div className="lg:col-span-4 space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 bg-purple-500 rounded-full" />
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Visualização</h3>
+                </div>
+
+                <div className="sticky top-0">
+                    <div className={`aspect-square rounded-[40px] border-2 border-dashed ${autoFilledFields.has('image') ? 'border-emerald-500' : 'border-white/10'} bg-black/40 overflow-hidden relative group hover:border-white/20 transition-all shadow-2xl`}>
+                        {formData.image ? (
+                        <>
+                            <Image 
+                                src={formData.image} 
+                                alt="Preview" 
+                                fill
+                                className="object-cover group-hover:scale-110 transition-transform duration-1000"
+                                referrerPolicy="no-referrer"
+                            />
+                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 gap-4">
+                                <label className="w-full py-4 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded-2xl shadow-xl active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer">
+                                    <Edit2 size={16} /> Trocar Imagem
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                </label>
+                                <button 
+                                    onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                                    className="w-full py-4 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl shadow-xl active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={16} /> Remover
+                                </button>
+                            </div>
+                            {autoFilledFields.has('image') && (
+                                <div className="absolute top-4 right-4 bg-emerald-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                                    <CheckCircle2 size={18} />
+                                </div>
+                            )}
+                        </>
+                        ) : (
+                        <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.02] transition-all group">
+                            <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-all duration-500">
+                            <ImageIcon size={40} />
+                            </div>
+                            <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.3em] mt-2">Upload Imagem</span>
+                            <div className="mt-4 px-6 py-2 bg-white/5 rounded-full text-[8px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-2 text-center leading-relaxed">
+                                Formatos: JPG, PNG, WEBP
+                            </div>
+                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                        </label>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 mt-6">
+                    <div className="flex items-start gap-3 text-zinc-500">
+                        <Info size={16} className="shrink-0 mt-0.5" />
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest block mb-1 text-zinc-400">Busca Inteligente</span>
+                            <p className="text-xs text-zinc-500 leading-relaxed font-medium">
+                                Realize buscas pelo código de barras e preencha automaticamente os dados e imagens buscando em bases mundiais.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 border-t border-zinc-800 bg-zinc-900/50 flex justify-end gap-4">
-          <button 
-            onClick={onClose}
-            className="px-6 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-white transition-colors"
-          >
-            Cancelar
-          </button>
-          <button 
-            onClick={() => onSave(formData)}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
-          >
-            <Save size={18} />
-            Salvar Produto
-          </button>
+        {/* Footer */}
+        <div className="p-10 border-t border-white/5 bg-gradient-to-t from-white/[0.02] to-transparent flex flex-col sm:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-4">
+             <button 
+                type="button"
+                onClick={generateBarcode}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/5 flex items-center gap-2"
+              >
+                <Barcode size={14} /> Gerar Aleatório
+              </button>
+          </div>
+          
+          <div className="flex items-center gap-8">
+            <button 
+                onClick={onClose}
+                className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-red-400 transition-all active:scale-95"
+            >
+                Cancelar Alterações
+            </button>
+            <button 
+                onClick={() => onSave(formData)}
+                disabled={isDuplicate}
+                className={`px-16 py-5 rounded-[24px] text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center gap-3 active:scale-95 shadow-2xl ${isDuplicate ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border-zinc-700' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'}`}
+            >
+                <Save size={20} />
+                Confirmar Cadastro
+            </button>
+          </div>
         </div>
+
+        {/* Scanner Overlay Modal */}
+        <AnimatePresence>
+            {isScannerOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="w-full max-w-xl aspect-[3/4] sm:aspect-video bg-[#0A0A0A] rounded-[48px] border border-white/10 overflow-hidden relative flex flex-col shadow-2xl relative"
+                    >
+                        <div className="absolute top-0 left-0 right-0 p-8 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20 pointer-events-none">
+                            <div className="flex items-center gap-3 text-blue-500">
+                                <Camera size={24} />
+                                <h3 className="text-xl font-black uppercase tracking-tight text-white drop-shadow-md">Escanear Produto</h3>
+                            </div>
+                            <button onClick={() => setIsScannerOpen(false)} className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors rounded-xl text-white">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+                            {/* Visual Guide Overlay */}
+                            <div className="absolute inset-0 z-10 pointer-events-none flex flex-col items-center justify-center">
+                                <div className="w-[80%] h-[40%] rounded-3xl relative">
+                                    <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-xl" />
+                                    <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-xl" />
+                                    <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-xl" />
+                                    <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-xl" />
+                                    
+                                    {/* Scan Line Animation */}
+                                    <motion.div 
+                                        animate={{ top: ['0%', '100%', '0%'] }}
+                                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                                        className="absolute left-0 right-0 h-[2px] bg-blue-500 shadow-[0_0_20px_#3b82f6]"
+                                    />
+                                    
+                                    <div className="absolute inset-0 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] pointer-events-none" />
+                                </div>
+                                <p className="text-[10px] font-black text-white bg-black/50 px-6 py-3 rounded-full uppercase tracking-[0.3em] mt-12 text-center backdrop-blur-md border border-white/10 shadow-xl">
+                                    Alinhe o código de barras
+                                </p>
+                            </div>
+                            
+                            {/* Real QR/Barcode Scanner Component (Dynamic Script Load) */}
+                            <BarcodeScannerComponent 
+                                onScan={(code) => {
+                                    setFormData(prev => ({ ...prev, barcode: code }));
+                                    setIsScannerOpen(false);
+                                    handleBarcodeSearch(code);
+                                }} 
+                            />
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
   );
+}
+
+// Sub-component for dynamic script loading of html5-qrcode
+function BarcodeScannerComponent({ onScan }: { onScan: (code: string) => void }) {
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let scanner: any = null;
+        
+        const loadScript = () => {
+            if (document.getElementById('html5-qrcode-script')) {
+                initScanner();
+                return;
+            }
+            const script = document.createElement('script');
+            script.id = 'html5-qrcode-script';
+            script.src = 'https://unpkg.com/html5-qrcode';
+            script.onload = initScanner;
+            document.head.appendChild(script);
+        };
+
+        const initScanner = () => {
+            // @ts-ignore
+            if (typeof Html5QrcodeScanner === 'undefined') {
+                setError("Falha ao carregar o scanner");
+                return;
+            }
+
+            try {
+                // @ts-ignore
+                scanner = new Html5QrcodeScanner(
+                    "reader", 
+                    { 
+                        fps: 10, 
+                        qrbox: {width: 250, height: 250},
+                        aspectRatio: 1.0,
+                        showTorchButtonIfSupported: true,
+                        showZoomSliderIfSupported: true,
+                        defaultZoomValueIfSupported: 2
+                    },
+                    /* verbose= */ false
+                );
+                
+                scanner.render((decodedText: string) => {
+                    onScan(decodedText);
+                    scanner.clear();
+                }, (err: any) => {
+                    // Ignore silent errors
+                });
+            } catch (e) {
+                console.error(e);
+                setError("Erro ao inicializar câmera");
+            }
+        };
+
+        loadScript();
+
+        return () => {
+            if (scanner) {
+                try {
+                    scanner.clear();
+                } catch (e) {}
+            }
+        };
+    }, []);
+
+    return (
+        <div id="reader-container" className="w-full h-full flex items-center justify-center bg-zinc-900 absolute inset-0">
+            <div id="reader" className="w-full h-full object-cover [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
+            {error && <div className="absolute z-50 p-4 bg-red-500/90 text-white rounded-xl text-sm font-bold shadow-xl">{error}</div>}
+            <style jsx global>{`
+                /* Override html5-qrcode default styling to make it look clean */
+                #reader { border: none !important; }
+                #reader__scan_region { background: transparent !important; }
+                #reader__dashboard { background: transparent !important; padding: 1rem !important; position: absolute; bottom: 0; left:0; right:0; z-index: 20; display:flex; flex-direction: column; align-items: center;}
+                #reader__dashboard_section_csr span { color: white !important; font-family: sans-serif; font-size: 12px; font-weight: bold; }
+                #reader__dashboard_section_csr button { background: rgba(255,255,255,0.1) !important; color: white !important; border: 1px solid rgba(255,255,255,0.2) !important; padding: 8px 16px !important; border-radius: 999px !important; transition: all 0.2s; cursor: pointer; font-size: 12px; font-weight: bold; margin: 4px; }
+                #reader__dashboard_section_csr button:hover { background: rgba(255,255,255,0.2) !important; }
+                #reader__dashboard_section_swaplink { color: #3b82f6 !important; text-decoration: none !important; font-weight: bold; margin-top: 10px; display: inline-block;}
+                #reader__camera_selection { background: #141414; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px; rounded: 8px; margin-bottom: 8px; outline: none; border-radius: 8px; max-width: 200px; font-size: 12px;}
+            `}</style>
+        </div>
+    );
 }

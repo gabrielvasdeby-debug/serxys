@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { db } from '@/app/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { Order, OrderStatus } from '@/app/components/OrdemServicoModule';
+import { supabase } from '@/app/supabase';
+import { Order } from '@/app/types';
 import { 
   Smartphone, 
   Clock, 
@@ -22,7 +21,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
-const STATUS_CONFIG: Record<OrderStatus, { icon: React.ElementType, color: string, bg: string, label: string }> = {
+const STATUS_CONFIG: Record<string, { icon: React.ElementType, color: string, bg: string, label: string }> = {
   'Entrada Registrada': { icon: Inbox, color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Entrada Registrada' },
   'Orçamento em Elaboração': { icon: FileText, color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'Orçamento em Elaboração' },
   'Em Análise Técnica': { icon: Search, color: 'text-purple-400', bg: 'bg-purple-400/10', label: 'Em Análise Técnica' },
@@ -36,7 +35,7 @@ const STATUS_CONFIG: Record<OrderStatus, { icon: React.ElementType, color: strin
   'Garantia': { icon: ShieldCheck, color: 'text-teal-400', bg: 'bg-teal-400/10', label: 'Garantia' }
 };
 
-const STATUS_STEPS: OrderStatus[] = [
+const STATUS_STEPS: string[] = [
   'Entrada Registrada',
   'Em Análise Técnica',
   'Aguardando Aprovação',
@@ -47,7 +46,7 @@ const STATUS_STEPS: OrderStatus[] = [
 
 export default function TrackingPage() {
   const params = useParams();
-  const orderId = params.orderId as string;
+  const orderId = params?.orderId as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,21 +54,51 @@ export default function TrackingPage() {
   useEffect(() => {
     if (!orderId) return;
 
-    const unsub = onSnapshot(doc(db, 'orders', orderId), (docSnap) => {
-      if (docSnap.exists()) {
-        setOrder({ id: docSnap.id, ...docSnap.data() } as Order);
-        setError(null);
-      } else {
-        setError('Ordem de Serviço não encontrada.');
-      }
-      setLoading(false);
-    }, (err) => {
-      console.error('Error fetching order:', err);
-      setError('Erro ao carregar informações. Por favor, tente novamente mais tarde.');
-      setLoading(false);
-    });
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        const { data, error: sbError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
+          .single();
 
-    return () => unsub();
+        if (sbError) throw sbError;
+
+        if (data) {
+          setOrder({
+            id: data.id,
+            osNumber: data.os_number,
+            customerId: data.customer_id,
+            equipment: data.equipment,
+            checklist: data.checklist,
+            checklistNotes: data.checklist_notes,
+            defect: data.defect,
+            technicianNotes: data.technician_notes,
+            service: data.service,
+            financials: data.financials,
+            signatures: data.signatures,
+            status: data.status,
+            priority: data.priority,
+            history: data.history || [],
+            completionData: data.completion_data,
+            productsUsed: data.products_used || [],
+            createdAt: data.created_at,
+            updatedAt: data.updated_at
+          } as Order);
+          setError(null);
+        } else {
+          setError('Ordem de Serviço não encontrada.');
+        }
+      } catch (err: any) {
+        console.error('Error fetching order:', err);
+        setError('Erro ao carregar informações da OS.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
   }, [orderId]);
 
   if (loading) {
@@ -101,7 +130,7 @@ export default function TrackingPage() {
     );
   }
 
-  const currentStatusConfig = STATUS_CONFIG[order.status];
+  const currentStatusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['Entrada Registrada'];
   const StatusIcon = currentStatusConfig.icon;
 
   return (
@@ -144,37 +173,66 @@ export default function TrackingPage() {
                 <h2 className={`text-2xl font-bold ${currentStatusConfig.color}`}>{order.status}</h2>
               </div>
             </div>
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl px-4 py-3">
+            <div className={`bg-zinc-900/50 border border-zinc-800 rounded-2xl px-4 py-3`}>
               <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Última Atualização</p>
               <p className="text-sm font-medium">{new Date(order.updatedAt).toLocaleString('pt-BR')}</p>
             </div>
           </div>
 
-          {/* Visual Progress Steps */}
-          <div className="mt-12 relative">
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-zinc-800"></div>
-            <div className="flex justify-between relative z-10">
-              {STATUS_STEPS.map((step, idx) => {
-                const isCompleted = STATUS_STEPS.indexOf(order.status) >= idx || 
-                                   (order.status === 'Reparo Concluído' && idx <= 4) ||
-                                   (order.status === 'Equipamento Retirado' && idx <= 5);
-                const isCurrent = order.status === step;
-                
+          {/* Warranty Badge */}
+          {order.completionData?.warrantyDays && (
+            <div className="mt-6 flex items-center justify-center">
+              {(() => {
+                const startDate = order.updatedAt ? new Date(order.updatedAt) : new Date(order.createdAt);
+                const expiryDate = new Date(startDate);
+                expiryDate.setDate(expiryDate.getDate() + (order.completionData.warrantyDays || 0));
+                const isExpired = new Date() > expiryDate;
+
                 return (
-                  <div key={step} className="flex flex-col items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
-                      isCompleted ? 'bg-[#00E676] text-black shadow-[0_0_15px_rgba(0,230,118,0.3)]' : 'bg-zinc-800 text-zinc-600'
-                    } ${isCurrent ? 'ring-4 ring-[#00E676]/20' : ''}`}>
-                      {isCompleted ? <Check size={20} strokeWidth={3} /> : <div className="w-2 h-2 bg-current rounded-full"></div>}
+                  <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl border ${
+                    isExpired ? 'bg-red-500/5 border-red-500/20 text-red-500' : 'bg-teal-500/5 border-teal-500/20 text-teal-400'
+                  }`}>
+                    <ShieldCheck size={20} />
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-widest">{isExpired ? 'Garantia Expirada' : 'Garantia Ativa'}</p>
+                      <p className="text-sm font-bold">
+                        {isExpired ? 'Finalizada em: ' : 'Válida até: '}
+                        {expiryDate.toLocaleDateString('pt-BR')}
+                      </p>
                     </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-tighter text-center max-w-[60px] ${
-                      isCompleted ? 'text-white' : 'text-zinc-600'
-                    }`}>
-                      {step.split(' ')[0]}
-                    </span>
                   </div>
                 );
-              })}
+              })()}
+            </div>
+          )}
+
+          {/* Visual Progress Steps */}
+          <div className="mt-12 relative overflow-x-auto pb-4 custom-scrollbar">
+            <div className="min-w-[500px] relative">
+              <div className="absolute top-5 left-0 right-0 h-0.5 bg-zinc-800"></div>
+              <div className="flex justify-between relative z-10">
+                {STATUS_STEPS.map((step, idx) => {
+                  const isCompleted = STATUS_STEPS.indexOf(order.status) >= idx || 
+                                     (order.status === 'Reparo Concluído' && idx <= 4) ||
+                                     (order.status === 'Equipamento Retirado' && idx <= 5);
+                  const isCurrent = order.status === step;
+                  
+                  return (
+                    <div key={step} className="flex flex-col items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+                        isCompleted ? 'bg-[#00E676] text-black shadow-[0_0_15px_rgba(0,230,118,0.3)]' : 'bg-zinc-800 text-zinc-600'
+                      } ${isCurrent ? 'ring-4 ring-[#00E676]/20' : ''}`}>
+                        {isCompleted ? <CheckIcon size={20} strokeWidth={3} /> : <div className="w-2 h-2 bg-current rounded-full"></div>}
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-tighter text-center max-w-[60px] ${
+                        isCompleted ? 'text-white' : 'text-zinc-600'
+                      }`}>
+                        {step.split(' ')[0]}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -273,7 +331,7 @@ export default function TrackingPage() {
   );
 }
 
-function Check({ size, strokeWidth }: { size: number, strokeWidth: number }) {
+function CheckIcon({ size, strokeWidth }: { size: number, strokeWidth: number }) {
   return (
     <svg 
       width={size} 

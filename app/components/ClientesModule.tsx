@@ -5,6 +5,7 @@ import {
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, Box,
   MapPin, Phone, Mail, FileText, Calendar, AlertCircle
 } from 'lucide-react';
+import { supabase } from '../supabase';
 
 export type DeviceType = 'Celular' | 'Notebook' | 'Computador' | 'Videogame' | 'Tablet' | 'Outro';
 
@@ -95,9 +96,8 @@ export default function ClientesModule({ profile, onBack, onShowToast, customers
       message: 'Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.',
       onConfirm: async () => {
         try {
-          const { doc, deleteDoc } = await import('firebase/firestore');
-          const { db } = await import('../firebase');
-          await deleteDoc(doc(db, 'customers', id));
+          const { error } = await supabase.from('customers').delete().eq('id', id);
+          if (error) throw error;
           
           setCustomers(customers.filter(c => c.id !== id));
           onShowToast('Cliente excluído com sucesso');
@@ -120,13 +120,21 @@ export default function ClientesModule({ profile, onBack, onShowToast, customers
 
   const handleSaveCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'devices'>) => {
     try {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../firebase');
-
       if (editingCustomer) {
-        const updatedCustomer = { ...editingCustomer, ...customerData };
-        await setDoc(doc(db, 'customers', editingCustomer.id), updatedCustomer);
+        const { error } = await supabase.from('customers').update({
+          name: customerData.name,
+          birth_date: customerData.birthDate || null,
+          phone: customerData.phone,
+          whatsapp: customerData.whatsapp,
+          email: customerData.email,
+          document: customerData.document,
+          address: customerData.address,
+          notes: customerData.notes,
+          updated_at: new Date().toISOString(),
+        }).eq('id', editingCustomer.id);
+        if (error) throw error;
         
+        const updatedCustomer = { ...editingCustomer, ...customerData };
         setCustomers(customers.map(c => c.id === editingCustomer.id ? updatedCustomer : c));
         onShowToast('Cliente atualizado com sucesso');
         if (selectedCustomer?.id === editingCustomer.id) {
@@ -134,21 +142,38 @@ export default function ClientesModule({ profile, onBack, onShowToast, customers
         }
       } else {
         const customerId = Date.now().toString();
+        const now = new Date().toISOString();
+        const { error } = await supabase.from('customers').insert({
+          id: customerId,
+          name: customerData.name,
+          birth_date: customerData.birthDate || null,
+          phone: customerData.phone,
+          whatsapp: customerData.whatsapp,
+          email: customerData.email,
+          document: customerData.document,
+          address: customerData.address,
+          notes: customerData.notes,
+          devices: [],
+          created_at: now,
+          updated_at: now,
+        });
+        if (error) throw error;
+        
         const newCustomer: Customer = {
           ...customerData,
           id: customerId,
-          createdAt: new Date().toISOString(),
+          createdAt: now,
           devices: []
         };
-        await setDoc(doc(db, 'customers', customerId), newCustomer);
-        
         setCustomers([...customers, newCustomer]);
         onShowToast('Cliente cadastrado com sucesso');
       }
       setView(selectedCustomer ? 'PROFILE' : 'LIST');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving customer:', error);
-      onShowToast('Erro ao salvar cliente no servidor');
+      const errorMsg = error?.message || (typeof error === 'string' ? error : 'Erro desconhecido');
+      const errorDetails = error?.details || '';
+      onShowToast(`Erro ao salvar cliente: ${errorMsg} ${errorDetails}`);
     }
   };
 
@@ -181,14 +206,14 @@ export default function ClientesModule({ profile, onBack, onShowToast, customers
       message: 'Tem certeza que deseja excluir este aparelho?',
       onConfirm: async () => {
         try {
-          const updatedCustomer = {
-            ...selectedCustomer!,
-            devices: selectedCustomer!.devices.filter(d => d.id !== deviceId)
-          };
+          const updatedDevices = selectedCustomer!.devices.filter(d => d.id !== deviceId);
+          const updatedCustomer = { ...selectedCustomer!, devices: updatedDevices };
           
-          const { doc, setDoc } = await import('firebase/firestore');
-          const { db } = await import('../firebase');
-          await setDoc(doc(db, 'customers', updatedCustomer.id), updatedCustomer);
+          const { error } = await supabase.from('customers').update({
+            devices: updatedDevices,
+            updated_at: new Date().toISOString(),
+          }).eq('id', updatedCustomer.id);
+          if (error) throw error;
 
           setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
           setSelectedCustomer(updatedCustomer);
@@ -221,9 +246,11 @@ export default function ClientesModule({ profile, onBack, onShowToast, customers
       
       const updatedCustomer = { ...selectedCustomer!, devices: updatedDevices };
       
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../firebase');
-      await setDoc(doc(db, 'customers', updatedCustomer.id), updatedCustomer);
+      const { error } = await supabase.from('customers').update({
+        devices: updatedDevices,
+        updated_at: new Date().toISOString(),
+      }).eq('id', updatedCustomer.id);
+      if (error) throw error;
 
       setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
       setSelectedCustomer(updatedCustomer);

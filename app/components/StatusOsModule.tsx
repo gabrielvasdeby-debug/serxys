@@ -4,14 +4,16 @@ import {
   ArrowLeft, Search, Plus, User, Smartphone, 
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2,
-  Calendar, Clock, Wrench, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp
+  Calendar, Clock, Wrench, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer
 } from 'lucide-react';
 import { Customer } from './ClientesModule';
-import { Order, OrderStatus, OrderPriority, OrderCompletionData } from './OrdemServicoModule';
+import { Order, OrderStatus, OrderPriority, OrderCompletionData } from '../types';
 import PatternLock from './PatternLock';
-import { db, auth } from '../firebase';
-import { doc, setDoc, addDoc, collection, query, where, onSnapshot, writeBatch } from 'firebase/firestore';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { supabase } from '../supabase';
+import { addDays } from 'date-fns';
+import OrderPrintTemplate from './OrderPrintTemplate';
+import ThermalReceiptTemplate from './ThermalReceiptTemplate';
+// Removed firebase imports to use Supabase instead.
 
 interface Product {
   id: string;
@@ -42,7 +44,9 @@ interface StatusOsModuleProps {
   orders: Order[];
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   initialOrderId?: string | null;
-  osSettings: { nextOsNumber: number, checklistItems: string[], whatsappMessages: Record<string, string> };
+  osSettings: any;
+  companySettings: any;
+  onEdit?: (order: Order) => void;
 }
 
 const COLUMNS: OrderStatus[] = [
@@ -88,14 +92,16 @@ export default function StatusOsModule({
   orders,
   setOrders,
   initialOrderId,
-  osSettings
+  osSettings,
+  companySettings,
+  onEdit
 }: StatusOsModuleProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStatus, setActiveStatus] = useState<OrderStatus | 'ALL' | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isPatternModalOpen, setIsPatternModalOpen] = useState(false);
-  
+
   // Payment State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -105,24 +111,23 @@ export default function StatusOsModule({
 
   // Listen for current cash session
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const today = new Date().toISOString().split('T')[0];
-    const q = query(
-      collection(db, 'cashSessions'),
-      where('date', '==', today)
-    );
+    const fetchSession = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('cash_sessions')
+        .select('*')
+        .eq('date', today)
+        .eq('status', 'open')
+        .single();
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        setCurrentCashSession({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+      if (data) {
+        setCurrentCashSession({ id: data.id, ...data });
       } else {
         setCurrentCashSession(null);
       }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'cashSessions');
-    });
+    };
 
-    return () => unsubscribe();
+    fetchSession();
   }, []);
 
   // Completion State
@@ -145,7 +150,7 @@ export default function StatusOsModule({
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
   const [isProductSearchOpen, setIsProductSearchOpen] = useState(false);
   const [productSearchQuery, setProductSearchQuery] = useState('');
-  
+
   useEffect(() => {
     if (initialOrderId && orders.length > 0) {
       const order = orders.find(o => o.id === initialOrderId);
@@ -157,12 +162,20 @@ export default function StatusOsModule({
   }, [initialOrderId, orders]);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
-      const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-      setAvailableProducts(productsData);
-    });
-    return () => unsub();
+    const fetchProducts = async () => {
+      const { data } = await supabase.from('products').select('*').order('name');
+      if (data) {
+        setAvailableProducts(data.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          stock: p.stock,
+          category: p.category,
+          barcode: p.barcode
+        })));
+      }
+    };
+    fetchProducts();
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -204,6 +217,7 @@ export default function StatusOsModule({
   };
 
   const executeOrderStatusUpdate = async (order: Order, newStatus: OrderStatus, completionData?: OrderCompletionData, productsUsed?: SelectedProduct[]) => {
+    const now = new Date().toISOString();
     const updatedOrder = {
       ...order,
       status: newStatus,
@@ -212,55 +226,79 @@ export default function StatusOsModule({
       history: [
         ...order.history,
         {
-          date: new Date().toISOString(),
+          date: now,
           user: profile.name,
           description: `Status alterado de "${order.status}" para "${newStatus}"`
         }
       ],
-      updatedAt: new Date().toISOString()
+      updatedAt: now
     };
 
     try {
-      const batch = writeBatch(db);
-      
-      // 1. Update Order
-      batch.set(doc(db, 'orders', order.id), updatedOrder);
+      // 1. Update Order in Supabase
+      const { error: osError } = await supabase.from('orders').update({
+        status: updatedOrder.status,
+        completion_data: updatedOrder.completionData,
+        products_used: updatedOrder.productsUsed,
+        history: updatedOrder.history,
+        updated_at: now
+      }).eq('id', order.id);
+
+      if (osError) throw osError;
+
+      // 1.0 Create Warranty if present
+      if (completionData?.warrantyDays) {
+        const startDate = now.split('T')[0];
+        const endDate = addDays(new Date(), completionData.warrantyDays).toISOString().split('T')[0];
+
+        await supabase.from('warranties').insert({
+          id: crypto.randomUUID(),
+          os_id: order.id,
+          os_number: order.osNumber.toString().padStart(4, '0'),
+          client_name: customers.find(c => c.id === order.customerId)?.name || 'Cliente',
+          equipment: `${order.equipment.brand} ${order.equipment.model}`,
+          service_performed: completionData.servicesPerformed || order.service,
+          start_date: startDate,
+          end_date: endDate,
+          duration_days: completionData.warrantyDays,
+          notes: completionData.warrantyDescription || '',
+          status: 'Ativa',
+          user_id: profile.id
+        });
+      }
 
       // 2. Process Products Used
       if (productsUsed && productsUsed.length > 0) {
         for (const p of productsUsed) {
-          // Update Stock
-          const productRef = doc(db, 'products', p.id);
           const product = availableProducts.find(ap => ap.id === p.id);
           if (product) {
-            batch.update(productRef, {
+            // Update Stock
+            await supabase.from('products').update({
               stock: Math.max(0, product.stock - p.quantity),
-              updatedAt: new Date().toISOString()
+              updated_at: now
+            }).eq('id', p.id);
+
+            // Add History
+            await supabase.from('product_history').insert({
+              id: crypto.randomUUID(),
+              product_id: p.id,
+              type: 'saida',
+              quantity: p.quantity,
+              reason: 'os',
+              reference_id: order.id,
+              date: now.split('T')[0],
+              user_id: profile.id,
+              created_at: now
             });
           }
-
-          // Add History
-          const historyRef = doc(collection(db, 'productHistory'));
-          batch.set(historyRef, {
-            productId: p.id,
-            type: 'saida',
-            quantity: p.quantity,
-            reason: 'os',
-            referenceId: order.id,
-            date: new Date().toISOString().split('T')[0],
-            userId: auth.currentUser?.uid || profile.id || 'system',
-            createdAt: new Date().toISOString()
-          });
         }
       }
 
-      await batch.commit();
-      
       setOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
       onShowToast(`Status da OS #${order.osNumber} atualizado`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating OS status:', error);
-      onShowToast('Erro ao atualizar status no servidor');
+      onShowToast(`Erro ao atualizar status: ${error.message || ''}`);
     }
   };
 
@@ -283,7 +321,7 @@ export default function StatusOsModule({
           .replace(/\[nome_cliente\]/g, customer.name)
           .replace(/\[numero_os\]/g, order.osNumber.toString().padStart(4, '0'))
           .replace(/\[status\]/g, newStatus);
-        
+
         setWhatsappModal({
           isOpen: true,
           message,
@@ -291,36 +329,43 @@ export default function StatusOsModule({
         });
       }
     }
-    
+
     setWhatsappPrompt({ isOpen: false, order: null, newStatus: null });
   };
 
   const updatePaymentStatus = async (order: Order, newPaymentStatus: 'Total' | 'Parcial' | 'Pendente') => {
-    const updatedOrder = {
-      ...order,
-      financials: {
-        ...order.financials,
-        paymentStatus: newPaymentStatus
-      },
-      history: [
-        ...order.history,
-        {
-          date: new Date().toISOString(),
-          user: profile.name,
-          description: `Status de pagamento alterado de "${order.financials.paymentStatus}" para "${newPaymentStatus}"`
-        }
-      ],
-      updatedAt: new Date().toISOString()
-    };
+    const now = new Date().toISOString();
+    const updatedHistory = [
+      ...order.history,
+      {
+        date: now,
+        user: profile.name,
+        description: `Status de pagamento alterado de "${order.financials.paymentStatus}" para "${newPaymentStatus}"`
+      }
+    ];
 
     try {
-      await setDoc(doc(db, 'orders', order.id), updatedOrder);
-      
-      setOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
+      const { error } = await supabase.from('orders').update({
+        financials: {
+          ...order.financials,
+          paymentStatus: newPaymentStatus
+        },
+        history: updatedHistory,
+        updated_at: now
+      }).eq('id', order.id);
+
+      if (error) throw error;
+
+      setOrders(prev => prev.map(o => o.id === order.id ? {
+        ...o,
+        financials: { ...o.financials, paymentStatus: newPaymentStatus },
+        history: updatedHistory,
+        updatedAt: now
+      } : o));
       onShowToast(`Pagamento da OS #${order.osNumber} atualizado`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating payment status:', error);
-      onShowToast('Erro ao atualizar pagamento no servidor');
+      onShowToast(`Erro ao atualizar pagamento: ${error.message || ''}`);
     }
   };
 
@@ -342,7 +387,7 @@ export default function StatusOsModule({
     updateOrderStatus(selectedOrder, 'Reparo Concluído', completionData, selectedProducts);
     setIsFinishing(false);
     setSelectedOrder(null);
-    
+
     // Reset form
     setServicesPerformed('');
     setExitChecklist({
@@ -370,10 +415,6 @@ export default function StatusOsModule({
       onShowToast('É necessário abrir o caixa para registrar pagamentos.');
       return;
     }
-    if (currentCashSession.status === 'closed') {
-      onShowToast('O caixa do dia já foi fechado. Não é possível registrar novos pagamentos.');
-      return;
-    }
 
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -383,132 +424,162 @@ export default function StatusOsModule({
 
     const newAmountPaid = (selectedOrder.financials.amountPaid || 0) + amount;
     const totalValue = selectedOrder.financials.totalValue;
-    
+
     let newPaymentStatus: 'Total' | 'Parcial' | 'Pendente' = 'Parcial';
     if (newAmountPaid >= totalValue) {
       newPaymentStatus = 'Total';
     }
 
-    const updatedOrder: Order = {
-      ...selectedOrder,
-      financials: {
-        ...selectedOrder.financials,
-        amountPaid: newAmountPaid,
-        paymentStatus: newPaymentStatus,
-        paymentType: paymentMethod // Last payment method used
-      },
-      history: [
-        ...selectedOrder.history,
-        {
-          date: new Date().toISOString(),
-          user: profile.name,
-          description: `Pagamento registrado: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)} (${paymentMethod})`
-        }
-      ],
-      updatedAt: new Date().toISOString()
-    };
+    const now = new Date().toISOString();
+    const updatedHistory = [
+      ...selectedOrder.history,
+      {
+        date: now,
+        user: profile.name,
+        description: `Pagamento registrado: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)} (${paymentMethod})`
+      }
+    ];
 
     try {
-      await setDoc(doc(db, 'orders', selectedOrder.id), updatedOrder);
+      // 1. Update Order
+      const { error: osError } = await supabase.from('orders').update({
+        financials: {
+          ...selectedOrder.financials,
+          amountPaid: newAmountPaid,
+          paymentStatus: newPaymentStatus,
+          paymentType: paymentMethod
+        },
+        history: updatedHistory,
+        updated_at: now
+      }).eq('id', selectedOrder.id);
 
-      // Record transaction in Caixa
+      if (osError) throw osError;
+
+      // 2. Record transaction in Caixa
       const customer = customers.find(c => c.id === selectedOrder.customerId);
-      await addDoc(collection(db, 'transactions'), {
+      const { error: transError } = await supabase.from('transactions').insert({
+        id: crypto.randomUUID(),
         type: 'entrada',
         description: `Pagamento OS #${selectedOrder.osNumber} - ${customer?.name || 'Cliente'}`,
         value: amount,
-        paymentMethod: paymentMethod,
-        date: new Date().toISOString().split('T')[0],
+        payment_method: paymentMethod,
+        date: now.split('T')[0],
         time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        osId: selectedOrder.osNumber.toString(),
-        userId: auth.currentUser?.uid || profile.id || 'system',
-        createdAt: new Date().toISOString()
+        os_id: selectedOrder.osNumber.toString(),
+        user_id: profile.id,
+        session_id: currentCashSession?.id
       });
 
-      // Update Receivable
-      const { getDocs, query, where, updateDoc } = await import('firebase/firestore');
-      const q = query(collection(db, 'receivables'), where('osId', '==', selectedOrder.id), where('status', '==', 'pendente'));
-      const querySnapshot = await getDocs(q);
-      
+      if (transError) throw transError;
+
+      // 3. Update or Create Receivable
+      const { data: receivables } = await supabase
+        .from('receivables')
+        .select('*')
+        .eq('os_id', selectedOrder.id)
+        .eq('status', 'pendente');
+
       const remainingBalance = totalValue - newAmountPaid;
-      
-      if (!querySnapshot.empty) {
-        const receivableDoc = querySnapshot.docs[0];
+
+      if (receivables && receivables.length > 0) {
+        const receivableId = receivables[0].id;
         if (remainingBalance <= 0) {
-          await updateDoc(receivableDoc.ref, {
+          await supabase.from('receivables').update({
             status: 'recebido',
-            receivedDate: new Date().toISOString().split('T')[0],
-            paymentMethod: paymentMethod,
-            updatedAt: new Date().toISOString()
-          });
+            received_date: now.split('T')[0],
+            payment_method: paymentMethod,
+            updated_at: now
+          }).eq('id', receivableId);
         } else {
-          await updateDoc(receivableDoc.ref, {
+          await supabase.from('receivables').update({
             value: remainingBalance,
-            updatedAt: new Date().toISOString()
-          });
+            updated_at: now
+          }).eq('id', receivableId);
         }
       } else if (remainingBalance > 0) {
-        await addDoc(collection(db, 'receivables'), {
+        await supabase.from('receivables').insert({
+          id: crypto.randomUUID(),
           description: `Saldo OS #${selectedOrder.osNumber} - ${selectedOrder.equipment.type} ${selectedOrder.equipment.brand}`,
           value: remainingBalance,
-          dueDate: new Date().toISOString().split('T')[0],
+          due_date: now.split('T')[0],
           status: 'pendente',
-          customerName: customer?.name || 'Cliente',
-          osId: selectedOrder.id,
-          notes: `Gerado automaticamente no pagamento da OS #${selectedOrder.osNumber}`,
-          createdAt: new Date().toISOString()
+          customer_name: customer?.name || 'Cliente',
+          os_id: selectedOrder.id,
+          created_at: now
         });
       }
 
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updatedOrder : o));
-      setSelectedOrder(updatedOrder);
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? {
+        ...o,
+        financials: {
+          ...o.financials,
+          amountPaid: newAmountPaid,
+          paymentStatus: newPaymentStatus,
+          paymentType: paymentMethod
+        },
+        history: updatedHistory,
+        updatedAt: now
+      } : o));
+
+      setSelectedOrder(prev => prev ? {
+        ...prev,
+        financials: {
+          ...prev.financials,
+          amountPaid: newAmountPaid,
+          paymentStatus: newPaymentStatus,
+          paymentType: paymentMethod
+        },
+        history: updatedHistory,
+        updatedAt: now
+      } : null);
+
       setIsPaymentModalOpen(false);
       setPaymentAmount('');
       onShowToast('Pagamento registrado com sucesso');
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `orders/${selectedOrder.id}`);
+    } catch (error: any) {
+      console.error('Error registering payment:', error);
+      onShowToast(`Erro ao registrar pagamento: ${error.message || ''}`);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col">
-      <header className="bg-[#141414] border-b border-zinc-800 p-4 sticky top-0 z-10">
-        <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="bg-[#141414] border-b border-zinc-800 p-4 sticky top-0 z-30">
+        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={onBack}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
+              className="p-2.5 hover:bg-zinc-800 rounded-xl transition-colors bg-zinc-900 border border-zinc-800"
             >
               <ArrowLeft size={20} className="text-zinc-400" />
             </button>
             <div>
-              <h1 className="text-xl font-bold">Status OS</h1>
-              <p className="text-sm text-zinc-400">Acompanhamento de Ordens de Serviço</p>
+              <h1 className="text-lg sm:text-xl font-bold">Status OS</h1>
+              <p className="text-[10px] sm:text-sm text-zinc-500 font-medium uppercase tracking-wider">Gestão de Ordens</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-96">
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-96">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-              <input 
-                type="text" 
-                placeholder="Buscar por OS, cliente ou aparelho..." 
+              <input
+                type="text"
+                placeholder="Buscar OS, cliente ou aparelho..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
               />
             </div>
             <button
               onClick={() => setActiveStatus('ALL')}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
-                activeStatus === 'ALL' 
-                ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' 
-                : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700'
+              className={`px-5 py-3 rounded-xl text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
+                activeStatus === 'ALL'
+                ? 'bg-[#00E676] text-black border-[#00E676] shadow-lg shadow-[#00E676]/20'
+                : 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700'
               }`}
             >
               <Grid size={18} />
-              <span className="hidden xs:inline">Mostrar todas</span>
-              <span className="xs:hidden">Todas</span>
+              <span className="inline">Todas as OS</span>
             </button>
           </div>
         </div>
@@ -522,8 +593,8 @@ export default function StatusOsModule({
               const count = filteredOrders.filter(o => o.status === status).length;
               const Icon = config.icon;
               return (
-                <button 
-                  key={status} 
+                <button
+                  key={status}
                   onClick={() => setActiveStatus(status)}
                   className="bg-[#1A1A1A] border border-zinc-800 hover:border-zinc-700 p-6 rounded-3xl flex flex-col items-center justify-center gap-4 transition-all group text-center aspect-square relative"
                 >
@@ -553,21 +624,21 @@ export default function StatusOsModule({
                   {activeStatus === 'ALL' ? 'Todas as Ordens' : activeStatus}
                 </h2>
                 <span className="bg-zinc-800 text-zinc-400 text-xs font-bold px-2 py-1 rounded-full">
-                  {activeStatus === 'ALL' 
-                    ? filteredOrders.length 
+                  {activeStatus === 'ALL'
+                    ? filteredOrders.length
                     : filteredOrders.filter(o => o.status === activeStatus).length}
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {(activeStatus === 'ALL' 
-                ? filteredOrders 
+              {(activeStatus === 'ALL'
+                ? filteredOrders
                 : filteredOrders.filter(o => o.status === activeStatus)
               ).map(order => {
                 const customer = customers.find(c => c.id === order.customerId);
                 return (
-                  <div 
+                  <div
                     key={order.id}
                     onClick={() => setSelectedOrder(order)}
                     className="bg-[#1A1A1A] border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 cursor-pointer transition-all hover:shadow-lg group"
@@ -587,10 +658,10 @@ export default function StatusOsModule({
                         <span className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]}`} title={`Prioridade: ${order.priority}`} />
                       </div>
                     </div>
-                    
+
                     <h4 className="font-medium text-white mb-1 line-clamp-1">{customer?.name || 'Cliente não encontrado'}</h4>
                     <p className="text-sm text-zinc-400 mb-4 line-clamp-1">{order.equipment.brand} {order.equipment.model}</p>
-                    
+
                     <div className="bg-[#0A0A0A] rounded-xl p-3 mb-4">
                       <p className="text-xs text-zinc-500 line-clamp-2" title={order.defect}>{order.defect}</p>
                     </div>
@@ -608,8 +679,8 @@ export default function StatusOsModule({
                   </div>
                 );
               })}
-              {(activeStatus === 'ALL' 
-                ? filteredOrders 
+              {(activeStatus === 'ALL'
+                ? filteredOrders
                 : filteredOrders.filter(o => o.status === activeStatus)
               ).length === 0 && (
                 <div className="col-span-full py-12 text-center text-zinc-500">
@@ -636,32 +707,52 @@ export default function StatusOsModule({
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-[#141414] border border-zinc-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
             >
-              <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-                <div>
-                  <h2 className="text-xl font-bold flex items-center gap-3">
-                    OS #{selectedOrder.osNumber.toString().padStart(4, '0')}
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      selectedOrder.priority === 'Baixa' ? 'bg-zinc-800 text-zinc-300' :
-                      selectedOrder.priority === 'Média' ? 'bg-blue-500/20 text-blue-400' :
-                      selectedOrder.priority === 'Alta' ? 'bg-orange-500/20 text-orange-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {selectedOrder.priority}
-                    </span>
-                  </h2>
-                  <p className="text-sm text-zinc-400 mt-1">Status atual: <span className="text-white font-medium">{selectedOrder.status}</span></p>
+              <div className="flex flex-col border-b border-zinc-800">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/50 bg-zinc-900/30">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-xl transition-colors sm:hidden"
+                    >
+                      <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-black flex items-center gap-3">
+                        OS #{selectedOrder.osNumber.toString().padStart(4, '0')}
+                      </h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${
+                          selectedOrder.priority === 'Baixa' ? 'bg-zinc-800 text-zinc-500' :
+                          selectedOrder.priority === 'Média' ? 'bg-blue-500/10 text-blue-400' :
+                          selectedOrder.priority === 'Alta' ? 'bg-orange-500/10 text-orange-400' :
+                          'bg-red-500/10 text-red-500'
+                        }`}>
+                          {selectedOrder.priority}
+                        </span>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                          {selectedOrder.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-xl transition-colors hidden sm:block"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <div className="flex items-center gap-3">
+
+                {/* Actions Bar - Responsive */}
+                <div className="p-3 sm:p-4 bg-[#0F0F0F] flex flex-wrap items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
                   <select
                     value={selectedOrder.status}
                     onChange={(e) => {
                       const newStatus = e.target.value as OrderStatus;
-                      
                       if (newStatus === 'Equipamento Retirado' && selectedOrder.financials.paymentStatus !== 'Total') {
-                        onShowToast('⚠️ Pagamento Pendente! Não é possível retirar o equipamento sem a quitação total.');
+                        onShowToast('⚠️ Pagamento Pendente!');
                         return;
                       }
-
                       if (newStatus === 'Reparo Concluído') {
                         setIsFinishing(true);
                       } else {
@@ -669,37 +760,37 @@ export default function StatusOsModule({
                         setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                       }
                     }}
-                    className="bg-[#0A0A0A] border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                    className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#00E676] min-w-[140px]"
                   >
                     {COLUMNS.map(status => (
                       <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
+
+                  <div className="h-6 w-px bg-zinc-800 mx-1 hidden sm:block" />
+
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(selectedOrder)}
+                      className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase transition-all shadow-lg shadow-blue-500/20"
+                    >
+                      <FileText size={16} />
+                      Editar
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       const customer = customers.find(c => c.id === selectedOrder.customerId);
-                      if (!customer?.whatsapp) {
-                        onShowToast('Cliente não possui WhatsApp cadastrado');
-                        return;
-                      }
-                      
-                      const trackingUrl = `${window.location.origin}/os/${selectedOrder.id}`;
-                      
-                      const message = `Olá, *${customer.name}*.\n\nSua ordem de serviço foi registrada com sucesso no sistema *Servyx*.\n\n*Número da OS:* #${selectedOrder.osNumber.toString().padStart(4, '0')}\n\n*Equipamento:*\n${selectedOrder.equipment.brand} ${selectedOrder.equipment.model}\n\n*Defeito relatado:*\n${selectedOrder.defect}\n\n*Status atual:*\n${selectedOrder.status}\n\n*Data de entrada:*\n${new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR')}\n\nVocê pode acompanhar o andamento do seu reparo pelo link abaixo:\n\n${trackingUrl}\n\nAssistência técnica agradece a sua confiança!`;
-                      
-                      const whatsappUrl = `https://wa.me/${customer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-                      window.open(whatsappUrl, '_blank');
+                      if (!customer?.whatsapp) return;
+                      const trackingUrl = `https://servyx.app/${companySettings.publicSlug}/${selectedOrder.osNumber}`;
+                      const message = `Olá, *${customer.name}*.\n\nSua OS #${selectedOrder.osNumber.toString().padStart(4, '0')} está no status: *${selectedOrder.status}*.\n\nLink: ${trackingUrl}`;
+                      window.open(`https://wa.me/${customer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
                     }}
-                    className="flex items-center gap-2 bg-[#1A1A1A] hover:bg-zinc-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-zinc-800"
+                    className="flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-3 py-2 rounded-lg text-xs font-bold uppercase transition-all shadow-lg shadow-green-500/20"
                   >
-                    <MessageCircle size={18} className="text-green-500" />
-                    Enviar ao Cliente
-                  </button>
-                  <button
-                    onClick={() => setSelectedOrder(null)}
-                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
-                  >
-                    <X size={20} />
+                    <MessageCircle size={16} />
+                    Zap
                   </button>
                 </div>
               </div>
@@ -851,9 +942,9 @@ export default function StatusOsModule({
                           onChange={(e) => {
                             const newStatus = e.target.value as 'Total' | 'Parcial' | 'Pendente';
                             updatePaymentStatus(selectedOrder, newStatus);
-                            setSelectedOrder(prev => prev ? { 
-                              ...prev, 
-                              financials: { ...prev.financials, paymentStatus: newStatus } 
+                            setSelectedOrder(prev => prev ? {
+                              ...prev,
+                              financials: { ...prev.financials, paymentStatus: newStatus }
                             } : null);
                           }}
                           className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-[#0A0A0A] border border-zinc-800 focus:outline-none focus:border-[#00E676] transition-colors appearance-none cursor-pointer ${
@@ -906,7 +997,7 @@ export default function StatusOsModule({
                         <p className="text-xs text-zinc-500 mb-1">Serviços Realizados</p>
                         <p className="text-sm text-white whitespace-pre-wrap">{selectedOrder.completionData.servicesPerformed}</p>
                       </div>
-                      
+
                       {selectedOrder.completionData.partsUsed && (
                         <div>
                           <p className="text-xs text-zinc-500 mb-1">Peças Utilizadas</p>
@@ -1188,7 +1279,7 @@ export default function StatusOsModule({
               className="bg-[#141414] border border-zinc-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
             >
               <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <h2 className="text-xl font-bold text-emerald-500 flex items-center gap-2">
                   <Package size={24} className="text-emerald-500" />
                   Selecionar Peça do Catálogo
                 </h2>
@@ -1212,7 +1303,7 @@ export default function StatusOsModule({
 
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2">
                   {availableProducts
-                    .filter(p => 
+                    .filter(p =>
                       p.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
                       p.barcode?.includes(productSearchQuery)
                     )
@@ -1286,9 +1377,9 @@ export default function StatusOsModule({
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Valor do Pagamento (R$)</label>
-                  <input 
+                  <input
                     autoFocus
-                    type="number" 
+                    type="number"
                     step="0.01"
                     value={paymentAmount}
                     onChange={e => setPaymentAmount(e.target.value)}
@@ -1306,8 +1397,8 @@ export default function StatusOsModule({
                         type="button"
                         onClick={() => setPaymentMethod(method)}
                         className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
-                          paymentMethod === method 
-                          ? 'bg-zinc-800 border-zinc-600 text-white shadow-inner' 
+                          paymentMethod === method
+                          ? 'bg-zinc-800 border-zinc-600 text-white shadow-inner'
                           : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
                         }`}
                       >
@@ -1321,7 +1412,7 @@ export default function StatusOsModule({
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={handleRegisterPayment}
                   className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-2xl transition-all shadow-lg shadow-emerald-500/20"
                 >
@@ -1335,7 +1426,7 @@ export default function StatusOsModule({
 
       <AnimatePresence>
         {isPatternModalOpen && selectedOrder && (
-          <PatternLock 
+          <PatternLock
             isOpen={isPatternModalOpen}
             onClose={() => setIsPatternModalOpen(false)}
             onSave={() => {}}
@@ -1433,6 +1524,28 @@ export default function StatusOsModule({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* PROFESSIONAL PRINT TEMPLATE */}
+      {selectedOrder && (
+        <>
+          <div className="print-a4-container">
+            <OrderPrintTemplate
+              order={selectedOrder}
+              customer={customers.find(c => c.id === selectedOrder.customerId)}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+          <div className="print-thermal-container">
+            <ThermalReceiptTemplate
+              order={selectedOrder}
+              customer={customers.find(c => c.id === selectedOrder.customerId)}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }

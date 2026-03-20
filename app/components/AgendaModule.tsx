@@ -8,13 +8,9 @@ import {
   ClipboardList, Wrench, 
   Check, Play, Pause
 } from 'lucide-react';
-import { db, auth } from '../firebase';
-import { 
-  collection, addDoc, onSnapshot, query, orderBy, 
-  updateDoc, doc, deleteDoc
-} from 'firebase/firestore';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
-import { Order } from './OrdemServicoModule';
+import { supabase } from '../supabase';
+// Removed firebase imports to use Supabase instead.
+import { Order } from '../types';
 
 interface Task {
   id: string;
@@ -98,18 +94,35 @@ export default function AgendaModule({
   const technicians = useMemo(() => profiles.filter(p => p.type === 'Técnico' || p.type === 'ADM'), [profiles]);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const q = query(collection(db, 'tasks'), orderBy('date', 'asc'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tasksList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
-      setTasks(tasksList);
+    const fetchTasks = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('agenda')
+        .select('*')
+        .order('date', { ascending: true })
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setTasks(data.map(t => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          date: t.date,
+          technicianId: t.technician_id,
+          technicianName: t.technician_name,
+          priority: t.priority,
+          status: t.status,
+          type: t.type,
+          osId: t.os_id,
+          osNumber: t.os_number,
+          createdAt: t.created_at,
+          createdBy: t.user_id
+        })) as Task[]);
+      }
       setIsLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'tasks');
-      setIsLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchTasks();
   }, []);
 
   const filteredTasks = useMemo(() => {
@@ -140,44 +153,67 @@ export default function AgendaModule({
       title: newTask.title,
       description: newTask.description || '',
       date: newTask.date,
-      technicianId: newTask.technicianId,
-      technicianName: technician?.name || 'Técnico',
+      technician_id: newTask.technicianId,
+      technician_name: technician?.name || 'Técnico',
       priority: newTask.priority,
       status: 'Pendente',
       type: newTask.type,
-      createdAt: new Date().toISOString(),
-      createdBy: profile.id
+      user_id: profile.id
     };
 
     if (newTask.type === 'os') {
-      if (newTask.osId) taskData.osId = newTask.osId;
-      if (linkedOs?.osNumber) taskData.osNumber = linkedOs.osNumber;
+      if (newTask.osId) taskData.os_id = newTask.osId;
+      if (linkedOs?.osNumber) taskData.os_number = linkedOs.osNumber;
     }
 
     try {
-      await addDoc(collection(db, 'tasks'), taskData);
-      onShowToast('Tarefa criada com sucesso');
-      setIsNewTaskModalOpen(false);
-      setNewTask({
-        title: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        technicianId: '',
-        priority: 'Média',
-        type: 'manual',
-        osId: ''
-      });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'tasks');
+      const { data, error } = await supabase.from('agenda').insert(taskData).select().single();
+      if (error) throw error;
+
+      if (data) {
+        const newTaskForState: Task = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          date: data.date,
+          technicianId: data.technician_id,
+          technicianName: data.technician_name,
+          priority: data.priority,
+          status: data.status,
+          type: data.type,
+          osId: data.os_id,
+          osNumber: data.os_number,
+          createdAt: data.created_at,
+          createdBy: data.user_id
+        };
+        setTasks(prev => [newTaskForState, ...prev].sort((a, b) => a.date.localeCompare(b.date)));
+        onShowToast('Tarefa criada com sucesso');
+        setIsNewTaskModalOpen(false);
+        setNewTask({
+          title: '',
+          description: '',
+          date: new Date().toISOString().split('T')[0],
+          technicianId: '',
+          priority: 'Média',
+          type: 'manual',
+          osId: ''
+        });
+      }
+    } catch (error: any) {
+      console.error('Error creating task:', error);
+      onShowToast(`Erro ao criar tarefa: ${error.message || ''}`);
     }
   };
 
   const handleUpdateStatus = async (taskId: string, newStatus: 'Pendente' | 'Em andamento' | 'Concluída') => {
     try {
-      await updateDoc(doc(db, 'tasks', taskId), { status: newStatus });
+      const { error } = await supabase.from('agenda').update({ status: newStatus }).eq('id', taskId);
+      if (error) throw error;
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
       onShowToast(`Tarefa marcada como ${newStatus.toLowerCase()}`);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `tasks/${taskId}`);
+    } catch (error: any) {
+      console.error('Error updating task:', error);
+      onShowToast(`Erro ao atualizar status: ${error.message || ''}`);
     }
   };
 
@@ -188,11 +224,14 @@ export default function AgendaModule({
       message: 'Deseja realmente excluir esta tarefa? Esta ação não pode ser desfeita.',
       onConfirm: async () => {
         try {
-          await deleteDoc(doc(db, 'tasks', taskId));
+          const { error } = await supabase.from('agenda').delete().eq('id', taskId);
+          if (error) throw error;
+          setTasks(prev => prev.filter(t => t.id !== taskId));
           onShowToast('Tarefa excluída');
           setConfirmModal(null);
-        } catch (error) {
-          handleFirestoreError(error, OperationType.DELETE, `tasks/${taskId}`);
+        } catch (error: any) {
+          console.error('Error deleting task:', error);
+          onShowToast(`Erro ao excluir: ${error.message || ''}`);
         }
       }
     });
