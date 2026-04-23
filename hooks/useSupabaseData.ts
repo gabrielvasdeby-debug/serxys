@@ -15,13 +15,14 @@ const DEFAULT_OS_SETTINGS: OsSettings = {
   checklistItems: ['Carregador', 'Cabo USB', 'Bateria', 'Cartão de Memória', 'Chip', 'Capa Proteção'],
   printTerms: '',
   whatsappMessages: {
-    'Entrada Registrada': 'Olá [nome_cliente], sua OS #[numero_os] foi registrada com sucesso. Status: [status].',
+    'Entrada Registrada': 'Olá, [nome_cliente]! 👋\nSua Ordem de Serviço foi gerada com sucesso em nosso Sistema. 🚀\n\nNúmero da sua OS: [numero_os]\n\nEquipamento:\n[marca] [modelo]\n\nDefeito relatado:\n[defeito]\n\nStatus atual:\n[status]\n\nData de entrada:\n[data_entrada]\n\nVocê pode acompanhar o andamento do seu reparo pelo link abaixo:\n\n👉 [link_os]\n\n[nome_assistencia] agradece sua confiança!',
     'Em Análise Técnica': 'Olá [nome_cliente], sua OS #[numero_os] está em análise técnica. Status: [status].',
     'Orçamento em Elaboração': 'Olá [nome_cliente], o orçamento da sua OS #[numero_os] está em elaboração. Status: [status].',
-    'Aguardando Aprovação': 'Olá [nome_cliente], o orçamento da sua OS #[numero_os] está aguardando aprovação. Status: [status].',
+    'Aguardando Aprovação': 'Olá, [nome_cliente]! 👋\nSeu orçamento está pronto OS: [numero_os]\n🔧 [defeito]\n💰 [valor_total]  \n Aprove aqui:\n👉 [link_os]\n\nQualquer dúvida é só chamar 👍',
     'Em Manutenção': 'Olá [nome_cliente], sua OS #[numero_os] está em manutenção. Status: [status].',
     'Reparo Concluído': 'Olá [nome_cliente], o reparo da sua OS #[numero_os] foi concluído. Status: [status].',
     'Orçamento Cancelado': 'Olá [nome_cliente], o orçamento da sua OS #[numero_os] foi cancelado. Status: [status].',
+    'Assinatura Remota': 'Olá [nome_cliente]! 👋\nSeu atendimento já está em fase final (OS [numero_os]).\n\nFalta só sua confirmação para concluirmos:\n👉 [link_assinatura]\n\nAssim que confirmar, já damos continuidade 👍\n\nAguardamos você\n\n[nome_assistencia]',
     'Sem Reparo': 'Olá [nome_cliente], sua OS #[numero_os] foi avaliada como sem reparo. Status: [status].'
   }
 };
@@ -75,10 +76,19 @@ export function useSupabaseData() {
     try {
       setLoading(true);
 
-      const [customersRes, ordersRes, settingsRes] = await Promise.all([
-        supabase.from('customers').select('*').order('name'),
-        supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        supabase.from('app_settings').select('*').eq('key', 'os_settings').single(),
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const userId = session.user.id;
+      
+      // Get company_id from profile
+      const { data: profile } = await supabase.from('profiles').select('company_id').eq('user_id', userId).single();
+      const companyId = profile?.company_id || userId;
+
+      const [customersRes, ordersRes, settingsResArr] = await Promise.all([
+        supabase.from('customers').select('*').eq('company_id', companyId).order('name'),
+        supabase.from('orders').select('*').eq('company_id', companyId).order('created_at', { ascending: false }),
+        supabase.from('app_settings').select('*').in('key', ['os_settings', `os_settings_${companyId}`]),
       ]);
 
       if (customersRes.data) {
@@ -89,8 +99,11 @@ export function useSupabaseData() {
         setOrders(ordersRes.data.map(rowToOrder));
       }
 
-      if (settingsRes.data?.value) {
-        const saved = settingsRes.data.value as Partial<OsSettings>;
+      const settingsRows = settingsResArr.data || [];
+      const settingsRow = settingsRows.find(r => r.key === `os_settings_${companyId}`) || settingsRows.find(r => r.key === 'os_settings');
+
+      if (settingsRow?.value) {
+        const saved = settingsRow.value as Partial<OsSettings>;
         setOsSettingsState({
           ...DEFAULT_OS_SETTINGS,
           ...saved,
@@ -115,10 +128,18 @@ export function useSupabaseData() {
   // Customers CRUD
   // ============================
   const saveCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
-    const id = Date.now().toString();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const userId = session.user.id;
+    const { data: profile } = await supabase.from('profiles').select('company_id').eq('user_id', userId).single();
+    const companyId = profile?.company_id || userId;
+
+    const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const row = {
       id,
+      company_id: companyId,
       name: customerData.name,
       birth_date: customerData.birthDate || null,
       phone: customerData.phone,
@@ -170,10 +191,18 @@ export function useSupabaseData() {
   // Orders CRUD
   // ============================
   const saveOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<Order | null> => {
-    const id = Date.now().toString();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const userId = session.user.id;
+    const { data: profile } = await supabase.from('profiles').select('company_id').eq('user_id', userId).single();
+    const companyId = profile?.company_id || userId;
+
+    const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const row = {
       id,
+      company_id: companyId,
       os_number: orderData.osNumber,
       customer_id: orderData.customerId,
       equipment: orderData.equipment,
@@ -233,11 +262,26 @@ export function useSupabaseData() {
   // ============================
   const setOsSettings = async (newSettings: OsSettings) => {
     setOsSettingsState(newSettings);
-    await supabase.from('app_settings').upsert({
-      key: 'os_settings',
-      value: newSettings,
-      updated_at: new Date().toISOString(),
-    });
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const userId = session.user.id;
+    const { data: profile } = await supabase.from('profiles').select('company_id').eq('user_id', userId).single();
+    const companyId = profile?.company_id || userId;
+
+    const companyKey = `os_settings_${companyId}`;
+    const { error: upsertError } = await supabase
+      .from('app_settings')
+      .upsert({
+        key: companyKey,
+        value: newSettings,
+        company_id: companyId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+
+    if (upsertError) {
+      console.error('[SupabaseData] Error saving company os settings:', upsertError.message);
+    }
   };
 
   return {

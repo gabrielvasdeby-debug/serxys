@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../supabase';
+import { capFirst } from '../utils/capFirst';
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -38,12 +39,14 @@ interface FornecedoresModuleProps {
     name: string;
     role: string;
     type?: string;
+    company_id: string;
   };
   onBack: () => void;
   onShowToast: (message: string) => void;
+  onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
 }
 
-export default function FornecedoresModule({ profile, onBack, onShowToast }: FornecedoresModuleProps) {
+export default function FornecedoresModule({ profile, onBack, onShowToast, onLogActivity }: FornecedoresModuleProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +68,7 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
       const { data, error } = await supabase
         .from('suppliers')
         .select('*')
+        .eq('company_id', profile.company_id)
         .order('company_name');
       
       if (error) throw error;
@@ -83,6 +87,7 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
         .from('transactions')
         .select('id, date, product_name, value, payment_method')
         .eq('supplier_id', supplierId)
+        .eq('company_id', profile.company_id)
         .order('date', { ascending: false });
       
       if (error) throw error;
@@ -100,8 +105,8 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) return;
-    if (!selectedSupplier?.company_name || !selectedSupplier?.contact_name || !selectedSupplier?.phone || !selectedSupplier?.email) {
-      onShowToast('Preencha todos os campos obrigatórios');
+    if (!selectedSupplier?.company_name || !selectedSupplier?.contact_name || !selectedSupplier?.phone) {
+      onShowToast('Preencha os campos obrigatórios (Empresa, Contato e Telefone)');
       return;
     }
 
@@ -109,38 +114,50 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
       const isEditing = !!selectedSupplier.id;
       const { data: { session } } = await supabase.auth.getSession();
       
-      const supplierData = {
+      const supplierData: any = {
         company_name: selectedSupplier.company_name,
         contact_name: selectedSupplier.contact_name,
         phone: selectedSupplier.phone,
-        email: selectedSupplier.email,
-        supply_type: selectedSupplier.supply_type || '',
-        address: selectedSupplier.address || '',
-        notes: selectedSupplier.notes || '',
-        user_id: session?.user?.id,
-        updated_at: new Date().toISOString()
+        company_id: profile.company_id
       };
+
+      if (selectedSupplier.email?.trim()) supplierData.email = selectedSupplier.email.trim();
+      if (selectedSupplier.supply_type?.trim()) supplierData.supply_type = selectedSupplier.supply_type.trim();
+      if (selectedSupplier.address?.trim()) supplierData.address = selectedSupplier.address.trim();
+      
+      if (session?.user?.id) {
+        supplierData.user_id = session.user.id;
+      }
 
       let error;
       if (isEditing) {
         ({ error } = await supabase
           .from('suppliers')
           .update(supplierData)
-          .eq('id', selectedSupplier.id));
+          .eq('id', selectedSupplier.id)
+          .eq('company_id', profile.company_id));
       } else {
+        supplierData.user_id = session?.user?.id || profile.id;
         ({ error } = await supabase
           .from('suppliers')
-          .insert({ ...supplierData, id: crypto.randomUUID() }));
+          .insert(supplierData));
       }
 
       if (error) throw error;
 
+      onLogActivity?.('FORNECEDORES', isEditing ? 'EDITOU FORNECEDOR' : 'CRIOU FORNECEDOR', {
+        supplierId: isEditing ? selectedSupplier.id : 'NOVO',
+        companyName: selectedSupplier.company_name,
+        contactName: selectedSupplier.contact_name,
+        description: isEditing ? `Atualizou os dados do fornecedor ${selectedSupplier.company_name}` : `Cadastrou o novo fornecedor ${selectedSupplier.company_name}`
+      });
+
       onShowToast(`Fornecedor ${isEditing ? 'atualizado' : 'cadastrado'} com sucesso!`);
       setIsModalOpen(false);
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving supplier:', err);
-      onShowToast('Erro ao salvar fornecedor');
+      onShowToast('Erro ao salvar fornecedor: ' + (err.message || 'Erro desconhecido'));
     }
   };
 
@@ -149,9 +166,14 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
     if (!confirm('Tem certeza que deseja excluir este fornecedor?')) return;
 
     try {
-      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      const { error } = await supabase.from('suppliers').delete().eq('id', id).eq('company_id', profile.company_id);
       if (error) throw error;
       
+      onLogActivity?.('FORNECEDORES', 'EXCLUIU FORNECEDOR', {
+        supplierId: id,
+        description: `Removeu o fornecedor (ID: ${id}) da base de dados`
+      });
+
       onShowToast('Fornecedor excluído com sucesso');
       fetchData();
     } catch (err) {
@@ -162,7 +184,15 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
 
   const openWhatsApp = (phone: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
-    window.open(`https://wa.me/55${cleanPhone}`, '_blank');
+    let decodedPhone = cleanPhone;
+    if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${decodedPhone}`;
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = 'wa';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filteredSuppliers = suppliers.filter(s => 
@@ -180,128 +210,134 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
   });
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col font-sans">
-      {/* Header */}
-      <header className="bg-black/60 backdrop-blur-xl border-b border-zinc-900 p-6 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <button onClick={onBack} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group">
-              <ArrowLeft size={20} className="text-zinc-400 group-hover:text-white transition-colors" />
+    <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col font-sans selection:bg-[#00E676]/30">
+      {/* Header compact and industrial */}
+      <header className="bg-black/80 backdrop-blur-md border-b border-zinc-900 px-4 py-4 md:px-8 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-sm hover:border-zinc-600 transition-all group">
+              <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Fornecedores</h1>
-              <p className="text-sm text-zinc-500 font-medium">Gestão de parceiros e compras</p>
+              <h1 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
+                <Truck size={20} className="text-[#00E676]" />
+                FORNECEDORES
+              </h1>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest hidden sm:block">Parceiros de Suprimentos</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative group flex-1 md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#00E676] transition-colors" size={18} />
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative group flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#00E676] transition-colors" size={14} />
               <input 
                 type="text" 
-                placeholder="Nome, contato ou tipo de suprimento..."
+                placeholder="Pesquisar parceiro..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[#00E676] transition-all"
+                className="w-full bg-[#141414] border border-zinc-800 rounded-sm pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#00E676] transition-all placeholder:text-zinc-700"
               />
             </div>
             {isAdmin && (
               <button 
                 onClick={() => { setSelectedSupplier({}); setIsModalOpen(true); }}
-                className="px-6 py-3 bg-[#00E676] hover:bg-[#00C853] text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-[#00E676]/20 active:scale-[0.98]"
+                className="px-4 py-2 bg-[#00E676] hover:bg-[#00C853] text-black font-black uppercase text-[10px] tracking-widest rounded-sm flex items-center gap-2 transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(0,230,118,0.1)] shrink-0"
               >
-                <Plus size={20} />
-                <span className="hidden sm:inline">Novo Fornecedor</span>
+                <Plus size={16} />
+                <span className="hidden xs:inline">ADICIONAR</span>
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-24">
         {loading ? (
-          <div className="h-96 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#00E676] border-t-transparent"></div>
+          <div className="h-64 flex flex-col items-center justify-center gap-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#00E676] border-t-transparent"></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 animate-pulse">Sincronizando Banco de Dados</p>
           </div>
         ) : filteredSuppliers.length === 0 ? (
-          <div className="h-96 flex flex-col items-center justify-center text-zinc-500 border-2 border-dashed border-zinc-900 rounded-[2.5rem]">
-            <Truck size={48} className="mb-4 opacity-20" />
-            <p className="text-lg">Nenhum fornecedor encontrado</p>
+          <div className="h-96 flex flex-col items-center justify-center text-zinc-500 border-2 border-dashed border-zinc-900 rounded-sm">
+            <Truck size={40} className="mb-4 opacity-10" />
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-700">Nenhum fornecedor catalogado</p>
             {isAdmin && (
               <button 
                 onClick={() => { setSelectedSupplier({}); setIsModalOpen(true); }}
-                className="mt-4 text-[#00E676] hover:underline text-sm font-bold uppercase tracking-wider"
+                className="mt-6 text-[#00E676] hover:bg-[#00E676]/10 px-4 py-2 border border-[#00E676]/20 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] transition-all"
               >
-                Cadastrar o primeiro fornecedor
+                Cadastrar Primeiro Parceiro
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-24">
             {filteredSuppliers.map((supplier) => (
               <motion.div 
                 key={supplier.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="group bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-[2.5rem] hover:bg-zinc-900/60 transition-all hover:border-zinc-700/50 relative overflow-hidden backdrop-blur-sm shadow-xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="group bg-[#111111] border border-zinc-800 rounded-sm p-4 hover:border-[#00E676]/50 transition-all shadow-lg relative flex flex-col"
               >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-2xl flex items-center justify-center">
-                    <Truck size={24} />
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 rounded-sm flex items-center justify-center text-zinc-500 group-hover:text-[#00E676] group-hover:border-[#00E676]/30 transition-all">
+                    <Truck size={20} />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <button 
                       onClick={() => openWhatsApp(supplier.phone)}
-                      className="p-2.5 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-xl transition-all"
-                      title="Chamar no WhatsApp"
+                      className="p-2 bg-[#25D366]/5 text-[#25D366] hover:bg-[#25D366] hover:text-white rounded-sm transition-all"
+                      title="WhatsApp"
                     >
-                      <MessageCircle size={18} />
+                      <MessageCircle size={14} />
                     </button>
                     {isAdmin && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setSelectedSupplier(supplier); setIsModalOpen(true); }}
-                        className="p-2.5 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white rounded-xl transition-all"
+                        className="p-2 bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white rounded-sm transition-all"
                       >
-                        <Edit2 size={18} />
+                        <Edit2 size={14} />
                       </button>
                     )}
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-bold mb-1 truncate group-hover:text-[#00E676] transition-colors">{supplier.company_name}</h3>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xs text-zinc-400">{supplier.contact_name}</span>
-                  {supplier.supply_type && (
-                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[9px] font-black uppercase tracking-widest rounded-md border border-zinc-700">
-                      {supplier.supply_type}
-                    </span>
-                  )}
+                <div className="mb-4">
+                  <h3 className="text-sm font-black uppercase tracking-tight truncate leading-none mb-1.5">{supplier.company_name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-zinc-500 truncate">{supplier.contact_name}</span>
+                    {supplier.supply_type && (
+                      <span className="px-1.5 py-0.5 bg-black border border-zinc-800 text-zinc-600 text-[8px] font-black uppercase tracking-widest rounded-sm shrink-0">
+                        {supplier.supply_type}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
-                    <Phone size={14} className="text-zinc-600" />
+                <div className="space-y-2 mb-5">
+                  <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-medium">
+                    <Phone size={12} className="text-zinc-700" />
                     {supplier.phone}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
-                    <Mail size={14} className="text-zinc-600" />
-                    <span className="truncate italic">{supplier.email}</span>
+                  <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-medium overflow-hidden">
+                    <Mail size={12} className="text-zinc-700" />
+                    <span className="truncate italic opacity-60 text-[10px]">{supplier.email || 'sem e-mail'}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-4 border-t border-zinc-800/50">
+                <div className="mt-auto flex items-center gap-2">
                   <button 
                     onClick={() => { setViewingSupplier(supplier); fetchPurchases(supplier.id); setIsDetailsOpen(true); }}
-                    className="flex-1 py-3 bg-[#0A0A0A] hover:bg-zinc-800 text-zinc-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all border border-zinc-800 hover:text-white"
+                    className="flex-1 py-2 bg-[#1A1A1A] hover:bg-[#00E676] text-zinc-500 hover:text-black text-[9px] font-black uppercase tracking-widest rounded-sm transition-all border border-zinc-800 hover:border-[#00E676]"
                   >
-                    Ver Detalhes
+                    Detalhamento
                   </button>
                   {isAdmin && (
                     <button 
                       onClick={() => handleDelete(supplier.id)}
-                      className="p-3 bg-red-500/5 text-red-500/50 hover:bg-red-500 hover:text-white rounded-xl transition-all border border-red-500/10"
+                      className="p-2 bg-zinc-900 text-zinc-700 hover:bg-red-600 hover:text-white rounded-sm transition-all border border-zinc-800 hover:border-red-600"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </div>
@@ -311,66 +347,62 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
         )}
       </main>
 
-      {/* Modal Cadastro/Edição */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 xs:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/95 sm:bg-black/80 sm:backdrop-blur-sm" />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-lg bg-[#0F0F0F] border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl"
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="relative w-full max-w-lg bg-[#0F0F0F] border border-zinc-800 h-full sm:h-auto overflow-y-auto sm:rounded-sm shadow-2xl flex flex-col"
             >
-              <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-2xl flex items-center justify-center font-bold">
-                    <Truck size={24} />
+              <div className="p-6 border-b border-zinc-900 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#00E676]/10 text-[#00E676] rounded-sm flex items-center justify-center">
+                    <Plus size={20} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">{selectedSupplier?.id ? 'Editar Fornecedor' : 'Novo Fornecedor'}</h2>
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-black">Informações de Parceria</p>
+                    <h2 className="text-sm font-black uppercase tracking-widest">{selectedSupplier?.id ? 'Editar Parceiro' : 'Cadastro de Fornecedor'}</h2>
+                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Preencha os dados de suprimentos</p>
                   </div>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-zinc-800 rounded-xl transition-colors"><X size={20} /></button>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-sm transition-all"><X size={18} /></button>
               </div>
 
-              <form onSubmit={handleSave} className="p-8 space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Empresa *</label>
-                  <input type="text" required value={selectedSupplier?.company_name || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, company_name: e.target.value }))} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="Nome da Distribuidora" />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSave} className="p-6 space-y-6 flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Nome do Contato *</label>
-                    <input type="text" required value={selectedSupplier?.contact_name || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, contact_name: e.target.value }))} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="Responsável" />
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Nome Fantasia / Empresa *</label>
+                    <input type="text" required value={selectedSupplier?.company_name || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, company_name: capFirst(e.target.value) }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="Ex: Master Peças LTDA" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Tipo de Suprimento</label>
-                    <input type="text" value={selectedSupplier?.supply_type || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, supply_type: e.target.value }))} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-all" placeholder="Ex: Telas, Peças, Acessórios" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Telefone/WA *</label>
-                    <input type="text" required value={selectedSupplier?.phone || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, phone: e.target.value }))} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="(00) 00000-0000" />
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Responsável / Contato *</label>
+                    <input type="text" required value={selectedSupplier?.contact_name || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, contact_name: capFirst(e.target.value) }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="Nome do vendedor" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">E-mail *</label>
-                    <input type="email" required value={selectedSupplier?.email || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, email: e.target.value }))} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[#00E676] transition-all text-sm" placeholder="email@fornecedor.com" />
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Telefone WhatsApp *</label>
+                    <input type="text" required value={selectedSupplier?.phone || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, phone: e.target.value }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="(00) 00000-0000" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Tipo de Suprimento</label>
+                    <input type="text" value={selectedSupplier?.supply_type || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, supply_type: capFirst(e.target.value) }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-zinc-400 transition-all" placeholder="Ex: Telas, Carcaças" />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Endereço</label>
-                  <input type="text" value={selectedSupplier?.address || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, address: e.target.value }))} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="Rua, Número, Bairro..." />
+                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">E-mail Comercial</label>
+                  <input type="email" value={selectedSupplier?.email || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, email: e.target.value }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="email@fornecedor.com.br" />
                 </div>
 
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-bold rounded-2xl transition-all border border-zinc-800">Cancelar</button>
-                  <button type="submit" className="flex-1 py-4 bg-[#00E676] hover:bg-[#00C853] text-black font-black rounded-2xl transition-all shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-2 tracking-wider"><Save size={20} /> SALVAR</button>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Endereço Fiscal / Sede</label>
+                  <textarea rows={2} value={selectedSupplier?.address || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, address: capFirst(e.target.value) }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all resize-none" placeholder="Endereço completo para consulta..." />
+                </div>
+
+                <div className="flex gap-2 pt-4 mt-auto">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 font-black uppercase text-[10px] tracking-widest rounded-sm transition-all border border-zinc-800">CANCELAR</button>
+                  <button type="submit" className="flex-1 py-3 bg-[#00E676] hover:bg-[#00C853] text-black font-black uppercase text-[10px] tracking-widest rounded-sm transition-all shadow-[0_0_20px_rgba(0,230,118,0.2)] flex items-center justify-center gap-2">SALVAR PARCEIRO</button>
                 </div>
               </form>
             </motion.div>
@@ -378,111 +410,129 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
         )}
       </AnimatePresence>
 
-      {/* Modal Detalhes/Histórico */}
       <AnimatePresence>
         {isDetailsOpen && viewingSupplier && (
           <div className="fixed inset-0 z-[60] flex items-center justify-end">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDetailsOpen(false)} className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDetailsOpen(false)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <motion.div 
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-2xl h-full bg-[#0A0A0A] border-l border-zinc-800 shadow-2xl flex flex-col"
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="relative w-full max-w-2xl h-full bg-[#0A0A0A] border-l border-zinc-900 shadow-2xl flex flex-col"
             >
-              <div className="p-8 border-b border-zinc-900 bg-zinc-900/40 backdrop-blur-xl flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-[#00E676]/10 text-[#00E676] rounded-2xl flex items-center justify-center">
-                    <Truck size={28} />
+              <div className="p-4 sm:p-6 border-b border-zinc-900 bg-black/40 backdrop-blur-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-900 border border-[#00E676]/20 text-[#00E676] rounded-sm flex items-center justify-center">
+                    <Truck size={20} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold">{viewingSupplier.company_name}</h2>
-                    <p className="text-xs text-zinc-500 flex items-center gap-2">
-                       <Layers size={14} className="text-[#00E676]" />
-                       {viewingSupplier.supply_type || 'Suprimentos Diversos'}
+                    <h2 className="text-sm sm:text-base font-black uppercase tracking-tight truncate max-w-[180px] sm:max-w-none">{viewingSupplier.company_name}</h2>
+                    <p className="text-[9px] text-[#00E676] flex items-center gap-1 uppercase font-black tracking-widest">
+                       <Layers size={10} />
+                       {viewingSupplier.supply_type || 'SUPRIMENTOS'}
                     </p>
                   </div>
                 </div>
-                <button onClick={() => setIsDetailsOpen(false)} className="p-3 bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition-all"><X size={24} /></button>
+                <button onClick={() => setIsDetailsOpen(false)} className="p-2 sm:p-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-white rounded-sm transition-all border border-zinc-800">
+                  <X size={20} />
+                </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-                {/* Dados do Fornecedor */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 custom-scrollbar bg-[#0A0A0A]">
                 <section>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00E676]">Dados Cadastrais</h3>
-                    <button 
-                      onClick={() => openWhatsApp(viewingSupplier.phone)}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-[#00E676] hover:bg-[#00C853] text-black font-black rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-[#00E676]/10"
-                    >
-                      <MessageCircle size={16} /> Chamar WhatsApp
-                    </button>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2">
+                       <FileText size={12} className="text-[#00E676]" /> FICHA DE PARCEIRO
+                    </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-6 bg-zinc-900/40 p-8 rounded-[2rem] border border-zinc-800/50">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Responsável</span>
-                      <p className="text-zinc-200 font-bold">{viewingSupplier.contact_name}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden">
+                    <div className="bg-[#0A0A0A] p-4 flex flex-col gap-1">
+                      <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.2em]">Responsável Direto</span>
+                      <p className="text-xs font-bold text-zinc-300 uppercase">{viewingSupplier.contact_name}</p>
                     </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Contato</span>
-                      <p className="text-zinc-200 font-bold">{viewingSupplier.phone}</p>
+                    <div className="bg-[#0A0A0A] p-4 flex flex-col gap-1 border-l-0 sm:border-l border-zinc-800">
+                      <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.2em]">Ramal / WhatsApp</span>
+                      <div className="flex items-center justify-between group">
+                        <p className="text-xs font-black text-[#00E676]">{viewingSupplier.phone}</p>
+                        <button onClick={() => openWhatsApp(viewingSupplier.phone)} className="p-1.5 bg-[#00E676]/10 text-[#00E676] hover:bg-[#00E676] hover:text-black rounded-sm transition-all">
+                          <MessageCircle size={12} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="space-y-1 col-span-2">
-                      <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">E-mail Comercial</span>
-                      <p className="text-zinc-300 font-medium italic">{viewingSupplier.email}</p>
+                    <div className="bg-[#0A0A0A] p-4 flex flex-col gap-1 col-span-1 sm:col-span-2 border-t border-zinc-800">
+                      <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.2em]">Correio Eletrônico</span>
+                      <p className="text-xs font-medium italic text-zinc-500 break-all">{viewingSupplier.email || '—'}</p>
                     </div>
                     {viewingSupplier.address && (
-                      <div className="space-y-1 col-span-2">
-                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Endereço</span>
-                        <p className="text-zinc-400 text-sm">{viewingSupplier.address}</p>
+                      <div className="bg-[#0A0A0A] p-4 flex flex-col gap-1 col-span-1 sm:col-span-2 border-t border-zinc-800">
+                        <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.2em]">Endereço de Coleta / Sede</span>
+                        <p className="text-xs text-zinc-500 leading-relaxed font-medium">{viewingSupplier.address}</p>
                       </div>
                     )}
                   </div>
                 </section>
 
-                {/* Histórico de Compras */}
-                <section className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Histórico de Compras</h3>
-                      <p className="text-[10px] text-zinc-600 mt-1 uppercase font-bold tracking-widest">{filteredPurchases.length} compras registradas</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2 bg-zinc-900 px-4 py-2.5 rounded-xl text-xs border border-zinc-800">
-                        <Filter size={14} className="text-zinc-600" />
-                        <input type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="bg-transparent border-none focus:ring-0 text-white font-bold text-[10px] [color-scheme:dark]" />
-                        <span className="text-zinc-700 font-black">—</span>
-                        <input type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="bg-transparent border-none focus:ring-0 text-white font-bold text-[10px] [color-scheme:dark]" />
+                <section className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2">
+                       <ShoppingCart size={12} className="text-[#00E676]" /> Histórico de Orçamentos
+                    </h3>
+                    
+                    <div className="flex items-center w-full sm:w-auto">
+                      <div className="flex flex-col xs:flex-row items-stretch xs:items-center bg-black border border-zinc-800 rounded-sm divide-y xs:divide-y-0 xs:divide-x divide-zinc-800 overflow-hidden w-full sm:w-auto">
+                        <div className="flex items-center px-3 py-2 gap-3 min-w-[140px]">
+                          <span className="text-[8px] font-black text-zinc-600 uppercase shrink-0">De:</span>
+                          <input 
+                            type="date" 
+                            value={dateRange.start} 
+                            onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))} 
+                            className="bg-transparent border-none focus:ring-0 text-zinc-300 font-bold text-[11px] [color-scheme:dark] p-0 w-full" 
+                          />
+                        </div>
+                        <div className="flex items-center px-3 py-2 gap-3 min-w-[140px]">
+                          <span className="text-[8px] font-black text-zinc-600 uppercase shrink-0">Até:</span>
+                          <input 
+                            type="date" 
+                            value={dateRange.end} 
+                            onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))} 
+                            className="bg-transparent border-none focus:ring-0 text-zinc-300 font-bold text-[11px] [color-scheme:dark] p-0 w-full" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="min-h-[200px] bg-[#0F0F0F] border border-zinc-900 rounded-sm overflow-hidden flex flex-col">
                     {filteredPurchases.length === 0 ? (
-                      <div className="py-16 flex flex-col items-center justify-center bg-zinc-900/20 border-2 border-dashed border-zinc-900 rounded-[2rem]">
-                        <ShoppingCart size={32} className="text-zinc-800 mb-3" />
-                        <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">Sem compras neste período</p>
+                      <div className="h-48 flex flex-col items-center justify-center transition-all opacity-40">
+                        <ShoppingCart size={24} className="text-zinc-800 mb-2" />
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-700">Sem registros para o período</p>
                       </div>
                     ) : (
-                      <div className="border border-zinc-900 rounded-[2rem] overflow-hidden bg-zinc-900/10">
-                        <table className="w-full text-left text-xs">
+                      <div className="overflow-x-auto custom-scrollbar -mx-4 sm:mx-0">
+                        <table className="w-full text-left min-w-[380px]">
                           <thead>
-                            <tr className="bg-zinc-900/50 border-b border-zinc-800">
-                              <th className="px-6 py-4 font-black text-zinc-600 uppercase tracking-widest text-[9px]">Data</th>
-                              <th className="px-6 py-4 font-black text-zinc-600 uppercase tracking-widest text-[9px]">Produto</th>
-                              <th className="px-6 py-4 font-black text-zinc-600 uppercase tracking-widest text-[9px]">Pagamento</th>
-                              <th className="px-6 py-4 font-black text-zinc-600 uppercase tracking-widest text-[9px] text-right">Total</th>
+                            <tr className="bg-black/40 border-b border-zinc-900">
+                              <th className="pl-6 pr-3 py-3 font-black text-zinc-700 uppercase tracking-widest text-[8px] w-36">Data</th>
+                              <th className="px-3 py-3 font-black text-zinc-700 uppercase tracking-widest text-[8px]">Item / Detalhes</th>
+                              <th className="pl-3 pr-6 py-3 font-black text-zinc-700 uppercase tracking-widest text-[8px] text-right w-28">Valor</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-zinc-900/50">
+                          <tbody className="divide-y divide-zinc-900/40">
                             {filteredPurchases.map((purchase) => (
-                              <tr key={purchase.id} className="hover:bg-zinc-900/40 transition-colors">
-                                <td className="px-6 py-4 text-zinc-500 font-bold">{format(parseISO(purchase.date), 'dd/MM/yy')}</td>
-                                <td className="px-6 py-4 text-zinc-200 font-black tracking-tight">{purchase.product_name || 'Diversos'}</td>
-                                <td className="px-6 py-4">
-                                  <span className="px-2 py-0.5 bg-zinc-950 text-zinc-500 text-[9px] font-black uppercase tracking-widest rounded border border-zinc-800">{purchase.payment_method}</span>
+                              <tr key={purchase.id} className="hover:bg-zinc-800/20 transition-colors">
+                                <td className="pl-6 pr-3 py-4 text-zinc-300 font-bold text-[10px] whitespace-nowrap">
+                                  <div className="flex items-center gap-2.5">
+                                    <Calendar size={12} className="text-zinc-700 shrink-0" />
+                                    <span>{format(parseISO(purchase.date), 'dd/MM/yyyy')}</span>
+                                  </div>
                                 </td>
-                                <td className="px-6 py-4 text-right text-[#00E676] font-black">
+                                <td className="px-3 py-4">
+                                  <div className="text-[10px] font-bold text-zinc-200 uppercase truncate max-w-[140px] sm:max-w-xs">{purchase.product_name || 'Generic Supply'}</div>
+                                  <div className="text-[8px] text-zinc-600 font-black uppercase tracking-widest mt-1">{purchase.payment_method}</div>
+                                </td>
+                                <td className="pl-3 pr-6 py-4 text-right text-[#00E676] font-black text-[11px] whitespace-nowrap">
                                   {Number(purchase.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                 </td>
                               </tr>
@@ -492,6 +542,14 @@ export default function FornecedoresModule({ profile, onBack, onShowToast }: For
                       </div>
                     )}
                   </div>
+                  {filteredPurchases.length > 0 && (
+                     <div className="flex justify-between items-center px-4 py-3 bg-black/40 border border-zinc-900 rounded-sm">
+                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Soma Total do Período</span>
+                        <span className="text-sm font-black text-[#00E676]">
+                           {filteredPurchases.reduce((acc, p) => acc + Number(p.value), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </span>
+                     </div>
+                  )}
                 </section>
               </div>
             </motion.div>

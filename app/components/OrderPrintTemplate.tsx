@@ -2,261 +2,261 @@
 
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Order } from '../types';
+import { Check, X, User, Smartphone, AlertTriangle, Wrench, ListChecks, DollarSign, Info, Phone, Mail, Pencil } from 'lucide-react';
+import { Order, CompanySettings, OsSettings } from '../types';
+import ControllerChecklistPrint from './ControllerChecklistPrint';
 
 interface OrderPrintTemplateProps {
   order: Order;
   customer: any;
-  companySettings: {
-    name: string;
-    cnpj: string;
-    whatsapp: string;
-    phone: string;
-    email: string;
-    street: string;
-    number: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    logoUrl: string;
-    publicSlug: string;
-  };
-  osSettings: {
-    printTerms: string;
-  };
+  companySettings: CompanySettings;
+  osSettings: OsSettings;
+  isPreview?: boolean;
+  isSigning?: boolean;
+  onClientSignatureClick?: () => void;
+  clientSignatureOverride?: string | null;
 }
 
-export default function OrderPrintTemplate({ order, customer, companySettings, osSettings }: OrderPrintTemplateProps) {
+const BlockHeader = ({ icon: Icon, title }: { icon: any, title: string }) => (
+  <div className="bg-[#2B323D] text-white font-bold text-[10px] uppercase px-3 py-1.5 flex items-center gap-2 rounded-t-lg">
+    <Icon size={12} className="text-white" />
+    {title}
+  </div>
+);
+
+const WhatsappIcon = ({ size = 12, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} stroke="none">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+  </svg>
+);
+
+export default function OrderPrintTemplate({ order, customer, companySettings, osSettings, isPreview, isSigning, onClientSignatureClick, clientSignatureOverride }: OrderPrintTemplateProps) {
   if (!order || !customer) return null;
 
-  // Tracking URL for QR Code
-  const trackingUrl = `https://servyx.app/${companySettings.publicSlug}/${order.osNumber}`;
+  const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
 
   return (
-    <div className="hidden print:block bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full">
-      <style jsx global>{`
-        @media print {
-          body:not(.print-a4) .print-a4-container {
-            display: none !important;
-          }
-          body.print-a4 .print-a4-container {
-            display: block !important;
-            width: 100% !important;
-          }
-          body.print-a4 .print-thermal-container {
-            display: none !important;
-          }
-          @page {
-            margin: 0;
-            size: A4;
-          }
-        }
-      `}</style>
-      {/* Container to enforce A4 width feel - Minimal padding to fit everything */}
-      <div className="max-w-[210mm] mx-auto p-[6mm]">
-        
-        {/* HEADER - Compacted */}
-        <header className="flex justify-between items-center mb-3">
-          <div className="flex gap-4 items-center">
-            {companySettings.logoUrl && (
-              <div className="relative w-24 h-24 bg-white flex items-center justify-center">
-                <img 
-                  src={companySettings.logoUrl} 
-                  alt={companySettings.name} 
-                  className="max-w-full max-h-full object-contain"
-                />
+    <div className={`${isPreview ? 'block' : 'hidden print:block'} bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+      
+      <div className="max-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border">
+        {/* CABEÇALHO */}
+        <header className="flex flex-col mb-1.5">
+          <div className="flex justify-between items-center mb-2 pl-2">
+            <div className="flex items-center gap-3">
+              <div className="w-auto max-w-[240px] h-16 flex items-center justify-start shrink-0 pr-4 overflow-hidden">
+                {companySettings?.logoUrl ? (
+                  <img src={companySettings.logoUrl} alt="Logo" className="max-w-full max-h-full object-contain object-left" />
+                ) : (
+                  <div className="w-14 h-14 rounded-lg bg-[#2B323D] flex items-center justify-center shrink-0 text-white font-black text-2xl w-full">
+                    {(companySettings?.name || 'SY').substring(0,2).toUpperCase()}
+                  </div>
+                )}
               </div>
-            )}
-            <div className="space-y-0.5">
-              <h1 className="text-xl font-black uppercase tracking-tight leading-none">{companySettings.name}</h1>
-              <p className="text-[10px] font-bold text-zinc-600">CNPJ: {companySettings.cnpj || '---'}</p>
-              <div className="text-[9px] text-zinc-700">
-                <p>{companySettings.street}, {companySettings.number} - {companySettings.neighborhood}</p>
-                <p>{companySettings.city} - {companySettings.state} | {companySettings.zipCode}</p>
+              <div className="h-12 w-px bg-slate-300"></div>
+              <div className="text-[9px] text-slate-700 leading-[1.4] font-medium tracking-wide">
+                <p className="font-black text-[13px] text-slate-900 mb-[1px] tracking-tight uppercase">{companySettings?.name || 'Servyx'}</p>
+                <p>CNPJ: {companySettings?.cnpj || '---'}</p>
+                <p>{companySettings?.street || '---'}, {companySettings?.number || 'S/N'}{companySettings?.complement ? ` - ${companySettings.complement}` : ''} - {companySettings?.neighborhood || '---'}</p>
+                <p>{companySettings?.city || '---'} - {companySettings?.state || '---'} | CEP: {companySettings?.zipCode || '---'}</p>
+                <div className="flex items-center gap-2 mt-[1px]">
+                  {companySettings?.phone && <div className="flex items-center gap-1"><Phone size={9} className="text-slate-500" /><span>{companySettings.phone}</span></div>}
+                  {companySettings?.whatsapp && <div className="flex items-center gap-1"><WhatsappIcon size={9} className="text-[#25D366]" /><span>{companySettings.whatsapp}</span></div>}
+                  {companySettings?.email && <div className="flex items-center gap-1"><Mail size={9} className="text-slate-500" /><span>{companySettings.email}</span></div>}
+                </div>
               </div>
-              <div className="flex gap-3 font-bold text-[9px]">
-                {companySettings.phone && <span>Tel: {companySettings.phone}</span>}
-                {companySettings.whatsapp && <span>WhatsApp: {companySettings.whatsapp}</span>}
-              </div>
-              <p className="text-[9px] text-zinc-500">{companySettings.email}</p>
             </div>
+            <div className="flex items-center justify-end pr-1"><QRCodeSVG value={trackingUrl} size={48} level="M" /></div>
           </div>
-          
-          <div className="flex flex-col items-center gap-1">
-            <div className="bg-white p-1.5 border border-zinc-100 rounded">
-                <QRCodeSVG value={trackingUrl} size={70} level="M" />
-            </div>
-            <p className="text-[7px] font-black uppercase tracking-tighter text-zinc-400">Acompanhamento</p>
+          <div className="w-full h-px bg-slate-300 mb-1" />
+          <div className="flex justify-between items-end mb-1 px-1">
+             <h2 className="text-[15px] font-black text-[#2B323D] uppercase tracking-widest leading-none mb-1">ORDEM DE SERVIÇO</h2>
+             <div className="flex flex-col items-end min-w-[240px]">
+               <div className="flex items-center justify-end w-full mb-1 px-1 gap-4">
+                 <div className="flex items-center gap-2">
+                   <span className="text-[9px] font-bold text-[#2B323D] uppercase tracking-widest">COMPROVANTE DE OS</span>
+                   <span className="text-[9px] font-black text-red-600">OS {order.osNumber.toString().padStart(4, '0')}</span>
+                 </div>
+                 <span className="bg-[#2B323D] text-white text-[7px] font-bold uppercase px-1.5 py-0.5 rounded-sm tracking-widest">{order.status}</span>
+               </div>
+               <div className="w-full border-t border-slate-300 pt-1 text-[8px] font-medium text-slate-800 flex justify-between gap-4 px-1">
+                 <span>Data: {new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                 <span>Hora: {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+               </div>
+             </div>
           </div>
         </header>
 
-        {/* GRAY OS BANNER */}
-        <div className="w-full bg-zinc-100 text-zinc-800 px-4 py-1.5 mb-3 flex justify-between items-center rounded border border-zinc-200 shadow-sm print:shadow-none">
-            <h2 className="text-sm font-black tracking-[0.2em] italic uppercase">ORDEM DE SERVIÇO</h2>
-            <div className="flex items-center gap-3">
-                <span className="text-[9px] font-bold">Nº:</span>
-                <p className="text-xl font-mono font-black">#{order.osNumber.toString().padStart(4, '0')}</p>
-            </div>
+        <div className="w-full h-px bg-slate-200 mb-3" />
+
+        {/* CLIENTE */}
+        <div className="border border-slate-300 rounded-lg mb-1 flex flex-col overflow-hidden">
+          <BlockHeader icon={User} title="DADOS DO CLIENTE" />
+          <div className="grid grid-cols-12 divide-x divide-y divide-slate-300 text-[8.5px] bg-white">
+             <div className="col-span-6 p-1 flex flex-col"><span className="text-slate-500 mb-0.5 text-[7.5px]">Nome:</span><span className="font-bold text-[#2B323D] text-[9px]">{customer.name}</span></div>
+             <div className="col-span-3 p-1 flex flex-col justify-center"><span className="text-slate-500 mb-0.5 text-[7.5px]">Telefone:</span><span className="font-bold text-[#2B323D] text-[9px]">{customer.whatsapp || customer.phone || '---'}</span></div>
+             <div className="col-span-3 p-1 flex flex-col justify-center"><span className="text-slate-500 mb-0.5 text-[7.5px]">E-mail:</span><span className="font-bold text-[#2B323D] text-[9px] truncate">{customer.email || '—'}</span></div>
+             <div className="col-span-9 p-1 flex flex-col"><span className="text-slate-500 mb-0.5 text-[7.5px]">Endereço:</span><span className="font-bold text-[#2B323D] text-[9px]">{customer.address?.street ? `${customer.address.street}, ${customer.address.number || 'S/N'} - ${customer.address.neighborhood} - ${customer.address.city}/${customer.address.state}` : '—'}</span></div>
+             <div className="col-span-3 p-1 flex flex-col justify-center"><span className="text-slate-500 mb-0.5 text-[7.5px]">CPF / CNPJ:</span><span className="font-bold text-[#2B323D] text-[9px]">{customer.document || '—'}</span></div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          {/* CLIENT DATA */}
-          <section className="border border-zinc-200 p-2 rounded relative">
-            <h3 className="text-[8px] font-black uppercase tracking-widest mb-1 text-zinc-400 border-b border-zinc-50 pb-0.5">DADOS DO CLIENTE</h3>
-            <div className="space-y-0.5 text-[10px]">
-              <p><span className="font-bold text-zinc-500 mr-1 uppercase text-[8px]">Nome:</span> <span className="font-bold">{customer.name}</span></p>
-              <div className="flex gap-4">
-                <p><span className="font-bold text-zinc-500 mr-1 uppercase text-[8px]">WhatsApp:</span> {customer.whatsapp || customer.phone || '---'}</p>
+        {/* EQUIPAMENTO */}
+        <div className="border border-slate-300 rounded-lg mb-1 flex flex-col overflow-hidden">
+          <BlockHeader icon={Smartphone} title="EQUIPAMENTO" />
+          <table className="w-full text-center text-[9px] bg-white">
+            <thead className="bg-slate-100 font-bold text-slate-700 border-b border-slate-300 text-[8px]">
+              <tr><th className="py-1 border-r border-slate-300">Tipo</th><th className="py-1 border-r border-slate-300">Marca</th><th className="py-1 border-r border-slate-300">Modelo</th><th className="py-1 border-r border-slate-300">Cor</th><th className="py-1 border-r border-slate-300">IMEI/Série</th><th className="py-1">Senha</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="py-1 border-r border-slate-300">{order.equipment.type}</td>
+                <td className="py-1 border-r border-slate-300">{order.equipment.brand}</td>
+                <td className="py-1 border-r border-slate-300">{order.equipment.model}</td>
+                <td className="py-1 border-r border-slate-300">{order.equipment.color || '—'}</td>
+                <td className="py-1 border-r border-slate-300 font-bold">{order.equipment.serial || '—'}</td>
+                <td className="py-1 font-bold">{order.equipment.passwordType === 'pattern' ? 'Padrão' : order.equipment.passwordType === 'text' ? 'Texto' : 'Sem Senha'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* DEFEITO E SERVIÇO - FULL WIDTH */}
+        <div className="space-y-2 mb-2">
+           <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden">
+              <BlockHeader icon={AlertTriangle} title="DEFEITO RELATADO" />
+              <div className="p-2 text-[10px] text-slate-800 italic bg-white min-h-[30px]">"{order.defect}"</div>
+           </div>
+           <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden">
+              <BlockHeader icon={Wrench} title="SERVIÇO(S) / PROCEDIMENTO(S)" />
+              <div className="p-1.5 text-[9.5px] bg-white min-h-[30px]">
+                <ul className="list-disc pl-4 space-y-0.5"><li>{order.service || 'Manutenção geral'}</li></ul>
+                {order.technicianNotes && <div className="mt-1 text-[8px] pl-1"><span className="font-bold">Observação:</span> {order.technicianNotes}</div>}
               </div>
-              <p><span className="font-bold text-zinc-500 mr-1 uppercase text-[8px]">E-mail:</span> {customer.email || '---'}</p>
-              <p><span className="font-bold text-zinc-500 mr-1 uppercase text-[8px]">Data/Hora:</span> {new Date(order.createdAt).toLocaleDateString('pt-BR')} {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-          </section>
-
-          {/* EQUIPMENT DATA */}
-          <section className="border border-zinc-200 p-2 rounded">
-            <h3 className="text-[8px] font-black uppercase tracking-widest mb-1 text-zinc-400 border-b border-zinc-50 pb-0.5">DADOS DO EQUIPAMENTO</h3>
-            <div className="space-y-0.5 text-[10px]">
-              <p><span className="font-bold text-zinc-500 mr-1 uppercase text-[8px]">Aparelho:</span> <span className="font-bold uppercase">{order.equipment.type} {order.equipment.brand} {order.equipment.model}</span></p>
-              <p><span className="font-bold text-zinc-500 mr-1 uppercase text-[8px]">Série/IMEI:</span> {order.equipment.serial || '---'}</p>
-              {order.equipment.passwordType !== 'none' && (
-                <div className="bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100 font-bold inline-block mt-0.5">
-                  <span className="text-zinc-500 uppercase text-[8px] mr-2">Senha:</span>
-                  {order.equipment.passwordType === 'pattern' ? 'Padrão Desenho' : order.equipment.passwordValue}
-                </div>
-              )}
-            </div>
-          </section>
+           </div>
         </div>
 
-        {/* DEFECT & SERVICE - Two columns to save vertical space */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <section className="border border-zinc-200 p-2 rounded shadow-sm print:shadow-none">
-            <h3 className="text-[8px] font-black uppercase tracking-widest mb-1 text-zinc-400">DEFEITO RELATADO</h3>
-            <p className="text-[10px] leading-tight italic">"{order.defect}"</p>
-          </section>
-          
-          <section className="border border-zinc-200 p-2 rounded shadow-sm print:shadow-none">
-            <h3 className="text-[8px] font-black uppercase tracking-widest mb-1 text-zinc-400">SERVIÇO / OBS</h3>
-            <p className="text-[10px] font-bold uppercase">{order.service || 'Mão de obra técnica'}</p>
-          </section>
-        </div>
-
-        {/* CHECKLIST - Optimized 2 columns */}
-        <section className="mb-3 border border-zinc-200 rounded overflow-hidden shadow-sm print:shadow-none">
-          <h3 className="text-[8px] font-black uppercase tracking-widest p-1.5 px-3 bg-zinc-50 border-b border-zinc-200">CHECKLIST DE ENTRADA</h3>
-          <div className="grid grid-cols-2 divide-x divide-zinc-200 text-[9px]">
-            <div className="divide-y divide-zinc-50">
-              {Object.entries(order.checklist).slice(0, Math.ceil(Object.entries(order.checklist).length / 2)).map(([item, status]) => (
-                <div key={item} className="flex items-center justify-between p-1 px-3">
-                  <span className="uppercase text-zinc-600 truncate mr-1">{item}</span>
-                  <span className={`font-black uppercase text-[8px] ${status === 'works' ? 'text-emerald-600' : status === 'broken' ? 'text-red-600' : 'text-zinc-400'}`}>
-                    {status === 'works' ? 'OK' : status === 'broken' ? 'FALHA' : '---'}
-                  </span>
-                </div>
-              ))}
+        {order.isVisualChecklist ? (
+          /* Visual controller: values left, controller right - side by side */
+          <div className="grid grid-cols-[0.45fr_0.55fr] gap-4 mb-2">
+            <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden">
+              <BlockHeader icon={DollarSign} title="VALORES" />
+              <div className="p-2 text-[9.5px] bg-white space-y-2 flex-1 flex flex-col justify-center">
+                <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue)}</span></div>
+                <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span></div>
+                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue - (order.financials.amountPaid || 0))}</span></div>
+                <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials.paymentType || 'A combinar'}</span></div>
+              </div>
             </div>
-            <div className="divide-y divide-zinc-50">
-              {Object.entries(order.checklist).slice(Math.ceil(Object.entries(order.checklist).length / 2)).map(([item, status]) => (
-                <div key={item} className="flex items-center justify-between p-1 px-3">
-                  <span className="uppercase text-zinc-600 truncate mr-1">{item}</span>
-                  <span className={`font-black uppercase text-[8px] ${status === 'works' ? 'text-emerald-600' : status === 'broken' ? 'text-red-600' : 'text-zinc-400'}`}>
-                    {status === 'works' ? 'OK' : status === 'broken' ? 'FALHA' : '---'}
-                  </span>
-                </div>
-              ))}
+            <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden">
+              <BlockHeader icon={ListChecks} title="CHECKLIST — CONTROLE" />
+              <div className="bg-white flex-1 flex items-center justify-center p-1">
+                <ControllerChecklistPrint checklist={order.checklist} theme="light" svgHeight={140} />
+              </div>
+              {order.checklistNotes && <div className="p-1 px-2 bg-slate-50 border-t font-bold text-[8px] text-slate-500">Nota: <span className="text-slate-700 italic font-normal">{order.checklistNotes}</span></div>}
             </div>
           </div>
-          {order.checklistNotes && (
-             <div className="p-1 px-3 bg-zinc-50 border-t border-zinc-100 text-[9px]">
-                <span className="font-bold uppercase text-[7px] text-zinc-400 mr-2">Obs:</span>
-                {order.checklistNotes}
-             </div>
-          )}
-        </section>
-
-        {/* FINANCIALS & SIGNATURES - Combined horizontal row */}
-        <div className="grid grid-cols-[1.2fr,2fr] gap-3 mb-3">
-            {/* COMPACT VALES */}
-            <section className="border border-zinc-800 p-2 rounded-lg bg-zinc-50 flex flex-col justify-center divide-y divide-zinc-200 shadow-sm print:shadow-none">
-                <div className="flex justify-between py-1">
-                  <span className="text-[8px] font-black uppercase text-zinc-500">Total:</span>
-                  <span className="text-xs font-black">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue)}</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[8px] font-black uppercase text-zinc-500">Adiant.:</span>
-                  <span className="text-xs font-black text-emerald-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[8px] font-black uppercase text-zinc-500">Saldo:</span>
-                  <span className="text-xs font-black text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue - (order.financials.amountPaid || 0))}</span>
-                </div>
-                <div className="pt-1 text-center font-black text-[7px] uppercase text-zinc-400">Pagto: {order.financials.paymentType || 'A COMBINAR'}</div>
-            </section>
-
-            {/* SIGNATURES */}
-            <section className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col items-center">
-                <div className="w-full h-12 border-b border-black flex items-center justify-center overflow-hidden">
-                  {order.signatures.client && (
-                    <img src={order.signatures.client} alt="Assinatura" className="max-h-full object-contain mix-blend-multiply" />
-                  )}
-                </div>
-                <p className="font-bold uppercase text-[7px] mt-1 text-zinc-400">Assinatura Cliente</p>
-                <p className="text-[9px] font-black uppercase truncate max-w-full">{customer.name.split(' ')[0]}</p>
+        ) : (
+          /* Default text checklist layout */
+          <div className="grid grid-cols-[0.8fr_1.2fr] gap-4 mb-2">
+            <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden h-full">
+              <BlockHeader icon={DollarSign} title="VALORES" />
+              <div className="p-2 text-[9.5px] bg-white space-y-2 flex-1 flex flex-col justify-center">
+                <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue)}</span></div>
+                <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span></div>
+                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue - (order.financials.amountPaid || 0))}</span></div>
+                <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials.paymentType || 'A combinar'}</span></div>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="w-full h-12 border-b border-black flex items-center justify-center overflow-hidden">
-                   {order.signatures.technician && (
-                    <img src={order.signatures.technician} alt="Assinatura" className="max-h-full object-contain mix-blend-multiply" />
-                  )}
+            </div>
+            <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden h-full">
+              <BlockHeader icon={ListChecks} title="CHECKLIST DE ENTRADA" />
+              {order.checklistNotPossible ? (
+                <div className="flex-1 p-4 flex items-center justify-center bg-white"><div className="text-red-500 font-bold text-[9px] uppercase tracking-widest text-center rounded-lg p-3 bg-red-50 border border-red-200">Não foi possível realizar o checklist.</div></div>
+              ) : (
+                <div className="bg-white flex flex-1">
+                  {(() => {
+                    const entries = Object.entries(order.checklist);
+                    const mid = Math.ceil(entries.length / 2);
+                    const left = entries.slice(0, mid);
+                    const right = entries.slice(mid);
+                    return (
+                      <>
+                        <div className="flex-1 border-r border-slate-200">
+                          <table className="w-full text-[8.5px] border-collapse">
+                            <thead className="bg-slate-50 font-bold border-b text-slate-700"><tr><th className="py-1 px-2 text-left w-[70%] text-[7.5px]">Item</th><th className="py-1 text-center w-[30%] text-[7.5px]">Status</th></tr></thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {left.map(([item, status], i) => (
+                                <tr key={item} className={i % 2 !== 0 ? 'bg-slate-50/30' : 'bg-white'}>
+                                  <td className="py-0.5 px-2 font-medium text-slate-600 truncate">{item}</td>
+                                  <td className="py-0.5 text-center font-black text-[7px]">{status === 'works' ? 'OK' : status === 'broken' ? <span className="text-red-600">FALHA</span> : <span className="text-slate-300">—</span>}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="flex-1">
+                          <table className="w-full text-[8.5px] border-collapse">
+                            <thead className="bg-slate-50 font-bold border-b text-slate-700"><tr><th className="py-1 px-2 text-left w-[70%] text-[7.5px]">Item</th><th className="py-1 text-center w-[30%] text-[7.5px]">Status</th></tr></thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {right.map(([item, status], i) => (
+                                <tr key={item} className={i % 2 !== 0 ? 'bg-slate-50/30' : 'bg-white'}>
+                                  <td className="py-0.5 px-2 font-medium text-slate-600 truncate">{item}</td>
+                                  <td className="py-0.5 text-center font-black text-[7px]">{status === 'works' ? 'OK' : status === 'broken' ? <span className="text-red-600">FALHA</span> : <span className="text-slate-300">—</span>}</td>
+                                </tr>
+                              ))}
+                              {left.length > right.length && (<tr className="bg-white"><td className="py-0.5 px-2 text-transparent">—</td><td className="py-0.5 text-transparent">—</td></tr>)}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
-                <p className="font-bold uppercase text-[7px] mt-1 text-zinc-400">Responsável Técnico</p>
-                <p className="text-[9px] font-black uppercase truncate max-w-full">{companySettings.name}</p>
-              </div>
-            </section>
+              )}
+              {order.checklistNotes && <div className="p-1 px-2 bg-slate-50 border-t mt-auto font-bold text-[8px] text-slate-500">Nota: <span className="text-slate-700 italic font-normal">{order.checklistNotes}</span></div>}
+            </div>
+          </div>
+        )}
+        
+
+        {/* OBSERVAÇÕES */}
+        <div className="bg-[#F8F9FA] rounded-lg p-3 flex flex-col text-[10px] mt-1 border shadow-sm">
+          <div className="font-black flex items-center gap-1.5 mb-1.5 uppercase text-[10.5px] tracking-wider text-[#2B323D]"><Info size={13} />OBSERVAÇÕES IMPORTANTES</div>
+          <div className="text-[10px] leading-relaxed font-medium text-slate-700 whitespace-pre-wrap pl-1 pr-1">
+            {osSettings.printTerms || 'O cliente declara que as informações prestadas são verdadeiras, conferiu os dados e concorda com os termos desta Ordem de Serviço.\n\nO equipamento passará por análise técnica, podendo haver alteração no orçamento mediante aprovação do cliente.\n\nApós conclusão, reprovação ou impossibilidade de reparo, o equipamento deverá ser retirado em até 90 dias da notificação, sob pena de cobrança de armazenagem.\n\nNão nos responsabilizamos por acessórios não descritos. O cliente é responsável pelo backup e pelos dados.\n\nEquipamentos com sinais de mau uso, oxidação, quedas, violação ou reparo por terceiros podem perder a garantia.\n\nA garantia cobre apenas os serviços realizados e peças substituídas, não incluindo danos por mau uso ou causas externas.'}
+          </div>
         </div>
 
-        {/* LARGE SPACE FOR TERMS & CONDITIONS - Now from osSettings */}
-        <section className="pt-2 border-t border-zinc-200">
-           {osSettings.printTerms ? (
-             <div className="p-2 bg-zinc-50 rounded border border-zinc-200 min-h-[140px] shadow-sm print:shadow-none">
-                <h4 className="text-[8px] font-black uppercase tracking-widest mb-1.5 text-zinc-500 border-b border-zinc-200 pb-0.5">TERMOS, GARANTIAS E REGRAS DA ASSISTÊNCIA</h4>
-                <div className="text-[9px] text-zinc-700 leading-normal whitespace-pre-wrap font-medium">
-                  {osSettings.printTerms}
-                </div>
-             </div>
-           ) : (
-             <div className="text-center italic text-zinc-400 text-[9px] py-4">
-               "Consulte nossas regras e termos de garantia na recepção."
-             </div>
-           )}
-        </section>
-
-        {/* SYSTEM FOOTER */}
-        <div className="mt-4 flex justify-between items-center opacity-40 grayscale text-[7px] font-medium uppercase tracking-tighter">
-            <span>SERVYX OS SYSTEM PRO - GESTÃO INTELIGENTE</span>
-            <span>Documento emitido em: {new Date().toLocaleString('pt-BR')}</span>
+        {/* ASSINATURAS */}
+        <div className="flex justify-between text-center text-[9px] px-10 mt-auto mb-2 pt-4">
+          <div className="flex flex-col items-center w-[45%]">
+            <div className={`w-full border-b border-slate-800 mb-2 h-16 flex items-center justify-center relative ${isSigning ? 'bg-slate-50 cursor-pointer hover:bg-slate-100 rounded-t-sm' : ''}`} onClick={() => isSigning && onClientSignatureClick?.()}>
+              {isSigning && !clientSignatureOverride ? (
+                 <div className="flex flex-col items-center gap-0.5 pb-2 text-emerald-600 font-bold">
+                    <Pencil size={18} className="animate-bounce" />
+                    <span className="text-[8px] uppercase tracking-widest">Toque para Assinar</span>
+                 </div>
+              ) : (clientSignatureOverride || (order.signatures?.client && !order.signatures?.isManual)) && (
+                <img src={(clientSignatureOverride || order.signatures?.client) as string} alt="Assinatura" className="max-h-full w-auto max-w-full object-contain mix-blend-multiply scale-110" />
+              )}
+            </div>
+            <span className="text-[9px] uppercase font-black text-slate-500 tracking-tighter">Assinatura do Cliente</span>
+          </div>
+          <div className="flex flex-col items-center w-[45%]">
+            <div className="w-full border-b border-slate-800 mb-2 h-16 flex items-center justify-center relative">
+              {!order.signatures?.isManual && order.signatures?.technician && (
+                <img src={order.signatures.technician} alt="Tecnico" className="max-h-full w-auto max-w-full object-contain mix-blend-multiply scale-110" />
+              )}
+            </div>
+            <span className="text-[9px] uppercase font-black text-slate-500 tracking-tighter">Responsável Técnico</span>
+            <span className="font-black text-[10px] text-slate-900 uppercase">{companySettings.name}</span>
+          </div>
         </div>
 
+        {/* RODAPÉ */}
+        <div className="mt-4 pt-3 border-t text-center text-[8px] text-slate-500 font-medium">
+          {osSettings.printFooter || `${companySettings.name} - SERVYX | CNPJ: ${companySettings.cnpj || '---'} | ${companySettings.city} - ${companySettings.state}`}
+        </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          body {
-            background-color: white !important;
-            -webkit-print-color-adjust: exact;
-          }
-          @page {
-            margin: 0;
-            size: A4;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

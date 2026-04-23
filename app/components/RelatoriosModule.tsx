@@ -21,14 +21,16 @@ interface RelatoriosModuleProps {
     name: string;
     role: string;
     type?: string;
+    company_id: string;
   };
   onBack: () => void;
   onShowToast: (message: string) => void;
+  customers: any[];
 }
 
 type Period = 'today' | 'week' | 'month' | 'custom';
 
-export default function RelatoriosModule({ profile, onBack, onShowToast }: RelatoriosModuleProps) {
+export default function RelatoriosModule({ profile, onBack, onShowToast, customers }: RelatoriosModuleProps) {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>('month');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
@@ -39,6 +41,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
   const [orders, setOrders] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Security check - redundancy
@@ -55,21 +58,57 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ordersRes, salesRes, transRes] = await Promise.all([
-        supabase.from('orders').select('*'),
-        supabase.from('sales').select('*'),
-        supabase.from('transactions').select('*')
+      const [ordersRes, salesRes, transRes, expensesRes] = await Promise.all([
+        supabase.from('orders').select('*').eq('company_id', profile.company_id),
+        supabase.from('sales').select('*').eq('company_id', profile.company_id),
+        supabase.from('transactions').select('*').eq('company_id', profile.company_id),
+        supabase.from('expenses').select('*').eq('company_id', profile.company_id)
       ]);
 
       setOrders(ordersRes.data || []);
       setSales(salesRes.data || []);
       setTransactions(transRes.data || []);
+      setExpenses(expensesRes.data || []);
     } catch (error) {
       console.error('Error fetching analytics data:', error);
       onShowToast('Erro ao carregar dados dos relatórios');
     } finally {
       setLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      if (filteredData.fOrders.length === 0 && filteredData.fSales.length === 0) {
+        onShowToast('Não há dados para exportar neste período');
+        return;
+      }
+
+      let csv = 'Tipo;ID/Numero;Data;Cliente;Valor;Status\n';
+      
+      // Add Orders
+      filteredData.fOrders.forEach(o => {
+        csv += `Ordem Servico;${o.osNumber};${o.created_at};${customers.find(c => c.id === o.customerId)?.name || 'N/A'};${o.financials?.totalValue || 0};${o.status}\n`;
+      });
+
+      // Add Sales
+      filteredData.fSales.forEach(s => {
+        csv += `Venda Direta;${s.id.substring(0,8)};${s.created_at};${customers.find(c => c.id === s.customerId)?.name || 'Balcao'};${s.total || 0};Pago\n`;
+      });
+
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `relatorio_servyx_${period}_${format(new Date(), 'dd_MM_yyyy')}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      onShowToast('Relatório exportado com sucesso!');
+    } catch (err) {
+      onShowToast('Erro ao exportar relatório');
     }
   };
 
@@ -124,8 +163,18 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
       return isWithinInterval(d, { start, end });
     });
 
-    return { fOrders, fSales, fTransactions };
-  }, [orders, sales, transactions, dateInterval]);
+    // Filter expenses within period
+    const fExpenses = expenses.filter(ex => {
+      const dateStr = ex.due_date || ex.date || ex.created_at;
+      if (!dateStr) return false;
+      try {
+        const d = parseISO(dateStr);
+        return isWithinInterval(d, { start, end });
+      } catch { return false; }
+    });
+
+    return { fOrders, fSales, fTransactions, fExpenses };
+  }, [orders, sales, transactions, expenses, dateInterval]);
 
   // 1. Billing Data (Linha 1) - Daily Revenue in period
   const billingChartData = useMemo(() => {
@@ -169,15 +218,30 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
 
   // 3. Most Performed Services (Linha 2 - Right)
   const mostServicesData = useMemo(() => {
-    const serviceCounts: Record<string, number> = {};
+    const serviceStats: Record<string, { count: number, totalValue: number }> = {};
+    
     filteredData.fOrders.forEach(o => {
       const service = o.service || 'Não especificado';
-      serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+      if (!serviceStats[service]) serviceStats[service] = { count: 0, totalValue: 0 };
+      
+      serviceStats[service].count += 1;
+      
+      // Encontrar todas as transações de entrada vinculadas a esta OS
+      const relatedTransactions = filteredData.fTransactions.filter(t => 
+        t.type === 'entrada' && t.os_id === o.id
+      );
+      
+      const totalPaid = relatedTransactions.reduce((acc, t) => acc + Number(t.value || 0), 0);
+      serviceStats[service].totalValue += totalPaid;
     });
 
-    return Object.entries(serviceCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
+    return Object.entries(serviceStats)
+      .map(([name, stats]) => ({ 
+        name, 
+        count: stats.count, 
+        totalValue: stats.totalValue 
+      }))
+      .sort((a, b) => b.totalValue - a.totalValue) // Ordenar por faturamento
       .slice(0, 5);
   }, [filteredData]);
 
@@ -189,15 +253,19 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
       const items = s.items || [];
       items.forEach((item: any) => {
         const name = item.productName || 'Produto Desconhecido';
-        if (!productCounts[name]) productCounts[name] = { quantity: 0, total: 0 };
-        productCounts[name].quantity += Number(item.quantity || 0);
-        productCounts[name].total += Number(item.total || 0);
+        const brand = item.productBrand || '';
+        const model = item.productModel || '';
+        const displayName = (brand || model) ? `${name} (${[brand, model].filter(Boolean).join(' ')})` : name;
+        
+        if (!productCounts[displayName]) productCounts[displayName] = { quantity: 0, total: 0 };
+        productCounts[displayName].quantity += Number(item.quantity || 0);
+        productCounts[displayName].total += Number(item.total || 0);
       });
     });
 
     return Object.entries(productCounts)
       .map(([name, stats]) => ({ name, quantity: stats.quantity, total: stats.total }))
-      .sort((a, b) => b.quantity - a.quantity)
+      .sort((a, b) => b.total - a.total) // Ordenar por faturamento
       .slice(0, 6);
   }, [filteredData]);
 
@@ -215,7 +283,10 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
 
   const totals = {
     revenue: filteredData.fTransactions.filter(t => t.type === 'entrada').reduce((acc, t) => acc + Number(t.value), 0),
-    expenses: filteredData.fTransactions.filter(t => t.type === 'saida').reduce((acc, t) => acc + Number(t.value), 0),
+    expenses: (
+      filteredData.fTransactions.filter(t => t.type === 'saida').reduce((acc, t) => acc + Number(t.value), 0) +
+      filteredData.fExpenses.filter(ex => ex.status === 'paid' || ex.paid).reduce((acc, ex) => acc + Number(ex.amount || ex.value || 0), 0)
+    ),
     osCount: filteredData.fOrders.length,
     salesCount: filteredData.fSales.length
   };
@@ -251,12 +322,19 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
                   </button>
                 ))}
              </div>
-             <button 
-                onClick={() => { setIsRefreshing(true); fetchData(); }} 
-                className={`p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
-             >
-               <RefreshCw size={20} />
-             </button>
+              <button 
+                 onClick={handleExportCSV}
+                 className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-[#00E676] transition-colors"
+                 title="Exportar CSV"
+              >
+                <Download size={20} />
+              </button>
+              <button 
+                 onClick={() => { setIsRefreshing(true); fetchData(); }} 
+                 className={`p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
+              >
+                <RefreshCw size={20} />
+              </button>
           </div>
         </div>
       </header>
@@ -316,7 +394,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
               </div>
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-1">{card.label}</p>
               <h3 className="text-2xl font-bold tracking-tight">
-                {card.isCurrency ? totals.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : card.value}
+                {card.isCurrency ? card.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : card.value}
               </h3>
             </motion.div>
           ))}
@@ -449,9 +527,16 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
                   <Tooltip 
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '12px' }}
+                    formatter={(value: any, name: any, props: any) => {
+                      if (name === 'totalValue') {
+                        return [new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), 'Faturamento'];
+                      }
+                      return [value, name];
+                    }}
+                    labelStyle={{ color: '#fff', fontWeight: 'bold', marginBottom: '4px' }}
                   />
                   <Bar 
-                    dataKey="value" 
+                    dataKey="totalValue" 
                     fill="#3b82f6" 
                     radius={[0, 10, 10, 0]}
                     barSize={20}
@@ -489,13 +574,21 @@ export default function RelatoriosModule({ profile, onBack, onShowToast }: Relat
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 600 }}
+                  tickFormatter={(val) => `R$ ${val}`}
                 />
                 <Tooltip 
                   cursor={{ fill: 'rgba(255,255,255,0.05)', radius: 10 }}
                   contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '16px' }}
+                  formatter={(value: any, name: any) => {
+                    if (name === 'total') {
+                      return [new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), 'Faturamento'];
+                    }
+                    return [value, name];
+                  }}
+                  labelStyle={{ color: '#fff', fontWeight: 'bold', marginBottom: '4px' }}
                 />
                 <Bar 
-                  dataKey="quantity" 
+                  dataKey="total" 
                   fill="#00E676" 
                   radius={[10, 10, 0, 0]} 
                   barSize={40}

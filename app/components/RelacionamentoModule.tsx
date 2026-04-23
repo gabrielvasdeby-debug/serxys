@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Search, Cake, MessageCircle, Star, 
   Calendar, CheckCircle2, History, Smartphone, User, 
-  Send, ExternalLink, Filter, ChevronRight
+  Send, ExternalLink, Filter, ChevronRight, Check
 } from 'lucide-react';
 import { Customer } from './ClientesModule';
 import { Order } from '../types';
@@ -24,6 +24,8 @@ interface RelacionamentoModuleProps {
   osSettings: {
     whatsappMessages: Record<string, string>;
   };
+  dismissedNotifications: any[];
+  onDismissNotification: (type: 'BIRTHDAY' | 'FOLLOW_UP', entityId: string, period: string) => void;
 }
 
 export default function RelacionamentoModule({ 
@@ -32,7 +34,9 @@ export default function RelacionamentoModule({
   onShowToast, 
   customers, 
   orders,
-  osSettings
+  osSettings,
+  dismissedNotifications,
+  onDismissNotification
 }: RelacionamentoModuleProps) {
   const [activeTab, setActiveTab] = useState<'BIRTHDAYS' | 'FOLLOW_UP'>('BIRTHDAYS');
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,20 +51,27 @@ export default function RelacionamentoModule({
       if (!customer.birthDate) return false;
       
       const bDay = parseISO(customer.birthDate);
-      // We look at day and month only
       const clientMonth = bDay.getMonth();
       const clientDay = bDay.getDate();
-      
       const thisYearBirthday = new Date(today.getFullYear(), clientMonth, clientDay);
       
-      return isWithinInterval(thisYearBirthday, { start, end }) ||
-             (isSameDay(thisYearBirthday, start) || isSameDay(thisYearBirthday, end));
+      const isWithin = isWithinInterval(thisYearBirthday, { start, end }) ||
+                       (isSameDay(thisYearBirthday, start) || isSameDay(thisYearBirthday, end));
+      
+      if (!isWithin) return false;
+
+      // Filter out dismissed for this year
+      const isDismissed = dismissedNotifications.some(d => 
+        d.type === 'BIRTHDAY' && d.entity_id === customer.id && d.period === today.getFullYear().toString()
+      );
+
+      return !isDismissed;
     }).sort((a, b) => {
        const dA = parseISO(a.birthDate!).getDate();
        const dB = parseISO(b.birthDate!).getDate();
        return dA - dB;
     });
-  }, [customers]);
+  }, [customers, dismissedNotifications]);
 
   // Tab 2: Follow-up (Yesterday's "Equipamento Retirado")
   const followUpOrders = useMemo(() => {
@@ -69,12 +80,18 @@ export default function RelacionamentoModule({
     return orders.filter(order => {
       if (order.status !== 'Equipamento Retirado') return false;
       
-      // Check if the withdrawal happened yesterday
-      // Using updatedAt as a proxy for status change date
       const statusDate = parseISO(order.updatedAt);
-      return isSameDay(statusDate, yesterday);
+      const isYesterday = isSameDay(statusDate, yesterday);
+      
+      if (!isYesterday) return false;
+
+      const isDismissed = dismissedNotifications.some(d => 
+        d.type === 'FOLLOW_UP' && d.entity_id === order.id
+      );
+
+      return !isDismissed;
     });
-  }, [orders]);
+  }, [orders, dismissedNotifications]);
 
   const sendBirthdayMessage = (customer: Customer) => {
     if (profile.type === 'Técnico') {
@@ -91,8 +108,19 @@ export default function RelacionamentoModule({
       "Olá [nome], a equipe da SERVYX deseja um feliz aniversário! 🎉 Preparamos um mimo especial para você. Conte conosco sempre!";
     
     const message = template.replace(/\[nome\]/g, customer.name);
-    const whatsappUrl = `https://wa.me/${customer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    let decodedPhone = customer.whatsapp.replace(/\D/g, '');
+    if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`;
+    
+    // Auto-dismiss
+    onDismissNotification('BIRTHDAY', customer.id, new Date().getFullYear().toString());
+    
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = 'wa';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const sendFollowUpMessage = (order: Order) => {
@@ -111,8 +139,19 @@ export default function RelacionamentoModule({
       "Olá [nome], tudo bem? Estamos entrando em contato para saber se o serviço realizado no seu aparelho está funcionando perfeitamente. Se puder, deixe uma avaliação para nossa loja no Google. Isso nos ajuda muito!";
     
     const message = template.replace(/\[nome\]/g, customer.name);
-    const whatsappUrl = `https://wa.me/${customer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    let decodedPhone = customer.whatsapp.replace(/\D/g, '');
+    if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`;
+    
+    // Auto-dismiss
+    onDismissNotification('FOLLOW_UP', order.id, '');
+    
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = 'wa';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -194,10 +233,19 @@ export default function RelacionamentoModule({
                         className="object-cover"
                       />
                     </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-[#00E676] uppercase tracking-widest bg-[#00E676]/10 px-2 py-1 rounded-md">
-                        {format(parseISO(customer.birthDate!), 'dd/MM', { locale: ptBR })}
-                      </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onDismissNotification('BIRTHDAY', customer.id, new Date().getFullYear().toString())}
+                        className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-500 hover:text-white rounded-lg transition-colors"
+                        title="Marcar como visto"
+                      >
+                        <Check size={14} />
+                      </button>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-[#00E676] uppercase tracking-widest bg-[#00E676]/10 px-2 py-1 rounded-md">
+                          {format(parseISO(customer.birthDate!), 'dd/MM', { locale: ptBR })}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   
@@ -256,7 +304,7 @@ export default function RelacionamentoModule({
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">OS #{order.osNumber}</span>
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">OS {order.osNumber}</span>
                           <span className="text-[10px] font-bold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded uppercase">Retirado</span>
                         </div>
                         <h3 className="font-bold text-white">{customer?.name || 'Cliente Desconhecido'}</h3>
@@ -269,13 +317,22 @@ export default function RelacionamentoModule({
                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Retirada em</p>
                          <p className="text-xs font-medium text-zinc-300">{format(parseISO(order.updatedAt), 'dd/MM/yyyy')}</p>
                        </div>
-                       <button
-                         onClick={() => sendFollowUpMessage(order)}
-                         className="flex-1 sm:flex-none py-2.5 px-6 bg-emerald-500 hover:bg-emerald-600 text-black rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
-                       >
-                         <MessageCircle size={14} />
-                         Pós-venda WhatsApp
-                       </button>
+                       <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => onDismissNotification('FOLLOW_UP', order.id, '')}
+                            className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-500 hover:text-white rounded-xl transition-colors"
+                            title="Marcar como visto"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            onClick={() => sendFollowUpMessage(order)}
+                            className="flex-1 sm:flex-none py-2.5 px-6 bg-emerald-500 hover:bg-emerald-600 text-black rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
+                          >
+                            <MessageCircle size={14} />
+                            Pós-venda WhatsApp
+                          </button>
+                       </div>
                     </div>
                   </motion.div>
                 );

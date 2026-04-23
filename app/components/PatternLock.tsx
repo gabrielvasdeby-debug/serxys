@@ -80,19 +80,22 @@ export default function PatternLock({ isOpen, onClose, onSave, initialPattern, r
   const processInput = (clientX: number, clientY: number) => {
     if (!isDrawing || readOnly || success) return;
 
-    // Use document.elementFromPoint to find which dot area we are over
-    const element = document.elementFromPoint(clientX, clientY);
-    if (element && element.hasAttribute('data-dot-index')) {
-      const dotNum = parseInt(element.getAttribute('data-dot-index') || '0');
-      if (dotNum > 0) handlePoint(dotNum);
-    }
-
-    // Update current line position for the "rubber band" effect
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const x = ((clientX - rect.left) / rect.width) * 100;
       const y = ((clientY - rect.top) / rect.height) * 100;
       setCurrentPos({ x, y });
+
+      // Check distance to all dots
+      for (let i = 1; i <= 9; i++) {
+        const dotCoords = getPointCoords(i);
+        const dist = Math.sqrt(Math.pow(x - dotCoords.x, 2) + Math.pow(y - dotCoords.y, 2));
+        
+        // Threshold (8% of grid) for more intentional selection
+        if (dist < 8) {
+          handlePoint(i);
+        }
+      }
     }
   };
 
@@ -165,36 +168,21 @@ export default function PatternLock({ isOpen, onClose, onSave, initialPattern, r
             </p>
           </div>
 
-          <div className="relative aspect-square w-full bg-[#161616] rounded-3xl border border-white/5 shadow-inner p-4">
-            
-            {/* Hit Areas (Invisible but large) */}
-            <div className="absolute inset-4 grid grid-cols-3 grid-rows-3 gap-4 h-[calc(100%-2rem)] z-30">
-              {[1,2,3,4,5,6,7,8,9].map(num => (
-                <div 
-                  key={`hit-${num}`}
-                  data-dot-index={num}
-                  className="w-full h-full flex items-center justify-center pointer-events-auto"
-                  onMouseDown={handleStart}
-                  onTouchStart={handleStart}
-                  onMouseMove={handleMove}
-                  onTouchMove={handleMove}
-                  onMouseUp={handleEnd}
-                  onTouchEnd={handleEnd}
-                >
-                  <div className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    pattern.includes(num) 
-                      ? error ? 'bg-red-500 scale-[2.5] shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-[#00E676] scale-[2.5] shadow-[0_0_15px_rgba(0,230,118,0.5)]'
-                      : 'bg-zinc-700'
-                  }`} />
-                </div>
-              ))}
-            </div>
-
-            {/* SVG Layer for Drawing Lines - NOW ON TOP */}
+          <div 
+            className="relative aspect-square w-full bg-[#111111] rounded-3xl border border-white/5 shadow-inner p-4 touch-none"
+            onMouseDown={handleStart}
+            onTouchStart={handleStart}
+            onMouseMove={handleMove}
+            onTouchMove={handleMove}
+            onMouseUp={handleEnd}
+            onTouchEnd={handleEnd}
+            onMouseLeave={handleEnd}
+          >
+            {/* SVG Layer for Drawing Lines */}
             <svg 
               ref={containerRef}
               viewBox="0 0 100 100" 
-              className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] pointer-events-none z-50 overflow-visible"
+              className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] pointer-events-none z-10 overflow-visible"
             >
               {/* Connected lines */}
               {pattern.map((dot, i) => {
@@ -207,14 +195,14 @@ export default function PatternLock({ isOpen, onClose, onSave, initialPattern, r
                     x1={p1.x} y1={p1.y}
                     x2={p2.x} y2={p2.y}
                     stroke={error ? '#EF4444' : '#00E676'}
-                    strokeWidth="5"
+                    strokeWidth="2"
                     strokeLinecap="round"
                     className="transition-all"
                   />
                 );
               })}
 
-              {/* Rubber band line following finger */}
+              {/* Rubber band line following finger/mouse */}
               {isDrawing && currentPos && pattern.length > 0 && (
                 <line
                   x1={getPointCoords(pattern[pattern.length-1]).x}
@@ -222,12 +210,38 @@ export default function PatternLock({ isOpen, onClose, onSave, initialPattern, r
                   x2={currentPos.x}
                   y2={currentPos.y}
                   stroke={error ? '#EF4444' : '#00E676'}
-                  strokeWidth="5"
+                  strokeWidth="2"
                   strokeLinecap="round"
-                  opacity="0.5"
+                  opacity="0.6"
                 />
               )}
             </svg>
+
+            {/* Hit Areas / Visual Dots */}
+            <div className="absolute inset-4 grid grid-cols-3 grid-rows-3 h-[calc(100%-2rem)] z-20 pointer-events-none">
+              {[1,2,3,4,5,6,7,8,9].map(num => {
+                const isSelected = pattern.includes(num);
+                return (
+                  <div 
+                    key={`hit-${num}`}
+                    className="w-full h-full flex items-center justify-center"
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <div 
+                        className={`absolute w-12 h-12 rounded-full transition-all duration-200 ${
+                          isSelected ? (error ? 'bg-red-500/20 scale-100' : 'bg-[#00E676]/20 scale-100') : 'scale-0'
+                        }`}
+                      />
+                      <div 
+                        className={`w-3.5 h-3.5 rounded-full z-10 transition-all duration-200 ${
+                          isSelected ? (error ? 'bg-red-500 scale-125' : 'bg-[#00E676] scale-125') : 'bg-zinc-600 scale-100 border-2 border-zinc-500/50'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {!readOnly && (

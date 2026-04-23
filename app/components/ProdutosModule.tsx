@@ -9,32 +9,16 @@ import {
   Barcode, Image as ImageIcon, 
   Edit2, Trash2, Save, X,
   ArrowUpRight, Camera, Info, CheckCircle2,
-  Download, Grid
+  Download, Grid, Loader2
 } from 'lucide-react';
-import { db, auth } from '../firebase';
-import { 
-  collection, query, onSnapshot, addDoc, 
-  updateDoc, deleteDoc, doc, 
-  orderBy
-} from 'firebase/firestore';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { supabase } from '../supabase';
+import { Product } from '../types';
 import { subDays, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { capFirst } from '../utils/capFirst';
+import InfoTooltip from './InfoTooltip';
 
-interface Product {
-  id: string;
-  name: string;
-  image?: string;
-  category: string;
-  description: string;
-  barcode: string;
-  price: number;
-  costPrice: number;
-  stock: number;
-  minStock: number;
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 interface Sale {
   id: string;
@@ -42,6 +26,8 @@ interface Sale {
   items: {
     productId: string;
     productName: string;
+    productBrand?: string;
+    productModel?: string;
     quantity: number;
     price: number;
     total: number;
@@ -58,16 +44,20 @@ interface ProdutosModuleProps {
     name: string;
     role: string;
     type?: string;
+    user_id?: string;
     [key: string]: unknown;
   };
   onBack: () => void;
   onShowToast: (message: string) => void;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
 }
 
-export default function ProdutosModule({ profile, onBack, onShowToast }: ProdutosModuleProps) {
-  const [products, setProducts] = useState<Product[]>([]);
+export default function ProdutosModule({ profile, onBack, onShowToast, products, setProducts, onLogActivity }: ProdutosModuleProps) {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
+  const [salesLoaded, setSalesLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [viewMode, setViewMode] = useState<'catalog' | 'reports' | 'shoppingList'>('catalog');
@@ -81,48 +71,104 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
   const canEdit = isAdmin;
   const canViewReports = isAdmin;
 
+  // Load ONLY products on mount (fast)
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const unsubProducts = onSnapshot(
-      query(collection(db, 'products'), orderBy('name')),
-      (snapshot) => {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+    const loadProducts = async () => {
+      try {
+        if (products.length > 0) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: productsRes, error: productsError } = await supabase
+          .from('products')
+          .select('id, name, brand, model, image, category, description, barcode, price, cost_price, stock, min_stock, created_at, updated_at')
+          .eq('company_id', profile.company_id)
+          .order('name', { ascending: true });
+
+        if (productsError) throw productsError;
+        if (productsRes) {
+          setProducts(productsRes.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            brand: p.brand || '',
+            model: p.model || '',
+            image: p.image,
+            category: p.category,
+            description: p.description,
+            barcode: p.barcode,
+            price: p.price || 0,
+            costPrice: p.cost_price || 0,
+            stock: p.stock || 0,
+            minStock: p.min_stock || 0,
+            createdAt: p.created_at,
+            updatedAt: p.updated_at
+          })));
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        onShowToast('Erro ao carregar produtos');
+      } finally {
         setLoading(false);
-      },
-      (error) => handleFirestoreError(error, OperationType.GET, 'products')
-    );
-
-    const unsubSales = onSnapshot(
-      query(collection(db, 'sales'), orderBy('createdAt', 'desc')),
-      (snapshot) => {
-        setSales(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Sale)));
-      },
-      (error) => handleFirestoreError(error, OperationType.GET, 'sales')
-    );
-
-    return () => {
-      unsubProducts();
-      unsubSales();
+      }
     };
+
+    loadProducts();
   }, []);
 
+  // Load sales LAZILY — only when user switches to Analytics or Shopping List
+  useEffect(() => {
+    if ((viewMode === 'reports' || viewMode === 'shoppingList') && !salesLoaded) {
+      const loadSales = async () => {
+        const { data: salesRes } = await supabase
+          .from('sales')
+          .select('id, date, items, total, payment_method, user_id, created_at')
+          .eq('company_id', profile.company_id)
+          .order('created_at', { ascending: false });
+        if (salesRes) {
+          setSales(salesRes.map((s: any) => ({
+            id: s.id,
+            date: s.date,
+            items: s.items.map((item: any) => ({
+              productId: item.productId,
+              productName: item.productName,
+              productBrand: item.productBrand || '',
+              productModel: item.productModel || '',
+              quantity: item.quantity,
+              price: item.price,
+              total: item.total
+            })),
+            total: s.total,
+            paymentMethod: s.payment_method,
+            userId: s.user_id,
+            createdAt: s.created_at
+          })));
+        }
+        setSalesLoaded(true);
+      };
+      loadSales();
+    }
+  }, [viewMode, salesLoaded]);
+
+
+
   const categories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category));
-    return ['Todas', ...Array.from(cats)].filter(Boolean);
+    const cats = new Set(products.map(p => p.category).filter(Boolean));
+    return ['Todas', ...Array.from(cats) as string[]];
   }, [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           p.barcode.includes(searchQuery) ||
-                           p.category.toLowerCase().includes(searchQuery.toLowerCase());
+                           (p.barcode || '').includes(searchQuery) ||
+                           (p.category || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'Todas' || p.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [products, searchQuery, selectedCategory]);
 
   const lowStockProducts = useMemo(() => {
-    return products.filter(p => p.stock <= p.minStock && p.stock > 0);
+    return products.filter(p => p.stock <= (p.minStock || 0) && p.stock > 0);
   }, [products]);
 
   const outOfStockProducts = useMemo(() => {
@@ -133,13 +179,19 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
     const periodDays = parseInt(reportPeriod);
     const startDate = subDays(new Date(), periodDays);
     
-    const productSales: Record<string, { name: string, quantity: number, total: number }> = {};
+    const productSales: Record<string, { name: string, brand: string, model: string, quantity: number, total: number }> = {};
     
     sales.forEach(sale => {
       if (parseISO(sale.date) >= startDate) {
         sale.items.forEach(item => {
           if (!productSales[item.productId]) {
-            productSales[item.productId] = { name: item.productName, quantity: 0, total: 0 };
+            productSales[item.productId] = { 
+              name: item.productName, 
+              brand: item.productBrand || '', 
+              model: item.productModel || '', 
+              quantity: 0, 
+              total: 0 
+            };
           }
           productSales[item.productId].quantity += item.quantity;
           productSales[item.productId].total += item.total;
@@ -176,49 +228,151 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
 
   const handleSaveProduct = async (productData: Partial<Product>) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || profile?.user_id || profile?.id;
+
+      if (!userId) {
+        onShowToast('Falha na identificação do administrador. Faça login novamente.');
+        return;
+      }
+
+      const dbData = {
+        name: productData.name,
+        company_id: profile.company_id,
+        brand: productData.brand,
+        model: productData.model,
+        category: productData.category,
+        description: productData.description,
+        barcode: productData.barcode,
+        price: productData.price,
+        cost_price: productData.costPrice,
+        stock: productData.stock,
+        min_stock: productData.minStock,
+        image: productData.image,
+        updated_at: new Date().toISOString()
+      };
+
       if (editingProduct) {
         const oldStock = editingProduct.stock;
         const newStock = productData.stock || 0;
         
-        await updateDoc(doc(db, 'products', editingProduct.id), {
-          ...productData,
-          updatedAt: new Date().toISOString()
-        });
+        const { error } = await supabase
+          .from('products')
+          .update(dbData)
+          .eq('id', editingProduct.id)
+          .eq('company_id', profile.company_id);
+
+        if (error) throw new Error(error.message || JSON.stringify(error));
 
         if (oldStock !== newStock) {
-          await addDoc(collection(db, 'productHistory'), {
-            productId: editingProduct.id,
+          // Notificar se o estoque zerou ou atingiu o mínimo após edição
+          if (newStock <= 0) {
+            onShowToast(`⚠️ ALERTA: O produto ${productData.name} está ESGOTADO!`);
+          } else if (newStock <= (productData.minStock || 0)) {
+            onShowToast(`📢 AVISO: O produto ${productData.name} está com estoque baixo (${newStock} un).`);
+          }
+
+          await supabase.from('product_history').insert({
+            product_id: editingProduct.id,
+            company_id: profile.company_id,
             type: newStock > oldStock ? 'entrada' : 'saida',
             quantity: Math.abs(newStock - oldStock),
             reason: 'ajuste',
             date: new Date().toISOString().split('T')[0],
-            userId: auth.currentUser?.uid || profile.id,
-            createdAt: new Date().toISOString()
+            user_id: userId,
+            created_at: new Date().toISOString()
           });
         }
+
+        onLogActivity?.('PRODUTOS', 'EDITOU PRODUTO', {
+          productId: editingProduct.id,
+          productName: productData.name,
+          oldStock,
+          newStock,
+          price: productData.price,
+          description: `Editou o produto ${productData.name} (Estoque: ${oldStock} -> ${newStock})`
+        });
+        // Optimistic update for edit
+        setProducts(prev => prev.map(p => p.id === editingProduct.id ? {
+          ...p,
+          name: productData.name || p.name,
+          brand: productData.brand || '',
+          model: productData.model || '',
+          category: productData.category || p.category,
+          description: productData.description || '',
+          barcode: productData.barcode || p.barcode,
+          price: productData.price || 0,
+          costPrice: productData.costPrice || 0,
+          stock: productData.stock ?? p.stock,
+          minStock: productData.minStock ?? p.minStock,
+          image: productData.image || p.image,
+          updatedAt: new Date().toISOString()
+        } : p));
         onShowToast('Produto atualizado com sucesso');
       } else {
-        const docRef = await addDoc(collection(db, 'products'), {
-          ...productData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
+        const { data: inserted, error } = await supabase
+          .from('products')
+          .insert({
+            ...dbData,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
 
-        await addDoc(collection(db, 'productHistory'), {
-          productId: docRef.id,
-          type: 'entrada',
-          quantity: productData.stock,
-          reason: 'inicial',
-          date: new Date().toISOString().split('T')[0],
-          userId: auth.currentUser?.uid || profile.id,
-          createdAt: new Date().toISOString()
-        });
+        if (error) throw new Error(error.message || JSON.stringify(error));
+
+        if (inserted) {
+          await supabase.from('product_history').insert({
+            product_id: inserted.id,
+            company_id: profile.company_id,
+            type: 'entrada',
+            quantity: productData.stock,
+            reason: 'inicial',
+            date: new Date().toISOString().split('T')[0],
+            user_id: userId,
+            created_at: new Date().toISOString()
+          });
+
+          onLogActivity?.('PRODUTOS', 'CRIOU PRODUTO', {
+            productId: inserted.id,
+            productName: inserted.name,
+            stock: inserted.stock,
+            price: inserted.price,
+            description: `Cadastrou o novo produto ${inserted.name} com ${inserted.stock} em estoque`
+          });
+
+          // Optimistic update for new product
+          setProducts(prev => [
+            ...prev,
+            {
+              id: inserted.id,
+              name: inserted.name,
+              brand: inserted.brand || '',
+              model: inserted.model || '',
+              image: inserted.image,
+              category: inserted.category,
+              description: inserted.description,
+              barcode: inserted.barcode,
+              price: inserted.price,
+              costPrice: inserted.cost_price,
+              stock: inserted.stock,
+              minStock: inserted.min_stock,
+              createdAt: inserted.created_at,
+              updatedAt: inserted.updated_at
+            }
+          ].sort((a, b) => a.name.localeCompare(b.name)));
+        }
         onShowToast('Produto cadastrado com sucesso');
       }
+
+      // Switch to catalog view to show updated product
+      setViewMode('catalog');
       setIsProductModalOpen(false);
       setEditingProduct(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'products');
+    } catch (error: any) {
+      console.error('Error saving product:', error);
+      const errorMessage = error.message || error.details || error.hint || JSON.stringify(error);
+      onShowToast('Erro ao salvar produto: ' + errorMessage);
     }
   };
 
@@ -229,10 +383,22 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
       message: 'Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.',
       onConfirm: async () => {
         try {
-          await deleteDoc(doc(db, 'products', id));
+          const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', id)
+            .eq('company_id', profile.company_id);
+          if (error) throw error;
+          
+          onLogActivity?.('PRODUTOS', 'EXCLUIU PRODUTO', {
+            productId: id,
+            description: `Excluiu permanentemente um produto do catálogo (ID: ${id})`
+          });
+          
           onShowToast('Produto excluído');
-        } catch (error) {
-          handleFirestoreError(error, OperationType.WRITE, 'products');
+        } catch (error: any) {
+          console.error('Error deleting product:', error);
+          onShowToast('Erro ao excluir: ' + error.message);
         }
         setConfirmModal(null);
       }
@@ -242,55 +408,55 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-[#0A0A0A]">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#00E676] border-t-transparent rounded-full animate-spin shadow-[0_0_20px_rgba(0,230,118,0.2)]" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col">
-      <header className="bg-[#141414] border-b border-zinc-800 p-4 sticky top-0 z-10">
-        <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="bg-black/60 backdrop-blur-xl border-b border-zinc-900 p-4 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
+              className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 text-zinc-400 hover:text-white"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Package className="text-blue-500" />
+              <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                <Package className="text-[#00E676]" size={20} />
                 Catálogo de Produtos
               </h1>
-              <p className="text-xs text-zinc-500 font-medium uppercase tracking-widest">Controle de Estoque e Vendas</p>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">Gestão de Estoque e Inteligência</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex bg-[#0A0A0A] p-1 rounded-xl border border-zinc-800">
-              <button 
-                onClick={() => setViewMode('catalog')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'catalog' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                <Grid size={14} />
-                Catálogo
-              </button>
+          <div className="flex items-center gap-3">
+              <div className="flex bg-black/40 p-1 rounded-xl border border-zinc-900 border-white/5 shadow-inner overflow-x-auto max-w-full no-scrollbar">
+                <button 
+                  onClick={() => setViewMode('catalog')}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${viewMode === 'catalog' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  <Grid size={13} />
+                  Catálogo
+                </button>
               {canViewReports && (
                 <>
                   <button 
                     onClick={() => setViewMode('reports')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'reports' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${viewMode === 'reports' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
-                    <TrendingUp size={14} />
-                    Mais Vendidos
+                    <TrendingUp size={13} />
+                    Relatórios
                   </button>
                   <button 
                     onClick={() => setViewMode('shoppingList')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'shoppingList' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${viewMode === 'shoppingList' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
-                    <ShoppingCart size={14} />
-                    Lista de Compras
+                    <ShoppingCart size={13} />
+                    Reposição
                   </button>
                 </>
               )}
@@ -301,40 +467,41 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                   setEditingProduct(null);
                   setIsProductModalOpen(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20"
+                className="relative bg-gradient-to-br from-[#00E676] to-[#00C853] text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all flex items-center gap-2 shadow-2xl shadow-[#00E676]/20 active:scale-95 group overflow-hidden shrink-0"
               >
-                <Plus size={18} />
-                Novo Produto
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
+                <span className="relative z-10">Novo Produto</span>
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1600px] w-full mx-auto p-6 space-y-6 overflow-y-auto custom-scrollbar">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8 overflow-y-auto custom-scrollbar">
         {viewMode === 'catalog' && (
-          <>
-            {/* Filters & Search */}
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Filters & Search - Glassmorphism */}
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
+              <div className="flex-1 relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#00E676] transition-colors" size={18} />
                 <input 
                   type="text" 
-                  placeholder="Pesquisar por nome, categoria ou código de barras..."
+                  placeholder="Pesquisar por nome, categoria ou código..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#141414] border border-zinc-800 rounded-2xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-zinc-900/30 border border-zinc-800/50 rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all placeholder:text-zinc-600 text-sm font-medium focus:bg-zinc-900/50"
                 />
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+              <div className="flex flex-wrap items-center gap-2 pb-1">
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
+                    className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
                       selectedCategory === cat 
-                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20' 
-                      : 'bg-[#141414] border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                      ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-xl' 
+                      : 'bg-black/20 border-zinc-800/50 text-zinc-500 hover:border-zinc-700'
                     }`}
                   >
                     {cat}
@@ -343,39 +510,39 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-[#141414] border border-zinc-800 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                  <Package size={20} />
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:border-[#00E676]/20 transition-all">
+                <div className="space-y-0.5">
+                  <p className="text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Ativos</p>
+                  <p className="text-lg sm:text-xl font-black text-white">{products.length}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Total de Itens</p>
-                  <p className="text-xl font-bold">{products.length}</p>
-                </div>
-              </div>
-              <div className="bg-[#141414] border border-zinc-800 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-                  <AlertTriangle size={20} />
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Estoque Baixo</p>
-                  <p className="text-xl font-bold text-amber-500">{lowStockProducts.length}</p>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#00E676]/10 flex items-center justify-center text-[#00E676]">
+                  <Package size={16} className="sm:w-18 sm:h-18" />
                 </div>
               </div>
-              <div className="bg-[#141414] border border-zinc-800 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
-                  <X size={20} />
+              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:border-amber-500/20 transition-all">
+                <div className="space-y-0.5">
+                  <p className="text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Alerta</p>
+                  <p className="text-lg sm:text-xl font-black text-amber-500">{lowStockProducts.length}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Sem Estoque</p>
-                  <p className="text-xl font-bold text-red-500">{outOfStockProducts.length}</p>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                  <AlertTriangle size={16} className="sm:w-18 sm:h-18" />
+                </div>
+              </div>
+              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:border-red-500/20 transition-all col-span-2 md:col-span-1">
+                <div className="space-y-0.5">
+                  <p className="text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Zerados</p>
+                  <p className="text-lg sm:text-xl font-black text-red-500">{outOfStockProducts.length}</p>
+                </div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+                  <Package size={16} className="sm:w-18 sm:h-18" />
                 </div>
               </div>
             </div>
 
-            {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            {/* Product Grid - Smaller Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredProducts.map(product => (
                 <ProductCard 
                   key={product.id} 
@@ -397,17 +564,17 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
 
         {viewMode === 'reports' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center gap-3">
-                <TrendingUp className="text-emerald-500" />
+                <TrendingUp className="text-[#00E676]" />
                 Produtos Mais Vendidos
               </h2>
-              <div className="flex bg-[#141414] p-1 rounded-xl border border-zinc-800">
+              <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 {[
                   { label: 'Hoje', value: '0' },
                   { label: '7 dias', value: '7' },
@@ -417,7 +584,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                   <button
                     key={p.value}
                     onClick={() => setReportPeriod(p.value)}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${reportPeriod === p.value ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${reportPeriod === p.value ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/10' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
                     {p.label}
                   </button>
@@ -426,7 +593,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-[#141414] border border-zinc-800 rounded-3xl p-6">
+              <div className="bg-zinc-900/40 border border-zinc-800/50 p-6 rounded-[2.5rem] shadow-xl">
                 <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-6">Gráfico de Vendas (Quantidade)</h3>
                 <div className="h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -438,9 +605,9 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                         contentStyle={{ backgroundColor: '#141414', border: '1px solid #333', borderRadius: '12px' }}
                         itemStyle={{ color: '#fff' }}
                       />
-                      <Bar dataKey="quantity" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="quantity" fill="#00E676" radius={[4, 4, 0, 0]}>
                         {mostSoldData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#3b82f6'} />
+                          <Cell key={`cell-${index}`} fill={index === 0 ? '#00E676' : '#00E676' + (index < 3 ? '88' : '44')} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -448,28 +615,33 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                 </div>
               </div>
 
-              <div className="bg-[#141414] border border-zinc-800 rounded-3xl overflow-hidden">
-                <table className="w-full text-left">
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl overflow-hidden shadow-xl overflow-x-auto no-scrollbar">
+                <table className="w-full text-left min-w-[500px]">
                   <thead>
-                    <tr className="bg-[#0A0A0A] text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+                    <tr className="bg-black/40 text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
                       <th className="px-6 py-4">Produto</th>
                       <th className="px-6 py-4 text-center">Qtd Vendida</th>
                       <th className="px-6 py-4 text-right">Total Faturado</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800">
+                  <tbody className="divide-y divide-zinc-800/50">
                     {mostSoldData.map((item, i) => (
-                      <tr key={i} className="hover:bg-zinc-800/30 transition-colors">
+                      <tr key={i} className="hover:bg-white/[0.02] transition-colors">
                         <td className="px-6 py-4">
-                          <p className="text-sm font-bold text-white">{item.name}</p>
+                          <p className="text-xs font-bold text-white leading-tight">{item.name}</p>
+                          {(item.brand || item.model) && (
+                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+                              {item.brand} {item.model}
+                            </p>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className="bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs font-bold">
+                          <span className="bg-[#00E676]/10 text-[#00E676] px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase">
                             {item.quantity}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <p className="text-sm font-bold text-emerald-500">
+                          <p className="text-xs font-black text-[#00E676]">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total)}
                           </p>
                         </td>
@@ -477,7 +649,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                     ))}
                     {mostSoldData.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="px-6 py-20 text-center text-zinc-500">
+                        <td colSpan={3} className="px-6 py-24 text-center text-zinc-500 text-xs font-medium italic">
                           Nenhuma venda registrada no período selecionado.
                         </td>
                       </tr>
@@ -490,39 +662,39 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
         )}
 
         {viewMode === 'shoppingList' && (
-          <div className="space-y-6">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <ShoppingCart className="text-blue-500" />
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold tracking-tight flex items-center gap-3">
+                  <ShoppingCart className="text-[#00E676]" />
                   Lista de Compras Inteligente
                 </h2>
-                <p className="text-sm text-zinc-500 mt-1">Sugestões baseadas nas vendas dos últimos 30 dias e estoque atual.</p>
+                <p className="text-xs text-zinc-500 font-medium">Sugestões de reposição baseadas na saúde do seu estoque.</p>
               </div>
-              <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all">
-                <Download size={18} />
-                Exportar Lista
+              <button className="bg-zinc-900 hover:bg-zinc-800 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all border border-white/5 active:scale-95">
+                <Download size={16} />
+                Exportar CSV
               </button>
             </div>
 
-            <div className="bg-[#141414] border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-              <table className="w-full text-left">
+            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl overflow-x-auto no-scrollbar">
+              <table className="w-full text-left min-w-[700px]">
                 <thead>
-                  <tr className="bg-[#0A0A0A] text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+                  <tr className="bg-black/40 text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
                     <th className="px-6 py-4">Produto</th>
                     <th className="px-6 py-4 text-center">Vendido (30d)</th>
                     <th className="px-6 py-4 text-center">Estoque Atual</th>
-                    <th className="px-6 py-4 text-center">Estoque Mínimo</th>
-                    <th className="px-6 py-4 text-right">Sugestão de Compra</th>
+                    <th className="px-6 py-4 text-center">Min. Sugerido</th>
+                    <th className="px-6 py-4 text-right">Sugestão Compra</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-zinc-800/50">
                   {shoppingListData.map((item, i) => (
-                    <tr key={i} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                           {item.image ? (
-                            <div className="w-10 h-10 rounded-lg overflow-hidden relative">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden relative border border-white/5">
                               <Image 
                                 src={item.image} 
                                 alt={item.name} 
@@ -537,8 +709,13 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                             </div>
                           )}
                           <div>
-                            <p className="text-sm font-bold text-white">{item.name}</p>
-                            <p className="text-[10px] text-zinc-500 uppercase font-bold">{item.category}</p>
+                            <p className="text-sm font-bold text-white leading-tight">{item.name}</p>
+                            {(item.brand || item.model) && (
+                              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+                                {item.brand} {item.model}
+                              </p>
+                            )}
+                            <p className="text-[10px] text-zinc-600 uppercase font-bold mt-0.5">{item.category}</p>
                           </div>
                         </div>
                       </td>
@@ -556,7 +733,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast }: Produto
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-black">
-                            + {item.suggestion || (item.minStock - item.stock + 1)}
+                            + {item.suggestion || Math.max(1, (item.minStock - item.stock + 5))}
                           </span>
                           <ArrowUpRight size={14} className="text-blue-500" />
                         </div>
@@ -631,98 +808,84 @@ function ProductCard({ product, onEdit, onDelete, canEdit }: { product: Product,
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-[#141414] border border-zinc-800 rounded-3xl overflow-hidden flex flex-col group hover:border-zinc-700 transition-all hover:shadow-2xl hover:shadow-black/50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl overflow-hidden flex flex-col group hover:border-[#00E676]/30 transition-all hover:shadow-2xl hover:shadow-[#00E676]/5 relative"
     >
-      <div className="aspect-square relative overflow-hidden bg-zinc-900">
+      <div className="aspect-[4/3] relative overflow-hidden bg-zinc-950">
         {product.image ? (
           <Image 
             src={product.image} 
             alt={product.name} 
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
+            className="object-cover group-hover:scale-110 transition-transform duration-700"
             referrerPolicy="no-referrer"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-800">
-            <Package size={64} />
+            <Package size={40} />
           </div>
         )}
         
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          <span className="bg-black/60 backdrop-blur-md text-[10px] px-2 py-1 rounded-lg font-bold uppercase tracking-widest text-zinc-300 border border-white/10">
+        {/* Badges - More subtle */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          <span className="bg-black/60 backdrop-blur-md text-[8px] px-2 py-0.5 rounded-md font-bold uppercase tracking-widest text-[#00E676] border border-[#00E676]/20">
             {product.category}
           </span>
-          {isOutOfStock && (
-            <span className="bg-red-500 text-white text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest shadow-lg shadow-red-500/20">
-              Sem Estoque
-            </span>
-          )}
-          {isLowStock && (
-            <span className="bg-amber-500 text-black text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest shadow-lg shadow-amber-500/20">
-              Estoque Baixo
-            </span>
-          )}
         </div>
 
-        {/* Actions Overlay */}
+        {/* Action Overlay */}
         {canEdit && (
-          <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
               onClick={onEdit}
-              className="p-2 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white rounded-xl border border-white/10 transition-all"
+              className="p-1.5 bg-black/60 backdrop-blur-xl hover:bg-[#00E676] hover:text-black text-white rounded-lg border border-white/5 transition-all shadow-xl"
             >
-              <Edit2 size={16} />
+              <Edit2 size={12} />
             </button>
             <button 
               onClick={onDelete}
-              className="p-2 bg-red-500/20 backdrop-blur-md hover:bg-red-500 text-white rounded-xl border border-red-500/20 transition-all"
+              className="p-1.5 bg-black/60 backdrop-blur-xl hover:bg-red-500 text-white rounded-lg border border-white/5 transition-all shadow-xl"
             >
-              <Trash2 size={16} />
+              <Trash2 size={12} />
             </button>
           </div>
         )}
       </div>
 
-      <div className="p-5 space-y-4 flex-1 flex flex-col">
-        <div>
-          <h3 className="font-bold text-white line-clamp-1 group-hover:text-blue-400 transition-colors">{product.name}</h3>
-          <p className="text-xs text-zinc-500 mt-1 line-clamp-2 min-h-[2rem]">{product.description || 'Sem descrição'}</p>
+      <div className="p-2 sm:p-3.5 space-y-2 sm:space-y-3">
+        <div className="space-y-0.5">
+          <h3 className="font-bold text-[11px] sm:text-xs text-zinc-100 truncate group-hover:text-[#00E676] transition-colors">{product.name}</h3>
+          <p className="text-[9px] sm:text-[10px] text-zinc-500 font-medium truncate">{product.description || 'Sem descrição'}</p>
         </div>
 
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-800/50">
-          <div>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Preço</p>
-            <p className="text-lg font-black text-emerald-500">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
-            </p>
+        <div className="flex items-center justify-between pt-0.5 sm:pt-1">
+          <div className="space-y-0.5">
+            <p className="text-[7px] sm:text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Preço</p>
+            <p className="text-xs sm:text-sm font-black text-[#00E676]">R$ {Number(product.price || 0).toFixed(2)}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Estoque</p>
-            <p className={`text-lg font-black ${isOutOfStock ? 'text-red-500' : isLowStock ? 'text-amber-500' : 'text-zinc-300'}`}>
-              {product.stock}
-            </p>
+          <div className="text-right space-y-0.5">
+            <p className="text-[7px] sm:text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Estoque</p>
+            <div className="flex items-center justify-end gap-1 sm:gap-1.5">
+               <span className={`text-[10px] sm:text-xs font-black ${isOutOfStock ? 'text-red-500' : isLowStock ? 'text-amber-500' : 'text-zinc-300'}`}>
+                 {product.stock}
+               </span>
+               <div className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${isOutOfStock ? 'bg-red-500 animate-pulse' : isLowStock ? 'bg-amber-500' : 'bg-[#00E676]'}`}></div>
+            </div>
           </div>
         </div>
-
-        {product.barcode && (
-          <div className="flex items-center gap-2 text-[10px] text-zinc-600 font-mono bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/50">
-            <Barcode size={12} />
-            {product.barcode}
-          </div>
-        )}
       </div>
     </motion.div>
   );
 }
 
-function ProductModal({ product, onClose, onSave, onShowToast, categories }: { product: Product | null, onClose: () => void, onSave: (data: Partial<Product>) => void, onShowToast: (msg: string) => void, categories: string[] }) {
+function ProductModal({ product, onClose, onSave, onShowToast, categories }: { product: Product | null, onClose: () => void, onSave: (p: Partial<Product>) => void, onShowToast: (m: string) => void, categories: string[] }) {
   const [formData, setFormData] = useState<Partial<Product>>(
-    product || {
+    product ? { ...product } : {
       name: '',
-      category: '',
+      brand: '',
+      model: '',
+      category: categories[0] || 'Geral',
       description: '',
       barcode: '',
       price: 0,
@@ -734,32 +897,35 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
   );
 
   const [isSearching, setIsSearching] = useState(false);
+  const [isDuplicate, setIsDuplicate] = useState(false);
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [isDuplicate, setIsDuplicate] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Verificação em tempo real de código duplicado
+  const handleSave = async () => {
+    if (isDuplicate || !formData.name || isSaving) return;
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
   useEffect(() => {
     const checkDuplicate = async () => {
-      // Usando query direta no Firestore por simplicidade e evitar quebrar dependências.
       if (formData.barcode && formData.barcode.length > 5) {
         try {
-            // Firestore SDK search
-            const { collection, query, where, getDocs } = await import('firebase/firestore');
-            const { db } = await import('../firebase');
-            const q = query(collection(db, 'products'), where('barcode', '==', formData.barcode));
-            const querySnapshot = await getDocs(q);
-            
-            let found = false;
-            querySnapshot.forEach((doc) => {
-                if (!product || doc.id !== product.id) {
-                    found = true;
-                }
-            });
-            setIsDuplicate(found);
+            const { data, error } = await supabase.from('products').select('id').eq('barcode', formData.barcode);
+            if (error) throw error;
+            const found = data && data.length > 0 && (!product || data.some(p => p.id !== product.id));
+            setIsDuplicate(!!found);
         } catch (e) {
-            console.error(e)
-            setIsDuplicate(false)
+            console.error('Error checking duplicate barcode:', e);
+            setIsDuplicate(false);
         }
       } else {
         setIsDuplicate(false);
@@ -788,8 +954,8 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
         if (data.categoria && !formData.category) { updates.category = data.categoria; newFields.add('category'); }
         if (data.image && !formData.image) { updates.image = data.image; newFields.add('image'); }
         if (data.marca) {
-            updates.description = `Marca: ${data.marca}. ${formData.description || ''}`;
-            newFields.add('description');
+            updates.brand = data.marca;
+            newFields.add('brand');
         }
 
         setFormData(prev => ({ ...prev, ...updates }));
@@ -820,10 +986,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
     }
   };
 
-  const generateBarcode = () => {
-    const code = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
-    setFormData(prev => ({ ...prev, barcode: code }));
-  };
+
 
   return (
     <motion.div 
@@ -833,56 +996,53 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl"
     >
       <motion.div 
-        initial={{ scale: 0.9, y: 30 }}
+        initial={{ scale: 0.95, y: 30 }}
         animate={{ scale: 1, y: 0 }}
-        className="bg-[#0D0D0D] border border-white/10 rounded-[48px] w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+        className="bg-[#0A0A0A] border border-white/10 sm:rounded-[32px] rounded-2xl w-full max-w-5xl sm:max-h-[85vh] max-h-[96vh] overflow-hidden flex flex-col shadow-2xl relative"
       >
         {/* Header */}
-        <div className="px-10 py-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-white/[0.03] to-transparent">
+        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-zinc-900/50">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                {product ? <Edit2 size={20} /> : <Package size={20} />}
+              <div className="w-8 h-8 rounded-xl bg-[#00E676]/10 flex items-center justify-center text-[#00E676]">
+                {product ? <Edit2 size={18} /> : <Plus size={18} />}
               </div>
-              <h2 className="text-3xl font-black text-white tracking-tight">
+              <h2 className="text-xl font-black text-white tracking-tight uppercase">
                 {product ? 'Editar Produto' : 'Novo Produto'}
               </h2>
             </div>
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mt-2 ml-1">
-                Catálogo Inteligente SERVYX
-            </p>
           </div>
           <button 
             onClick={onClose} 
-            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-zinc-400 hover:text-white border border-white/5 group"
+            className="w-10 h-10 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all text-zinc-400 hover:text-white"
           >
-            <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Column: Identification & Data */}
-            <div className="lg:col-span-8 space-y-10">
+            <div className="lg:col-span-8 space-y-6">
               
               {/* Secção: Identificação do Produto */}
-              <div className="space-y-6">
+              <div className="p-4 bg-zinc-900/40 border border-zinc-800/40 rounded-2xl space-y-3">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Identificação do Produto</h3>
+                    <div className="w-1 h-4 bg-[#00E676] rounded-full" />
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Entrada por Código</h3>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                      <Barcode className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${isDuplicate ? 'text-red-500' : 'text-zinc-500'}`} size={22} />
+                      <Barcode className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${isDuplicate ? 'text-red-500' : 'text-zinc-500'}`} size={20} />
                       <input 
                         type="text" 
                         value={formData.barcode}
                         onChange={e => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
-                        className={`w-full bg-black/60 border ${isDuplicate ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-blue-500/50'} rounded-[24px] pl-14 pr-4 py-5 text-white focus:outline-none transition-all font-black text-xl tracking-tight`}
-                        placeholder="Código EAN / GTIN"
+                        className={`w-full bg-black/60 border ${isDuplicate ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-blue-500/50'} rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none transition-all font-black text-lg tracking-tight`}
+                        placeholder="Código de Barras"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -896,15 +1056,15 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         type="button"
                         onClick={() => handleBarcodeSearch()}
                         disabled={isSearching}
-                        className="flex-1 sm:flex-none px-8 bg-blue-600 hover:bg-blue-500 text-white rounded-[24px] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                        className="flex-1 sm:flex-none px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                       >
-                        {isSearching ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Search size={18} />}
-                        {isSearching ? 'Buscando' : 'Buscar'}
+                        {isSearching ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Search size={16} />}
+                        {isSearching ? '...' : 'Buscar'}
                       </button>
                       <button 
                         type="button"
                         onClick={() => setIsScannerOpen(true)}
-                        className="flex-1 sm:flex-none px-8 bg-zinc-800 hover:bg-zinc-700 text-white rounded-[24px] text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+                        className="flex-1 sm:flex-none px-6 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
                       >
                         <Camera size={18} />
                         Escanear
@@ -932,238 +1092,226 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
               </div>
 
               {/* Secção: Dados do Produto */}
-              <div className="space-y-6 pt-4">
+              <div className="space-y-6">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Dados Técnicos</h3>
+                    <div className="w-1 h-4 bg-[#00E676] rounded-full" />
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Dados do Produto</h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Nome do Produto</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2 col-span-full">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Nome do Produto</label>
                     <div className="relative group">
                       <input 
                         type="text" 
                         value={formData.name}
-                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        className={`w-full bg-black/40 border ${autoFilledFields.has('name') ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'border-white/5'} rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all font-bold group-hover:bg-white/[0.02]`}
-                        placeholder="Nome comercial do item"
+                        onChange={e => setFormData(prev => ({ ...prev, name: capFirst(e.target.value) }))}
+                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('name') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 sm:py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
+                        placeholder="Ex: Tela iPhone 13 Pro Max"
                       />
-                      {autoFilledFields.has('name') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-bounce" />}
+                      {autoFilledFields.has('name') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#00E676] animate-bounce" />}
                     </div>
                   </div>
+
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Categoria</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Marca</label>
+                    <input 
+                      type="text" 
+                      value={formData.brand}
+                      onChange={e => setFormData(prev => ({ ...prev, brand: capFirst(e.target.value) }))}
+                      className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('brand') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
+                      placeholder="Ex: Apple, Samsung"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Modelo</label>
+                    <input 
+                      type="text" 
+                      value={formData.model}
+                      onChange={e => setFormData(prev => ({ ...prev, model: capFirst(e.target.value) }))}
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700"
+                      placeholder="Ex: A2643, SM-G998B"
+                    />
+                  </div>
+
+                  <div className="space-y-2 col-span-full">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Categoria</label>
                     <div className="relative">
                       <input 
                         type="text" 
                         list="categories-list"
                         value={formData.category}
-                        onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                        className={`w-full bg-black/40 border ${autoFilledFields.has('category') ? 'border-emerald-500' : 'border-white/5'} rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all font-bold`}
-                        placeholder="Ex: Telas, Baterias..."
+                        onChange={e => setFormData(prev => ({ ...prev, category: capFirst(e.target.value) }))}
+                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('category') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
+                        placeholder="Selecione ou digite uma categoria"
                       />
                       <datalist id="categories-list">
                         {categories.map(c => <option key={c} value={c} />)}
                       </datalist>
-                      {autoFilledFields.has('category') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-bounce" />}
+                      {autoFilledFields.has('category') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#00E676] animate-bounce" />}
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Descrição Detalhada</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Descrição</label>
                   <div className="relative">
                     <textarea 
                         value={formData.description}
-                        onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                        className={`w-full bg-black/40 border ${autoFilledFields.has('description') ? 'border-emerald-500' : 'border-white/5'} rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all min-h-[100px] font-medium resize-none`}
-                        placeholder="Informações sobre marca, modelo e detalhes técnicos..."
+                        onChange={e => setFormData(prev => ({ ...prev, description: capFirst(e.target.value) }))}
+                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('description') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-[#00E676]/50 transition-all min-h-[60px] font-medium resize-none placeholder:text-zinc-700`}
+                        placeholder="Observações adicionais, compatibilidade, etc..."
                     />
-                    {autoFilledFields.has('description') && <CheckCircle2 size={16} className="absolute right-4 top-4 text-emerald-500 animate-bounce" />}
+                    {autoFilledFields.has('description') && <CheckCircle2 size={16} className="absolute right-4 top-4 text-[#00E676] animate-bounce" />}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Preço Venda</label>
-                        <input 
-                            type="number" 
-                            step="0.01"
-                            value={formData.price || ''}
-                            onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-emerald-500 font-black text-xl focus:outline-none focus:border-emerald-500/30 transition-all"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Custo</label>
-                        <input 
-                            type="number" 
-                            step="0.01"
-                            value={formData.costPrice || ''}
-                            onChange={e => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
-                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-zinc-400 font-bold focus:outline-none focus:border-white/20 transition-all"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Estoque</label>
-                        <input 
-                            type="number" 
-                            value={formData.stock || ''}
-                            onChange={e => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
-                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white font-black text-xl focus:outline-none focus:border-white/20 transition-all"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">Min.</label>
-                        <input 
-                            type="number" 
-                            value={formData.minStock || ''}
-                            onChange={e => setFormData(prev => ({ ...prev, minStock: parseInt(e.target.value) || 0 }))}
-                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-amber-500 font-black text-xl focus:outline-none focus:border-amber-500/50 transition-all"
-                        />
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Preço Venda</label>
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      value={formData.price || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-[#00E676] font-black text-xl focus:outline-none focus:border-[#00E676]/50 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Custo</label>
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      value={formData.costPrice || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-zinc-400 font-bold focus:outline-none focus:border-white/20 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Estoque</label>
+                    <input 
+                      type="number" 
+                      value={formData.stock || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, stock: Math.max(0, parseInt(e.target.value) || 0) }))}
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-white font-black text-xl focus:outline-none focus:border-white/20 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
+                      Min. Alerta
+                      <InfoTooltip position="top" content="Quando o estoque chegar neste número, o sistema alertará que está na hora de repor." className="ml-0.5" />
+                    </label>
+                    <input 
+                      type="number" 
+                      value={formData.minStock || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, minStock: Math.max(0, parseInt(e.target.value) || 0) }))}
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-amber-500 font-black text-xl focus:outline-none focus:border-amber-500/50 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Right Column: Image Preview */}
-            <div className="lg:col-span-4 space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-4 bg-purple-500 rounded-full" />
-                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Visualização</h3>
+            <div className="lg:col-span-4 space-y-4">
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="w-1 h-3 bg-purple-500 rounded-full" />
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Mídia</h3>
                 </div>
 
-                <div className="sticky top-0">
-                    <div className={`aspect-square rounded-[40px] border-2 border-dashed ${autoFilledFields.has('image') ? 'border-emerald-500' : 'border-white/10'} bg-black/40 overflow-hidden relative group hover:border-white/20 transition-all shadow-2xl`}>
-                        {formData.image ? (
-                        <>
-                            <Image 
-                                src={formData.image} 
-                                alt="Preview" 
-                                fill
-                                className="object-cover group-hover:scale-110 transition-transform duration-1000"
-                                referrerPolicy="no-referrer"
-                            />
-                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 gap-4">
-                                <label className="w-full py-4 bg-white/10 hover:bg-white text-zinc-300 hover:text-black rounded-2xl shadow-xl active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer">
-                                    <Edit2 size={16} /> Trocar Imagem
-                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                                </label>
-                                <button 
-                                    onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                                    className="w-full py-4 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl shadow-xl active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
-                                >
-                                    <Trash2 size={16} /> Remover
-                                </button>
-                            </div>
-                            {autoFilledFields.has('image') && (
-                                <div className="absolute top-4 right-4 bg-emerald-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                                    <CheckCircle2 size={18} />
-                                </div>
-                            )}
-                        </>
-                        ) : (
-                        <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.02] transition-all group">
-                            <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-all duration-500">
-                            <ImageIcon size={40} />
-                            </div>
-                            <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.3em] mt-2">Upload Imagem</span>
-                            <div className="mt-4 px-6 py-2 bg-white/5 rounded-full text-[8px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-2 text-center leading-relaxed">
-                                Formatos: JPG, PNG, WEBP
-                            </div>
-                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <div className="lg:sticky lg:top-0 space-y-4">
+                <div className={`aspect-[4/3] rounded-[24px] border-2 border-dashed ${autoFilledFields.has('image') ? 'border-[#00E676]' : 'border-zinc-800'} bg-black/40 overflow-hidden relative group hover:border-zinc-700 transition-all`}>
+                  {formData.image ? (
+                    <>
+                      <Image src={formData.image} alt="Preview" fill className="object-cover transition-transform duration-700 group-hover:scale-105" referrerPolicy="no-referrer" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 gap-3">
+                        <label className="w-full py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer transition-transform active:scale-95">
+                          <Edit2 size={14} /> Trocar Imagem
+                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                         </label>
-                        )}
-                    </div>
+                        <button 
+                          onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                          className="w-full py-3 bg-red-500/20 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95"
+                        >
+                          <Trash2 size={14} /> Remover
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.02] transition-colors group">
+                      <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-[#00E676]/10 group-hover:text-[#00E676] transition-all">
+                        <ImageIcon size={32} />
+                      </div>
+                      <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Adicionar Foto</span>
+                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    </label>
+                  )}
                 </div>
                 
-                <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 mt-6">
-                    <div className="flex items-start gap-3 text-zinc-500">
-                        <Info size={16} className="shrink-0 mt-0.5" />
-                        <div>
-                            <span className="text-[10px] font-black uppercase tracking-widest block mb-1 text-zinc-400">Busca Inteligente</span>
-                            <p className="text-xs text-zinc-500 leading-relaxed font-medium">
-                                Realize buscas pelo código de barras e preencha automaticamente os dados e imagens buscando em bases mundiais.
-                            </p>
-                        </div>
-                    </div>
+                <div className="p-4 bg-zinc-900/40 border border-[#00E676]/10 rounded-2xl flex items-start gap-3 shadow-inner">
+                  <Info size={16} className="text-[#00E676] shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-zinc-500 leading-relaxed font-black uppercase tracking-widest">
+                    Sugestão: Cadastre seus produtos com fotos reais para facilitar a identificação no PDV e melhorar a organização do catálogo.
+                  </p>
                 </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-10 border-t border-white/5 bg-gradient-to-t from-white/[0.02] to-transparent flex flex-col sm:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-4">
-             <button 
-                type="button"
-                onClick={generateBarcode}
-                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/5 flex items-center gap-2"
-              >
-                <Barcode size={14} /> Gerar Aleatório
-              </button>
-          </div>
-          
-          <div className="flex items-center gap-8">
+        <div className="p-6 border-t border-white/5 bg-zinc-900/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-4 w-full sm:w-auto ml-auto">
             <button 
-                onClick={onClose}
-                className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-red-400 transition-all active:scale-95"
+              onClick={onClose}
+              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
             >
-                Cancelar Alterações
+              Descartar
             </button>
             <button 
-                onClick={() => onSave(formData)}
-                disabled={isDuplicate}
-                className={`px-16 py-5 rounded-[24px] text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center gap-3 active:scale-95 shadow-2xl ${isDuplicate ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border-zinc-700' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'}`}
+              onClick={handleSave}
+              disabled={isDuplicate || !formData.name || isSaving}
+              className={`flex-1 sm:flex-none px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl ${isDuplicate || !formData.name || isSaving ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-[#00E676] hover:bg-[#00C853] text-black shadow-[#00E676]/20'}`}
             >
-                <Save size={20} />
-                Confirmar Cadastro
+              {isSaving ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  {product ? 'Salvar Alterações' : 'Cadastrar Produto'}
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Scanner Overlay Modal */}
+        {/* Scanner Overlay */}
         <AnimatePresence>
             {isScannerOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="w-full max-w-xl aspect-[3/4] sm:aspect-video bg-[#0A0A0A] rounded-[48px] border border-white/10 overflow-hidden relative flex flex-col shadow-2xl relative"
+                        className="w-full max-w-xl aspect-square bg-zinc-900 rounded-[32px] border border-white/10 overflow-hidden relative flex flex-col shadow-2xl"
                     >
-                        <div className="absolute top-0 left-0 right-0 p-8 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20 pointer-events-none">
-                            <div className="flex items-center gap-3 text-blue-500">
-                                <Camera size={24} />
-                                <h3 className="text-xl font-black uppercase tracking-tight text-white drop-shadow-md">Escanear Produto</h3>
-                            </div>
-                            <button onClick={() => setIsScannerOpen(false)} className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors rounded-xl text-white">
-                                <X size={20} />
+                        <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-20">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-white">Escanear Código</h3>
+                            <button onClick={() => setIsScannerOpen(false)} className="w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black rounded-full transition-colors text-white">
+                                <X size={16} />
                             </button>
                         </div>
                         
-                        <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
-                            {/* Visual Guide Overlay */}
-                            <div className="absolute inset-0 z-10 pointer-events-none flex flex-col items-center justify-center">
-                                <div className="w-[80%] h-[40%] rounded-3xl relative">
-                                    <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-xl" />
-                                    <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-xl" />
-                                    <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-xl" />
-                                    <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-xl" />
-                                    
-                                    {/* Scan Line Animation */}
-                                    <motion.div 
-                                        animate={{ top: ['0%', '100%', '0%'] }}
-                                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                                        className="absolute left-0 right-0 h-[2px] bg-blue-500 shadow-[0_0_20px_#3b82f6]"
-                                    />
-                                    
-                                    <div className="absolute inset-0 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] pointer-events-none" />
+                        <div className="flex-1 relative bg-black">
+                            {/* Visual guide */}
+                            <div className="absolute inset-0 pointer-events-none border-[60px] border-black/60 flex items-center justify-center z-10">
+                                <div className="w-full h-full border-2 border-[#00E676] rounded-2xl relative">
+                                    <div className="absolute left-[-2px] right-[-2px] top-1/2 h-[2px] bg-[#00E676] shadow-[0_0_10px_#00E676] animate-pulse" />
                                 </div>
-                                <p className="text-[10px] font-black text-white bg-black/50 px-6 py-3 rounded-full uppercase tracking-[0.3em] mt-12 text-center backdrop-blur-md border border-white/10 shadow-xl">
-                                    Alinhe o código de barras
-                                </p>
                             </div>
                             
                             {/* Real QR/Barcode Scanner Component (Dynamic Script Load) */}

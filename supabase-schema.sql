@@ -144,12 +144,28 @@ CREATE TABLE IF NOT EXISTS public.agenda (
 );
 
 -- =====================================================
--- TABELA: app_settings (Configurações do Sistema)
--- =====================================================
 CREATE TABLE IF NOT EXISTS public.app_settings (
   key TEXT PRIMARY KEY,
   value JSONB,
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
+-- TABELA: sales (Vendas Diretas)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS public.sales (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sale_number INTEGER NOT NULL,
+  date TEXT,
+  time TEXT,
+  items JSONB DEFAULT '[]',
+  total NUMERIC DEFAULT 0,
+  payment_method TEXT,
+  customer_name TEXT,
+  user_id TEXT,
+  user_name TEXT,
+  session_id TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Inserir configuração inicial do contador de OS
@@ -170,3 +186,4 @@ ALTER TABLE public.receivables DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payables DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.agenda DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sales DISABLE ROW LEVEL SECURITY;

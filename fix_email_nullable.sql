@@ -1,0 +1,1 @@
+ALTER TABLE public.suppliers ALTER COLUMN email DROP NOT NULL;

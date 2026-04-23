@@ -1,13 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Search, ShieldCheck, ShieldAlert, Filter, 
   Calendar, User, Smartphone, FileText, CheckCircle2, XCircle, 
-  Eye, Printer, MessageCircle, Clock, Save, ChevronDown
+  Eye, Printer, MessageCircle, Clock, Save, ChevronDown, Wrench, X
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { format, isAfter, isBefore, addDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import WarrantyPrintTemplate from './WarrantyPrintTemplate';
+import WarrantyThermalTemplate from './WarrantyThermalTemplate';
 
 interface Warranty {
   id: string;
@@ -29,17 +32,84 @@ interface GarantiaModuleProps {
     id: string;
     name: string;
     role: string;
+    type?: string;
+    [key: string]: unknown;
   };
   onBack: () => void;
   onShowToast: (message: string) => void;
+  companySettings: any;
+  osSettings?: any;
+  onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
 }
 
-export default function GarantiaModule({ profile, onBack, onShowToast }: GarantiaModuleProps) {
+export default function GarantiaModule({ profile, onBack, onShowToast, companySettings, osSettings, onLogActivity }: GarantiaModuleProps) {
   const [warranties, setWarranties] = useState<Warranty[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'TODAS' | 'ATIVA' | 'EXPIRADA'>('TODAS');
   const [selectedWarranty, setSelectedWarranty] = useState<Warranty | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Warranty>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [relatedOrder, setRelatedOrder] = useState<any>(null);
+
+  const selectedWarrantyData = useMemo(() => {
+    if (!selectedWarranty) return null;
+
+    const order = {
+      id: selectedWarranty.id,
+      companyId: companySettings.id,
+      osNumber: parseInt(selectedWarranty.os_number) || 0,
+      customerId: relatedOrder?.customerId || '',
+      signatures: relatedOrder?.signatures || { client: null, technician: null },
+      equipment: {
+        brand: relatedOrder?.equipment?.brand || selectedWarranty.equipment.split(' ')[0] || '',
+        model: relatedOrder?.equipment?.model || selectedWarranty.equipment.split(' ').slice(1).join(' ') || '',
+        type: relatedOrder?.equipment?.type || 'Equipamento',
+        serial: relatedOrder?.equipment?.serial || '',
+        color: relatedOrder?.equipment?.color || '',
+        passwordType: relatedOrder?.equipment?.passwordType || 'none',
+        passwordValue: relatedOrder?.equipment?.passwordValue || ''
+      },
+      defect: relatedOrder?.defect || '',
+      service: selectedWarranty.service_performed,
+      checklist: relatedOrder?.checklist || {},
+      checklistNotes: relatedOrder?.checklistNotes || '',
+      technicianNotes: selectedWarranty.notes || '',
+      financials: relatedOrder?.financials || {
+         totalValue: 0,
+         paymentType: 'Outro',
+         paymentStatus: 'Total',
+         amountPaid: 0
+      },
+      status: relatedOrder?.status || 'Equipamento Retirado',
+      priority: relatedOrder?.priority || 'Média',
+      history: relatedOrder?.history || [],
+      completionData: {
+         servicesPerformed: selectedWarranty.service_performed,
+         exitChecklist: relatedOrder?.completion_data?.exitChecklist || {},
+         supplier: relatedOrder?.completion_data?.supplier || '',
+         partsUsed: relatedOrder?.completion_data?.partsUsed || '',
+         warrantyDays: selectedWarranty.duration_days || 90,
+         signatures: relatedOrder?.completion_data?.signatures || null,
+         technicianObservations: selectedWarranty.notes || relatedOrder?.completion_data?.technicianObservations || ''
+      },
+      createdAt: selectedWarranty.created_at || new Date().toISOString(),
+      updatedAt: selectedWarranty.start_date || new Date().toISOString()
+    };
+
+    const customer = {
+      id: '',
+      name: selectedWarranty.client_name,
+      phone: '',
+      email: '',
+      document: '',
+      address: '',
+      createdAt: ''
+    };
+
+    return { order, customer };
+  }, [selectedWarranty, companySettings, relatedOrder]);
 
   useEffect(() => {
     fetchWarranties();
@@ -51,6 +121,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
       const { data, error } = await supabase
         .from('warranties')
         .select('*')
+        .eq('company_id', profile.company_id)
         .order('end_date', { ascending: false });
 
       if (error) throw error;
@@ -71,6 +142,83 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
       onShowToast('Erro ao carregar garantias');
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedWarranty?.os_id) {
+      fetchRelatedOrder(selectedWarranty.os_id);
+    } else {
+      setRelatedOrder(null);
+    }
+  }, [selectedWarranty]);
+
+  const fetchRelatedOrder = async (osId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', osId)
+        .single();
+      
+      if (data) {
+        setRelatedOrder(data);
+      }
+    } catch (err) {
+      console.error('Error fetching related order:', err);
+    }
+  };
+
+  const handleUpdateWarranty = async () => {
+    if (!selectedWarranty || !editForm.id) return;
+    setIsSaving(true);
+    
+    try {
+      const now = new Date();
+      const newEndDate = addDays(parseISO(editForm.start_date || selectedWarranty.start_date), editForm.duration_days || selectedWarranty.duration_days);
+      const formattedEndDate = format(newEndDate, 'yyyy-MM-dd');
+      const isExpired = isBefore(newEndDate, now);
+
+      const updates = {
+        client_name: editForm.client_name,
+        equipment: editForm.equipment,
+        service_performed: editForm.service_performed,
+        start_date: editForm.start_date,
+        end_date: formattedEndDate,
+        duration_days: editForm.duration_days,
+        notes: editForm.notes,
+        status: isExpired ? 'Expirada' : 'Ativa',
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('warranties')
+        .update(updates)
+        .eq('id', editForm.id)
+        .eq('company_id', profile.company_id);
+
+      if (error) throw error;
+      
+      onLogActivity?.('GARANTIA', 'EDITOU GARANTIA', {
+        warrantyId: editForm.id,
+        osNumber: selectedWarranty.os_number,
+        clientName: editForm.client_name,
+        startDate: editForm.start_date,
+        endDate: formattedEndDate,
+        description: `Atualizou os termos de garantia da OS #${selectedWarranty.os_number} para ${editForm.client_name}`
+      });
+
+      onShowToast('Garantia atualizada com sucesso!');
+      setIsEditing(false);
+      fetchWarranties();
+      
+      // Update selected warranty with current data
+      setSelectedWarranty(prev => prev ? { ...prev, ...updates } as Warranty : null);
+    } catch (err: any) {
+      console.error('Update error:', err);
+      onShowToast('Erro ao atualizar garantia');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -101,46 +249,57 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col">
       {/* Header */}
-      <header className="bg-[#141414]/80 backdrop-blur-md border-b border-zinc-800 p-4 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={onBack}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <ShieldCheck className="text-[#00E676]" size={24} />
-                Controle de Garantias
-              </h1>
-              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Gestão pós-venda SERVYX</p>
+      <header className="bg-[#141414]/90 backdrop-blur-xl border-b border-zinc-800/80 p-4 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={onBack}
+                className="p-2.5 hover:bg-zinc-800 rounded-md transition-all text-zinc-400 active:scale-90"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div>
+                <h1 className="text-lg sm:text-2xl font-black tracking-tight flex items-center gap-2">
+                  <ShieldCheck className="text-[#00E676]" size={22} />
+                  Garantias
+                </h1>
+                <p className="hidden sm:block text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">Gestão pós-venda SERVYX</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+               <div className="hidden sm:flex bg-zinc-900/50 border border-zinc-800 rounded-sm px-3 py-1.5 items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase">{stats.active} Ativas</span>
+               </div>
             </div>
           </div>
 
-          <div className="flex flex-1 max-w-2xl gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#00E676] transition-colors" size={18} />
               <input 
                 type="text" 
-                placeholder="Buscar por OS ou nome do cliente..." 
+                placeholder="Buscar por OS ou cliente..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-black/40 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-md pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all outline-none"
               />
             </div>
-            <div className="relative group">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="appearance-none bg-zinc-800 border border-zinc-700 rounded-xl px-4 pr-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-[#00E676] transition-all cursor-pointer"
-              >
-                <option value="TODAS">Todos Status</option>
-                <option value="ATIVA">Ativas</option>
-                <option value="EXPIRADA">Expiradas</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={16} />
+            <div className="flex gap-2">
+              <div className="relative flex-1 sm:flex-initial">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="w-full appearance-none bg-[#0A0A0A] border border-zinc-800 rounded-md px-5 pr-12 py-3 text-sm font-bold text-zinc-300 focus:outline-none focus:border-[#00E676] transition-all cursor-pointer outline-none"
+                >
+                  <option value="TODAS">Todos</option>
+                  <option value="ATIVA">Ativas</option>
+                  <option value="EXPIRADA">Expiradas</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={16} />
+              </div>
             </div>
           </div>
         </div>
@@ -148,48 +307,48 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#141414] border border-zinc-800 rounded-2xl p-5 flex items-center gap-4"
+            className="bg-[#141414] border border-zinc-800 rounded-md p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4"
           >
-            <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-xl flex items-center justify-center">
-              <ShieldCheck size={24} />
+            <div className="w-10 h-10 bg-[#00E676]/10 text-[#00E676] rounded-sm flex items-center justify-center shrink-0">
+              <ShieldCheck size={20} />
             </div>
-            <div>
-              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Garantias Ativas</p>
-              <p className="text-2xl font-bold">{stats.active}</p>
+            <div className="text-center sm:text-left">
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-0.5">Ativas</p>
+              <p className="text-xl font-black text-white leading-none">{stats.active}</p>
             </div>
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#141414] border border-zinc-800 rounded-2xl p-5 flex items-center gap-4"
+            className="bg-[#141414] border border-zinc-800 rounded-md p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4"
           >
-            <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
-              <ShieldAlert size={24} />
+            <div className="w-10 h-10 bg-red-500/10 text-red-500 rounded-sm flex items-center justify-center shrink-0">
+              <ShieldAlert size={20} />
             </div>
-            <div>
-              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Expiradas</p>
-              <p className="text-2xl font-bold">{stats.expired}</p>
+            <div className="text-center sm:text-left">
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-0.5">Expiradas</p>
+              <p className="text-xl font-black text-white leading-none">{stats.expired}</p>
             </div>
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#141414] border border-zinc-800 rounded-2xl p-5 flex items-center gap-4"
+            className="hidden sm:flex bg-[#141414] border border-zinc-800 rounded-md p-4 items-center sm:items-start gap-2 sm:gap-4"
           >
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
-              <FileText size={24} />
+            <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-sm flex items-center justify-center shrink-0">
+              <FileText size={20} />
             </div>
             <div>
-              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Total Registrado</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-0.5">Total</p>
+              <p className="text-xl font-black text-white leading-none">{stats.total}</p>
             </div>
           </motion.div>
         </div>
@@ -198,7 +357,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-[0.2em]">Listagem Detalhada</h2>
-            <p className="text-xs text-zinc-500">{filteredWarranties.length} resultados encontrados</p>
+            <p className="text-xs text-zinc-500">{filteredWarranties.length} resultados</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -211,14 +370,18 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2, delay: index * 0.05 }}
-                  onClick={() => setSelectedWarranty(warranty)}
-                  className="bg-[#141414] border border-zinc-800 hover:border-[#00E676]/50 rounded-2xl p-5 transition-all cursor-pointer group relative overflow-hidden active:scale-[0.98]"
+                  onClick={() => {
+                    setSelectedWarranty(warranty);
+                    setIsEditing(false);
+                    setEditForm(warranty);
+                  }}
+                  className="bg-[#141414] border border-zinc-800 hover:border-[#00E676]/50 rounded-md p-5 transition-all cursor-pointer group relative overflow-hidden active:scale-[0.98]"
                 >
                   <div className={`absolute top-0 right-0 w-1 h-full ${warranty.status === 'Ativa' ? 'bg-[#00E676]' : 'bg-red-500'}`} />
                   
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">OS #{warranty.os_number}</span>
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">OS {warranty.os_number}</span>
                       <h3 className="text-lg font-bold text-white group-hover:text-[#00E676] transition-colors truncate max-w-[180px]">
                         {warranty.client_name}
                       </h3>
@@ -245,161 +408,299 @@ export default function GarantiaModule({ profile, onBack, onShowToast }: Garanti
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-zinc-800/50 flex justify-between items-center">
-                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
-                      <Calendar size={12} />
-                      Gerada em {format(parseISO(warranty.created_at), 'dd/MM/yyyy')}
-                    </div>
-                    <div className="text-[#00E676] opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Eye size={18} />
-                    </div>
+                  <div className="mt-4 pt-4 border-t border-zinc-800/50 flex justify-between items-center text-[#00E676] opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[10px] font-black uppercase tracking-widest">Ver Detalhes</span>
+                    <Eye size={18} />
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
 
             {filteredWarranties.length === 0 && !loading && (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center bg-[#141414] border border-zinc-800 border-dashed rounded-3xl">
-                <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500 mb-4">
-                  <ShieldAlert size={32} />
-                </div>
-                <h3 className="text-lg font-medium text-white">Nenhuma garantia encontrada</h3>
-                <p className="text-zinc-500 text-sm">Tente mudar os filtros ou o termo de busca</p>
+              <div className="col-span-full py-20 flex flex-col items-center justify-center bg-[#141414] border border-zinc-800 border-dashed rounded-md">
+                <ShieldAlert size={32} className="text-zinc-600 mb-4" />
+                <h3 className="text-lg font-medium text-white">Nenhum registro</h3>
               </div>
             )}
           </div>
         </div>
       </main>
 
-      {/* Detail Modal */}
+      {/* Detail Modal Slim & Premium */}
       <AnimatePresence>
         {selectedWarranty && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              initial={{ scale: 0.98, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#141414] border border-zinc-800 rounded-[32px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col"
+              exit={{ scale: 0.98, opacity: 0, y: 10 }}
+              className="bg-[#141414] border border-zinc-800 rounded-[32px] w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col h-[90vh]"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+              <div className="p-5 sm:p-6 border-b border-zinc-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl ${selectedWarranty.status === 'Ativa' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-red-500/10 text-red-500'}`}>
+                  <div className={`p-2 rounded-sm ${selectedWarranty.status === 'Ativa' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-red-500/10 text-red-500'}`}>
                     <ShieldCheck size={24} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">Garantia OS #{selectedWarranty.os_number}</h2>
-                    <p className={`text-xs font-bold uppercase tracking-widest ${selectedWarranty.status === 'Ativa' ? 'text-[#00E676]' : 'text-red-500'}`}>
-                      {selectedWarranty.status === 'Ativa' ? 'Status: Válida' : 'Status: Finalizada'}
+                    <h2 className="text-lg font-black tracking-tight leading-none">OS {selectedWarranty.os_number}</h2>
+                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] mt-1 ${selectedWarranty.status === 'Ativa' ? 'text-[#00E676]' : 'text-red-500'}`}>
+                      {selectedWarranty.status === 'Ativa' ? 'Garantia Ativa' : 'Garantia Expirada'}
                     </p>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSelectedWarranty(null)}
-                  className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-500"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="p-8 overflow-y-auto max-h-[70vh] space-y-8">
-                {/* Info Grid */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Cliente</p>
-                    <p className="text-white font-medium flex items-center gap-2">
-                       <User size={14} className="text-zinc-600" />
-                       {selectedWarranty.client_name}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Aparelho</p>
-                    <p className="text-white font-medium flex items-center gap-2">
-                       <Smartphone size={14} className="text-zinc-600" />
-                       {selectedWarranty.equipment}
-                    </p>
-                  </div>
-                  <div className="space-y-1 col-span-2">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Serviço Realizado</p>
-                    <p className="text-white font-medium flex items-center gap-2">
-                       <FileText size={14} className="text-zinc-600" />
-                       {selectedWarranty.service_performed}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-[#0A0A0A] border border-zinc-800 rounded-2xl p-6 grid grid-cols-2 gap-4 text-center">
-                  <div className="space-y-1 border-r border-zinc-800">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Início</p>
-                    <p className="text-white text-lg font-bold">{format(parseISO(selectedWarranty.start_date), 'dd/MM/yyyy')}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Expiração</p>
-                    <p className={`text-lg font-bold ${selectedWarranty.status === 'Ativa' ? 'text-[#00E676]' : 'text-red-500'}`}>
-                      {format(parseISO(selectedWarranty.end_date), 'dd/MM/yyyy')}
-                    </p>
-                  </div>
-                  <div className="col-span-2 pt-2 text-[10px] text-zinc-500">
-                    Duração contratual: {selectedWarranty.duration_days} dias
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Observações Adicionais</p>
-                  <div className="bg-[#0A0A0A] border border-zinc-800 rounded-2xl p-5 text-sm text-zinc-300 leading-relaxed italic">
-                    {selectedWarranty.notes || 'Nenhuma observação registrada para esta garantia.'}
-                  </div>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={`p-2.5 rounded-md transition-all ${isEditing ? 'bg-zinc-800 text-white' : 'hover:bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                    title={isEditing ? "Cancelar Edição" : "Editar Garantia"}
+                  >
+                    {isEditing ? <X size={20} /> : <Wrench size={20} />}
+                  </button>
+                  <button 
+                    onClick={() => setSelectedWarranty(null)}
+                    className="p-2.5 hover:bg-zinc-800 rounded-md transition-all text-zinc-500 hover:text-white"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
               </div>
 
-              <div className="p-6 border-t border-zinc-800 bg-[#0A0A0A] flex flex-wrap gap-3">
-                <button 
-                  onClick={() => window.print()}
-                  className="flex-1 min-w-[140px] py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <Printer size={18} />
-                  Imprimir Comprovante
-                </button>
-                <button 
-                  className="flex-1 min-w-[140px] py-3.5 bg-[#00E676] hover:bg-[#00C853] text-black rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#00E676]/20 active:scale-95"
-                >
-                  <MessageCircle size={18} />
-                  Enviar via WhatsApp
-                </button>
+              <div className="p-6 sm:p-8 overflow-y-auto max-h-[70vh] space-y-6">
+                {isEditing ? (
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Cliente</label>
+                        <input 
+                          type="text"
+                          value={editForm.client_name || ''}
+                          onChange={e => setEditForm({ ...editForm, client_name: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Equipamento</label>
+                        <input 
+                          type="text"
+                          value={editForm.equipment || ''}
+                          onChange={e => setEditForm({ ...editForm, equipment: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Serviço Realizado</label>
+                      <textarea 
+                        rows={2}
+                        value={editForm.service_performed || ''}
+                        onChange={e => setEditForm({ ...editForm, service_performed: e.target.value })}
+                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Início</label>
+                        <input 
+                          type="date"
+                          value={editForm.start_date || ''}
+                          onChange={e => setEditForm({ ...editForm, start_date: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Duração (Dias)</label>
+                        <input 
+                          type="number"
+                          value={editForm.duration_days || ''}
+                          onChange={e => setEditForm({ ...editForm, duration_days: parseInt(e.target.value) || 0 })}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Vencimento Calculado</label>
+                      <div className="w-full bg-black/40 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm font-bold text-[#00E676]">
+                        {format(addDays(parseISO(editForm.start_date || selectedWarranty.start_date), editForm.duration_days || 0), 'dd/MM/yyyy')}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Observações</label>
+                      <textarea 
+                        rows={3}
+                        value={editForm.notes || ''}
+                        onChange={e => setEditForm({ ...editForm, notes: e.target.value })}
+                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-8 custom-scrollbar rounded-xl border border-zinc-800">
+                    <div className="bg-white shadow-2xl mx-auto w-full max-w-[794px] min-h-[500px]">
+                      {selectedWarrantyData && (
+                        <WarrantyPrintTemplate
+                          order={selectedWarrantyData.order}
+                          customer={selectedWarrantyData.customer}
+                          companySettings={companySettings}
+                          osSettings={osSettings}
+                          isPreview={true}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons REFINED SLIM */}
+              <div className="p-4 sm:p-5 border-t border-zinc-800 bg-[#141414] flex flex-col sm:flex-row gap-3">
+                {isEditing ? (
+                  <button 
+                    onClick={handleUpdateWarranty}
+                    disabled={isSaving}
+                    className="w-full h-[54px] sm:h-[48px] bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all flex items-center justify-center gap-2 px-6 group shadow-lg font-black uppercase tracking-widest disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Save size={18} className="shrink-0" />
+                        <span>Salvar Alterações</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <>
+                    <div className="flex flex-1 gap-2.5">
+                      <button 
+                        onClick={() => {
+                           const originalTitle = document.title;
+                           const osNumber = selectedWarranty.os_number.toString().padStart(4, '0');
+                           const companyName = companySettings.name || 'Servyx';
+                           document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
+                           document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty-thermal');
+                           document.body.classList.add('print-warranty');
+                           window.print();
+                           setTimeout(() => { document.title = originalTitle; }, 100);
+                        }}
+                        className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
+                      >
+                        <Printer size={18} className="text-zinc-400" />
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">A4</span>
+                      </button>
+                      <button 
+                        onClick={() => {
+                           const originalTitle = document.title;
+                           const osNumber = selectedWarranty.os_number.toString().padStart(4, '0');
+                           const companyName = companySettings.name || 'Servyx';
+                           document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
+                           document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty');
+                           document.body.classList.add('print-warranty-thermal');
+                           window.print();
+                           setTimeout(() => { document.title = originalTitle; }, 100);
+                        }}
+                        className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
+                      >
+                        <Printer size={18} className="text-[#00E676]" />
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Térmica</span>
+                      </button>
+                    </div>
+                    
+                    <button 
+                      onClick={() => {
+                        const portalUrl = companySettings.publicSlug 
+                          ? `${window.location.origin}/${companySettings.publicSlug}/${selectedWarranty.os_id}`
+                          : `${window.location.origin}/os/${selectedWarranty.os_id}`;
+
+                        const template = osSettings?.whatsappMessages?.['Garantia'] || 
+                          `Olá {nome_cliente}! 👋\n\nAqui está o seu comprovante e termo de garantia digital da OS {numero_os}.\n\nLink do documento:\n👉 {link_os}\n\nGuarde este link para sua segurança.`;
+                        
+                        const message = template
+                          .replace(/\[nome_cliente\]/g, selectedWarranty.client_name)
+                          .replace(/{cliente}/g, selectedWarranty.client_name)
+                          .replace(/\[numero_os\]/g, selectedWarranty.os_number.toString().padStart(4, '0'))
+                          .replace(/{os}/g, selectedWarranty.os_number.toString().padStart(4, '0'))
+                          .replace(/\[equipamento\]/g, selectedWarranty.equipment)
+                          .replace(/\[status\]/g, selectedWarranty.status)
+                          .replace(/\[link_os\]/g, portalUrl)
+                          .replace(/{link}/g, portalUrl)
+                          .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
+                          .replace(/{empresa}/g, companySettings.name || 'Servyx');
+
+                        let decodedPhone = "55"; // In a real scenario we'd get this from the related order/customer
+                        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                        const link = document.createElement('a');
+                        link.href = whatsappUrl;
+                        link.target = 'wa';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="w-full sm:flex-[1.2] h-[54px] sm:h-[48px] bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all flex items-center justify-center gap-2 px-6 group shadow-lg"
+                    >
+                      <MessageCircle size={18} className="shrink-0" />
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-center">Enviar WhatsApp</span>
+                    </button>
+                  </>
+                )}
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {selectedWarrantyData && (
+        typeof document !== 'undefined' && createPortal(
+          <>
+            <div className="print-warranty-container">
+              <WarrantyPrintTemplate 
+                order={selectedWarrantyData.order as any}
+                customer={selectedWarrantyData.customer as any}
+                companySettings={companySettings}
+                osSettings={osSettings}
+              />
+            </div>
+            <div className="warranty-thermal-container">
+              <WarrantyThermalTemplate 
+                order={selectedWarrantyData.order as any}
+                customer={selectedWarrantyData.customer as any}
+                companySettings={companySettings}
+                osSettings={osSettings}
+              />
+            </div>
+          </>,
+          document.body
+        )
+      )}
+
       <style jsx global>{`
         @media print {
-          body * { visibility: hidden; }
-          .fixed { display: none !important; }
-          #print-area, #print-area * { visibility: visible; }
-          #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+          body.print-warranty, body.print-warranty-thermal {
+            visibility: hidden !important;
+            background: white !important;
+          }
+          body.print-warranty .print-warranty-container,
+          body.print-warranty .print-warranty-container *,
+          body.print-warranty-thermal .warranty-thermal-container,
+          body.print-warranty-thermal .warranty-thermal-container * {
+            visibility: visible !important;
+          }
+          .print-warranty-container, .warranty-thermal-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+          }
+          .print-warranty-container { width: 100% !important; }
+          .warranty-thermal-container { width: 80mm !important; }
         }
       `}</style>
     </div>
-  );
-}
-
-function X({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
-
-function Wrench({ size, className }: { size: number, className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
   );
 }
