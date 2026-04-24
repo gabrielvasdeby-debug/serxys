@@ -22,6 +22,7 @@ import WarrantyPrintTemplate from './WarrantyPrintTemplate';
 import WarrantyThermalTemplate from './WarrantyThermalTemplate';
 import BudgetDocumentView from './BudgetDocumentView';
 import InfoTooltip from './InfoTooltip';
+import SecurityPortalManager from './SecurityPortalManager';
 import { addDays, format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -721,7 +722,7 @@ export default function StatusOsModule({
   }, [initialOrderId, orders]);
 
   // Tabs State
-  const [activeTab, setActiveTab] = useState<'geral' | 'laudo' | 'historico' | 'orcamento'>('geral');
+  const [activeTab, setActiveTab] = useState<'geral' | 'laudo' | 'historico' | 'orcamento' | 'seguranca'>('geral');
 
   // Technical Report Form State
   const [diagnosis, setDiagnosis] = useState('');
@@ -2241,6 +2242,7 @@ export default function StatusOsModule({
                     { id: 'geral', label: 'Geral', icon: FileText },
                     { id: 'laudo', label: 'Laudo', icon: CheckCircle2 },
                     { id: 'orcamento', label: 'Orçamento', icon: Calculator },
+                    { id: 'seguranca', label: 'Acesso', icon: ShieldCheck },
                     { id: 'historico', label: 'Histórico', icon: Clock }
                   ].map(tab => {
                     const Icon = tab.icon;
@@ -2277,6 +2279,7 @@ export default function StatusOsModule({
                     { id: 'geral', label: 'Info Gerais', icon: FileText, desc: 'Dados e Aparelho' },
                     { id: 'laudo', label: 'Laudo', icon: CheckCircle2, desc: 'Técnico e Reparo' },
                     { id: 'orcamento', label: 'Orçamento', icon: Calculator, desc: 'Aprovação de Valor' },
+                    { id: 'seguranca', label: 'Acesso', icon: ShieldCheck, desc: 'Links Públicos' },
                     { id: 'historico', label: 'Histórico', icon: Clock, desc: 'Logs e Alterações' }
                   ].map(tab => {
                     const Icon = tab.icon;
@@ -2630,6 +2633,19 @@ export default function StatusOsModule({
                         </section>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {activeTab === 'seguranca' && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <SecurityPortalManager 
+                      order={selectedOrder}
+                      companySettings={companySettings}
+                      onUpdate={(updates) => {
+                        setSelectedOrder(prev => prev ? { ...prev, ...updates } : null);
+                        if (setOrders) setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...updates } : o));
+                      }}
+                    />
                   </div>
                 )}
 

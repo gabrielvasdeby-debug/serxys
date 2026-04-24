@@ -30,7 +30,8 @@ import {
   User,
   Hash,
   Calculator,
-  Activity
+  Activity,
+  Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SignatureCanvas from 'react-signature-canvas';
@@ -63,7 +64,9 @@ export default function TrackingPage() {
   const orderId = params?.orderId as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [customer, setCustomer] = useState<any>(null);
-  const [companySettings, setCompanySettings] = useState<CompanySettings>({
+  const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState<{ type: 'EXPIRED' | 'RATE_LIMITED' | 'NOT_FOUND' | null, message: string | null }>({ type: null, message: null });
+  const [companySettings, setCompanySettings] = useState<CompanySettings & { isDarkTheme: boolean }>({
     name: 'SERVYX',
     cnpj: '',
     whatsapp: '',
@@ -79,7 +82,8 @@ export default function TrackingPage() {
     logoUrl: '',
     publicSlug: 'servyx',
     slugHistory: [],
-    followUpMessage: ''
+    followUpMessage: '',
+    isDarkTheme: true
   });
   const [osSettings, setOsSettings] = useState<OsSettings>({
     nextOsNumber: 1,
@@ -88,7 +92,7 @@ export default function TrackingPage() {
     printTerms: "O cliente declara que as informações prestadas são verdadeiras, conferiu os dados e concorda com os termos desta Ordem de Serviço.\n\nO equipamento passará por análise técnica, podendo haver alteração no orçamento mediante aprovação do cliente.\n\nApós conclusão, reprovação ou impossibilidade de reparo, o equipamento deverá ser retirado em até 90 dias da notificação, sob pena de cobrança de armazenagem.\n\nNão nos responsabilizamos por acessórios não descritos. O cliente é responsável pelo backup e pelos dados.\n\nEquipamentos com sinais de mau uso, oxidação, quedas, violação ou reparo por terceiros podem perder a garantia.\n\nA garantia cobre apenas os serviços realizados e peças substituídas, não incluindo danos por mau uso ou causas externas.",
     whatsappMessages: {}
   });
-  const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const [isSubmittingSignature, setIsSubmittingSignature] = useState(false);
@@ -121,19 +125,17 @@ export default function TrackingPage() {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const cleanOrderId = orderId.trim();
-        const { data: results, error: sbError } = await supabase
-          .from('orders')
-          .select('*, customers(*)')
-          .eq('id', cleanOrderId)
-          .limit(1);
- 
-        if (sbError) throw sbError;
-        const data = results && results.length > 0 ? results[0] : null;
+        const cleanPublicId = orderId.trim();
+        const { data: rpcResults, error: rpcError } = await supabase
+          .rpc('get_public_order', { p_public_id: cleanPublicId });
+  
+        if (rpcError) throw rpcError;
+        const data = rpcResults && rpcResults.length > 0 ? rpcResults[0] : null;
 
-        if (data) {
+        if (data && data.access_status === 'SUCCESS') {
           const typedOrder = {
             id: data.id,
+            public_id: data.public_id,
             companyId: data.company_id,
             osNumber: data.os_number,
             customerId: data.customer_id,
@@ -157,36 +159,58 @@ export default function TrackingPage() {
           } as Order;
 
           setOrder(typedOrder);
-          setCustomer(data.customers);
-          setError(null);
-
-          // Fetch additional settings for the document template
-          const [compRes, settResArr] = await Promise.all([
-            supabase.from('company_settings').select('*').eq('id', data.company_id).single(),
-            supabase.from('app_settings').select('*').in('key', ['os_settings', `os_settings_${data.company_id}`])
-          ]);
-
-          if (compRes.data) {
-            setCompanySettings({
-              ...compRes.data,
-              zipCode: compRes.data.zip_code || '',
-              logoUrl: compRes.data.logo_url || '',
-              publicSlug: compRes.data.public_slug || 'servyx',
-              slugHistory: compRes.data.slug_history || [],
-              followUpMessage: compRes.data.mensagem_acompanhamento_os || ''
-            });
-            setCompanySettings(prev => ({ ...prev, isDarkTheme: compRes.data.is_dark_theme ?? true }));
-          }
-
-          const settingsRows = settResArr.data || [];
-          const settingsRow = settingsRows.find(r => r.key === `os_settings_${data.company_id}`) || settingsRows.find(r => r.key === 'os_settings');
-
-          if (settingsRow?.value) {
-            setOsSettings(prev => ({ ...prev, ...(settingsRow.value as any) }));
-          }
+          setAccessError({ type: null, message: null });
+        } else if (data && data.access_status === 'EXPIRED') {
+          setAccessError({ 
+            type: 'EXPIRED', 
+            message: 'Este link expirou por motivos de segurança. Por favor, solicite um novo link à assistência técnica.' 
+          });
+        } else if (data && data.access_status === 'RATE_LIMITED') {
+          setAccessError({ 
+            type: 'RATE_LIMITED', 
+            message: 'Muitas tentativas de acesso detectadas. Por favor, aguarde alguns minutos antes de tentar novamente.' 
+          });
         } else {
-          setError('Ordem de Serviço não encontrada.');
+          setAccessError({ 
+            type: 'NOT_FOUND', 
+            message: 'Ordem de serviço não encontrada ou link inválido.' 
+          });
         }
+
+          if (data && data.access_status === 'SUCCESS') {
+            // Fetch additional settings using secure RPC
+            const [custRes, compRes, settResArr] = await Promise.all([
+              supabase.rpc('get_public_customer', { p_public_id: data.public_id }),
+              supabase.rpc('get_public_company_settings', { p_public_id: data.public_id }),
+              supabase.from('app_settings').select('*').eq('company_id', data.company_id) // For auth/admin check or internal
+            ]);
+            
+            if (custRes.data && custRes.data.length > 0) {
+              setCustomer(custRes.data[0]);
+            }
+
+            if (compRes.data && compRes.data.length > 0) {
+              const compData = compRes.data[0];
+              setCompanySettings({
+                ...compData,
+                zipCode: compData.zip_code || '',
+                logoUrl: compData.logo_url || '',
+                publicSlug: compData.public_slug || 'servyx',
+                slugHistory: compData.slug_history || [],
+                followUpMessage: compData.mensagem_acompanhamento_os || ''
+              });
+              setCompanySettings(prev => ({ ...prev, isDarkTheme: compData.is_dark_theme ?? true }));
+            }
+
+            const settingsRows = settResArr.data || [];
+            const settingsRow = settingsRows.find((r: any) => r.key === `os_settings_${data.company_id}`) || settingsRows.find((r: any) => r.key === 'os_settings');
+
+            if (settingsRow?.value) {
+              setOsSettings(prev => ({ ...prev, ...(settingsRow.value as any) }));
+            }
+          } else if (!data || data.access_status === 'NOT_FOUND') {
+            setError('Ordem de Serviço não encontrada.');
+          }
       } catch (err: any) {
         setError('Erro ao carregar informações da OS.');
       } finally {
@@ -215,17 +239,15 @@ export default function TrackingPage() {
         description: 'Orçamento APROVADO pelo cliente via link público.'
       };
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          budget: updatedBudget,
-          status: 'Em Manutenção',
-          history: [...order.history, historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('public_approve_budget', {
+        p_public_id: order.public_id,
+        p_budget: updatedBudget,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       const osNumberStr = order.osNumber.toString().padStart(4, '0');
       const whatsappMessage = `Olá! Aprovo o orçamento da OS ${osNumberStr} no valor de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.budget?.totalValue || 0)}. Pode dar andamento ao serviço!`;
@@ -266,17 +288,15 @@ export default function TrackingPage() {
         description: `Orçamento RECUSADO pelo cliente via link público. Motivo: ${motive || 'Não informado'}`
       };
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          budget: updatedBudget,
-          status: 'Orçamento Cancelado',
-          history: [...order.history, historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('public_reject_budget', {
+        p_public_id: order.public_id,
+        p_budget: updatedBudget,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       window.location.reload();
     } catch (err) {
@@ -304,19 +324,15 @@ export default function TrackingPage() {
         description: 'Termo de Entrada ASSINADO digitalmente pelo cliente via link remoto.'
       };
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          signatures: {
-            ...order.signatures,
-            client: signature
-          },
-          history: [...order.history, historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('public_sign_order', {
+        p_public_id: order.public_id,
+        p_signature: signature,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       setShowSuccessToast(true);
       setTimeout(() => {
@@ -341,20 +357,38 @@ export default function TrackingPage() {
     );
   }
 
-  if (error || !order) {
+  if (accessError.type || !order) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#141414] border border-zinc-800 rounded-3xl p-8 text-center">
-          <AlertTriangle size={48} className="text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-white mb-2">Ops! Algo deu errado</h1>
+        <div className="max-w-md w-full bg-[#141414] border border-zinc-800 rounded-3xl p-8 text-center animate-in fade-in zoom-in duration-500">
+          {accessError.type === 'RATE_LIMITED' ? (
+            <Clock size={48} className="text-amber-500 mx-auto mb-4" />
+          ) : accessError.type === 'EXPIRED' ? (
+            <Lock size={48} className="text-red-500 mx-auto mb-4" />
+          ) : (
+            <AlertTriangle size={48} className="text-zinc-500 mx-auto mb-4" />
+          )}
+          
+          <h1 className="text-xl font-bold text-white mb-2">
+            {accessError.type === 'RATE_LIMITED' ? 'Muitas tentativas' : 
+             accessError.type === 'EXPIRED' ? 'Link Expirado' : 'Ops! Algo deu errado'}
+          </h1>
+          
           <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">ID Consultado: {orderId}</p>
-          <p className="text-zinc-400 mb-6">{error || 'Não foi possível encontrar esta Ordem de Serviço.'}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-[#00E676] text-black font-bold py-3 rounded-xl hover:bg-[#00C853] transition-colors"
-          >
-            Tentar Novamente
-          </button>
+          <p className="text-zinc-400 mb-6 leading-relaxed">{accessError.message || 'Não foi possível encontrar esta Ordem de Serviço.'}</p>
+          
+          {accessError.type !== 'EXPIRED' && accessError.type !== 'RATE_LIMITED' ? (
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-[#00E676] text-black font-bold py-3 rounded-xl hover:bg-[#00C853] transition-colors"
+            >
+              Tentar Novamente
+            </button>
+          ) : (
+            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+              Entre em contato com o suporte para mais informações.
+            </p>
+          )}
         </div>
       </div>
     );
@@ -376,20 +410,15 @@ export default function TrackingPage() {
       };
 
       // 1. Update the order with the signature
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          signatures: {
-            ...order.signatures,
-            client: tempSignature
-          },
-          history: [...order.history, historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id)
-        .eq('company_id', order.companyId);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('public_sign_order', {
+        p_public_id: order.public_id,
+        p_signature: tempSignature,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       // 2. Notification is handled by the dashboard detecting the new signature
       // and checking against dismissed_notifications.

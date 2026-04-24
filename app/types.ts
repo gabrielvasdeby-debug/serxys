@@ -146,6 +146,8 @@ export interface TechnicalReport {
 
 export interface Order {
   id: string;
+  public_id?: string;
+  publicExpiresAt?: string;
   companyId: string;
   osNumber: number;
   customerId: string;

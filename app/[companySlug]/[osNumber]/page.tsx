@@ -143,26 +143,14 @@ export default function CustomerPortal() {
         setLoading(true);
         setError(null);
 
-        // 1. Fetch Company by Slug
-        let companyData: any = null;
-        const { data: directMatch } = await supabase
+        // 1. Fetch Company by Slug (Public Data)
+        const { data: companyData, error: compErr } = await supabase
           .from('company_settings')
           .select('*')
-          .eq('public_slug', companySlug)
+          .or(`public_slug.eq.${companySlug},slug_history.cs.{"${companySlug}"}`)
           .maybeSingle();
 
-        if (directMatch) {
-          companyData = directMatch;
-        } else {
-          const { data: historyMatch } = await supabase
-            .from('company_settings')
-            .select('*')
-            .contains('slug_history', [companySlug])
-            .maybeSingle();
-          if (historyMatch) companyData = historyMatch;
-        }
-
-        if (!companyData) {
+        if (compErr || !companyData) {
           setError('Empresa não encontrada. Verifique se o link está correto.');
           setLoading(false);
           return;
@@ -176,62 +164,61 @@ export default function CustomerPortal() {
         };
         setCompany(mappedCompany);
 
-        // 2. Fetch Order
-        let orderData: any = null;
+        // 2. Fetch Order Public ID using Secure RPC
+        let currentPublicId: string | null = null;
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(osNumberStr);
         
-        let query = supabase
-          .from('orders')
-          .select('*')
-          .eq('company_id', mappedCompany.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
         if (isUUID) {
-          query = query.eq('id', osNumberStr);
+          currentPublicId = osNumberStr;
         } else {
-          // If it's a number, it could be either the OS Number OR the internal ID string
           const isNumeric = /^\d+$/.test(osNumberStr);
           if (isNumeric) {
-            // Try matching as ID first (the timestamp string) or as OS Number
-            const { data: byId } = await supabase
-              .from('orders')
-              .select('*')
-              .eq('company_id', mappedCompany.id)
-              .eq('id', osNumberStr)
-              .maybeSingle();
-            
-            if (byId) {
-              orderData = byId;
-            } else {
-              query = query.eq('os_number', parseInt(osNumberStr, 10));
+            const { data: rpcData, error: rpcError } = await supabase.rpc('get_order_public_id', {
+              p_slug: companySlug,
+              p_os_number: parseInt(osNumberStr, 10)
+            });
+
+            if (!rpcError && rpcData && rpcData.length > 0) {
+              currentPublicId = rpcData[0].p_id;
             }
-          } else {
-            // Could be a public token (if implemented)
-            query = query.eq('public_token', osNumberStr);
           }
         }
 
-        const { data: orderByCompany } = await query.maybeSingle();
-
-        if (orderByCompany) {
-          orderData = orderByCompany;
-        }
-
-        if (!orderData) {
+        if (!currentPublicId) {
           setError('Ordem de Serviço não encontrada. Verifique o link e tente novamente.');
           setLoading(false);
           return;
         }
 
-        // 3. Fetch Customer info
-        const { data: customerData } = await supabase
-          .from('customers')
-          .select('name, whatsapp, phone, email, address, document')
-          .eq('id', orderData.customer_id)
-          .single();
+        // 3. Fetch Full Data using Secure RPCs
+        const [orderRes, custRes, compSettingsRes] = await Promise.all([
+          supabase.rpc('get_public_order', { p_public_id: currentPublicId }),
+          supabase.rpc('get_public_customer', { p_public_id: currentPublicId }),
+          supabase.rpc('get_public_company_settings', { p_public_id: currentPublicId })
+        ]);
 
-        setOrder({
+        const orderResult = orderRes.data && orderRes.data.length > 0 ? orderRes.data[0] : null;
+
+        if (orderRes.error || !orderResult) {
+          setError('Ordem de Serviço não encontrada.');
+          setLoading(false);
+          return;
+        }
+
+        if (orderResult.access_status === 'EXPIRED') {
+          setError('Este link expirou por motivos de segurança. Solicite um novo link à assistência.');
+          setLoading(false);
+          return;
+        }
+
+        if (orderResult.access_status === 'RATE_LIMITED') {
+          setError('Muitas tentativas de acesso. Por favor, aguarde alguns minutos.');
+          setLoading(false);
+          return;
+        }
+
+        const orderData = orderResult;
+        const typedOrder = {
           ...orderData,
           osNumber: orderData.os_number,
           entryPhotos: orderData.entry_photos || [],
@@ -244,20 +231,37 @@ export default function CustomerPortal() {
           checklistNotPossible: orderData.checklist_not_possible,
           completionData: orderData.completion_data,
           technicalReport: orderData.technical_report,
-          scannedOsUrl: orderData.scanned_os_url
-        } as Order);
-        
-        setCustomer(customerData);
+          scannedOsUrl: orderData.scanned_os_url,
+          budget: orderData.budget || null
+        } as Order;
 
-        // 4. Fetch OS Settings
-        const { data: settingsData } = await supabase
-          .from('app_settings')
-          .select('*')
-          .eq('company_id', mappedCompany.id)
-          .eq('key', 'os_settings')
-          .maybeSingle();
+        setOrder(typedOrder);
         
-        setOsSettings(settingsData?.value || { printTerms: '' });
+        if (custRes.data && custRes.data.length > 0) {
+          setCustomer(custRes.data[0]);
+        }
+
+        if (compSettingsRes.data && compSettingsRes.data.length > 0) {
+          const cs = compSettingsRes.data[0];
+          setCompany({
+            ...mappedCompany,
+            ...cs,
+            logoUrl: cs.logo_url,
+            zipCode: cs.zip_code
+          });
+        }
+
+        // 4. Fetch App Settings (OS Settings)
+        const { data: settResArr } = await supabase
+          .rpc('get_public_app_settings', { p_public_id: currentPublicId });
+        
+        if (settResArr && settResArr.length > 0) {
+          const settingsRows: any[] = settResArr;
+          const settingsRow = settingsRows.find((r: any) => r.key === `os_settings_${orderData.company_id}`) || settingsRows.find((r: any) => r.key === 'os_settings');
+          if (settingsRow?.value) {
+            setOsSettings(settingsRow.value);
+          }
+        }
 
         setLoading(false);
       } catch (err: any) {
@@ -270,6 +274,7 @@ export default function CustomerPortal() {
 
     fetchData();
   }, [companySlug, osNumberStr]);
+
 
   const handleSaveSignature = async () => {
     if (!tempSignature || !order || !company) return;
@@ -289,17 +294,15 @@ export default function CustomerPortal() {
         description: 'Termos de serviço assinados digitalmente via link remoto.'
       };
 
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          signatures: newSignatures,
-          history: [...(order.history || []), historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id)
-        .eq('company_id', company.id);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (error) throw error;
+      const { error: rpcError } = await supabase.rpc('public_sign_order', {
+        p_public_id: order.public_id,
+        p_signature: tempSignature,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       setOrder({ 
         ...order, 
@@ -338,18 +341,15 @@ export default function CustomerPortal() {
         description: 'Orçamento APROVADO pelo cliente via link público.'
       };
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          budget: updatedBudget,
-          status: 'Em Manutenção',
-          history: [...order.history, historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id)
-        .eq('company_id', company.id);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('public_approve_budget', {
+        p_public_id: order.public_id,
+        p_budget: updatedBudget,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       const osNumberStr = order.osNumber.toString().padStart(4, '0');
       const whatsappMessage = `Olá! Aprovo o orçamento da OS ${osNumberStr} no valor de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.budget?.totalValue || 0)}. Pode dar andamento ao serviço!`;
@@ -396,18 +396,15 @@ export default function CustomerPortal() {
         description: `Orçamento RECUSADO pelo cliente via link público. Motivo: ${motive || 'Não informado'}`
       };
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          budget: updatedBudget,
-          status: 'Orçamento Cancelado',
-          history: [...order.history, historyEvent],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id)
-        .eq('company_id', company.id);
+      if (!order.public_id) throw new Error('Public ID missing');
 
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('public_reject_budget', {
+        p_public_id: order.public_id,
+        p_budget: updatedBudget,
+        p_history_event: historyEvent
+      });
+
+      if (rpcError) throw rpcError;
 
       const osNumberStr = order.osNumber.toString().padStart(4, '0');
       const whatsappMessage = `Olá! Recusei o orçamento da OS ${osNumberStr}.${motive ? ` Motivo: ${motive}` : ''}`;

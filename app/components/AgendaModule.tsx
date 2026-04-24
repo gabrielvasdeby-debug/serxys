@@ -192,13 +192,13 @@ export default function AgendaModule({
 
     try {
       // LOG DIAGNÓSTICO: veja no console o que está sendo enviado
-      console.log('=== AGENDA INSERT PAYLOAD ===', JSON.stringify(taskData, null, 2));
+
 
       const { error, status, statusText } = await supabase
         .from('agenda')
         .insert(taskData);
 
-      console.log('=== INSERT STATUS ===', status, statusText);
+
 
       if (error) {
         console.error('ERROR TYPE:', typeof error);
