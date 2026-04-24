@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Eye } from 'lucide-react';
+import { formatPhone } from '../utils/formatPhone';
 
 interface RegisterViewProps {
   onRegister: (company: string, name: string, whatsapp: string, email: string, pass: string) => void;
@@ -66,7 +67,7 @@ export default function RegisterView({ onRegister, onBack }: RegisterViewProps) 
                 type="text" 
                 required 
                 value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
+                onChange={(e) => setWhatsapp(formatPhone(e.target.value))}
                 className="w-full bg-[#222222] border border-zinc-800 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-[#00E676] transition-all" 
                 placeholder="(00) 00000-0000" 
               />

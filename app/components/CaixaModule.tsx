@@ -13,6 +13,7 @@ import { generateCashReportPDF } from '../utils/pdfGenerator';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { capFirst } from '../utils/capFirst';
+import { formatPhone } from '../utils/formatPhone';
 import InfoTooltip from './InfoTooltip';
 import { Product } from '../types';
 
@@ -2319,7 +2320,7 @@ function QuickSupplierModal({ onClose, onSave }: { onClose: () => void, onSave: 
           </div>
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest px-1">Telefone/WA *</label>
-            <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-950 border border-zinc-900 rounded-xl px-4 py-3 text-[11px] font-bold text-white focus:outline-none focus:border-emerald-500/50" />
+            <input type="text" value={phone} onChange={e => setPhone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" className="w-full bg-zinc-950 border border-zinc-900 rounded-xl px-4 py-3 text-[11px] font-bold text-white focus:outline-none focus:border-emerald-500/50" />
           </div>
           <button 
             disabled={!name || !phone || !contact}
@@ -2366,7 +2367,7 @@ function QuickCustomerModal({ onClose, onSave }: { onClose: () => void, onSave: 
               <input 
                 type="text" 
                 value={whatsapp} 
-                onChange={e => setWhatsapp(e.target.value)} 
+                onChange={e => setWhatsapp(formatPhone(e.target.value))} 
                 placeholder="(00) 00000-0000" 
                 className="w-full bg-zinc-950 border border-zinc-900 rounded-2xl px-4 py-4 text-[13px] font-bold text-white focus:outline-none focus:border-blue-500/50 shadow-inner" 
               />

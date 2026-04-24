@@ -19,6 +19,7 @@ import WarrantyThermalTemplate from './WarrantyThermalTemplate';
 import VisualController from './VisualController';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData } from '../types';
 import { capFirst } from '../utils/capFirst';
+import { formatPhone } from '../utils/formatPhone';
 import { jsPDF } from 'jspdf';
 
 
@@ -1481,7 +1482,7 @@ export default function OrdemServicoModule({
                         <input
                           type="text"
                           value={newCustomer.whatsapp}
-                          onChange={e => setNewCustomer({...newCustomer, whatsapp: e.target.value})}
+                          onChange={e => setNewCustomer({...newCustomer, whatsapp: formatPhone(e.target.value)})}
                           className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="(00) 00000-0000"
                         />
@@ -1491,7 +1492,7 @@ export default function OrdemServicoModule({
                         <input
                           type="text"
                           value={newCustomer.phone}
-                          onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})}
+                          onChange={e => setNewCustomer({...newCustomer, phone: formatPhone(e.target.value)})}
                           className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="(00) 0000-0000"
                         />

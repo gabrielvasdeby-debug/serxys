@@ -46,6 +46,7 @@ import { AVAILABLE_MODULES } from '../constants';
 import InfoTooltip from './InfoTooltip';
 import OrderPrintTemplate from './OrderPrintTemplate';
 import WarrantyPrintTemplate from './WarrantyPrintTemplate';
+import { formatPhone } from '../utils/formatPhone';
 
 interface SettingsViewProps {
   profiles: Profile[];
@@ -388,7 +389,6 @@ export default function SettingsView({
 
   // Helper masks
   const maskCEP = (v: string) => v.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').substring(0, 9);
-  const maskPhone = (v: string) => v.replace(/\D/g, '').replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2').substring(0, 15);
   const maskCNPJ = (v: string) => v.replace(/\D/g, '').replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2').substring(0, 18);
 
   return (
@@ -577,8 +577,8 @@ export default function SettingsView({
                             type="text" 
                             value={companyForm.phone} 
                             onChange={e => {
-                              const masked = maskPhone(e.target.value);
-                              setCompanyForm({...companyForm, phone: masked, whatsapp: masked});
+                              const formatted = formatPhone(e.target.value);
+                              setCompanyForm({...companyForm, phone: formatted, whatsapp: formatted});
                             }} 
                             className="w-full h-11 bg-white/[0.02] border border-white/[0.05] rounded-[8px] px-5 text-[13px] text-white focus:outline-none focus:border-[#00E676]/30 transition-all font-bold placeholder:text-zinc-800" 
                           />

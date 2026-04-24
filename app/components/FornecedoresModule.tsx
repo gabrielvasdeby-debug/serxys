@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../supabase';
+import { formatPhone } from '../utils/formatPhone';
 import { capFirst } from '../utils/capFirst';
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -382,7 +383,7 @@ export default function FornecedoresModule({ profile, onBack, onShowToast, onLog
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Telefone WhatsApp *</label>
-                    <input type="text" required value={selectedSupplier?.phone || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, phone: e.target.value }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="(00) 00000-0000" />
+                    <input type="text" required value={selectedSupplier?.phone || ''} onChange={e => setSelectedSupplier(prev => ({ ...prev, phone: formatPhone(e.target.value) }))} className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all" placeholder="(00) 00000-0000" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Tipo de Suprimento</label>

@@ -6,6 +6,7 @@ import {
   MapPin, Phone, Mail, FileText, Calendar, AlertCircle, Loader2
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import { formatPhone } from '../utils/formatPhone';
 import { capFirst } from '../utils/capFirst';
 
 export type DeviceType = 'Celular' | 'Smartphone' | 'Notebook' | 'Computador' | 'Videogame' | 'Tablet' | 'Outro';
@@ -782,8 +783,16 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    let finalValue = value;
     const capFields = ['name', 'address.street', 'address.neighborhood', 'address.city', 'notes'];
-    const finalValue = capFields.includes(name) ? capFirst(value) : value;
+    
+    if (capFields.includes(name)) {
+      finalValue = capFirst(value);
+    } else if (name === 'whatsapp' || name === 'phone') {
+      finalValue = formatPhone(value);
+    }
+
     if (name.startsWith('address.')) {
       const field = name.split('.')[1];
       setFormData(prev => ({ ...prev, address: { ...prev.address, [field]: finalValue } }));
@@ -809,11 +818,11 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">WhatsApp</label>
-              <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Telefone</label>
-              <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Email</label>
