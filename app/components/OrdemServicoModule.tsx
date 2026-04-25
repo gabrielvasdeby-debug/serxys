@@ -81,6 +81,30 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
     }
   };
 
+  // Re-size signature pad on orientation change
+  useEffect(() => {
+    const handleResize = () => {
+      if (sigCanvas.current) {
+        // Recalculate signature pad internal dimensions
+        const canvas = sigCanvas.current.getCanvas();
+        if (canvas) {
+          const ratio = Math.max(window.devicePixelRatio || 1, 1);
+          canvas.width = canvas.offsetWidth * ratio;
+          canvas.height = canvas.offsetHeight * ratio;
+          canvas.getContext("2d")?.scale(ratio, ratio);
+          sigCanvas.current.clear(); // Reset to avoid mirroring
+        }
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    if (isOpen) setTimeout(handleResize, 100);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [isOpen]);
+
   return (
     <div className="space-y-4">
       <div 
@@ -124,8 +148,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-800 w-full sm:max-w-4xl overflow-hidden shadow-2xl flex flex-col h-full sm:h-auto sm:rounded-sm
-                         portrait:max-sm:rotate-90 portrait:max-sm:w-[92vh] portrait:max-sm:h-[100vw] portrait:max-sm:fixed"
+              className="bg-[#141414] border border-zinc-800 w-full sm:max-w-4xl overflow-hidden shadow-2xl flex flex-col h-full sm:h-auto sm:rounded-sm relative"
             >
               <div className="p-4 sm:p-8 border-b border-zinc-800/50 flex items-center justify-between bg-zinc-900/40">
                 <div className="flex items-center gap-3">
@@ -136,7 +159,8 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                       <h3 className="text-sm sm:text-lg font-black text-white uppercase tracking-tighter italic">
                         {title}
                       </h3>
-                      <p className="sm:hidden text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Modo Horizontal Ativo</p>
+                      <p className="sm:hidden text-[8px] font-bold text-[#00E676] uppercase tracking-widest mt-0.5 animate-pulse portrait:block hidden">Gire o celular para assinar melhor</p>
+                      <p className="sm:hidden text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 landscape:block hidden">Modo Horizontal Ativo</p>
                    </div>
                 </div>
                 <button
@@ -164,6 +188,29 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                       <p className="text-black font-black uppercase tracking-widest text-[10px]">Assine aqui</p>
                     </div>
                   )}
+                  {/* Orientation Warning Overlay for Portrait */}
+                  <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center sm:hidden portrait:flex hidden pointer-events-auto">
+                    <motion.div 
+                      animate={{ rotate: 90 }}
+                      transition={{ repeat: Infinity, duration: 2, repeatDelay: 1 }}
+                      className="text-[#00E676] mb-4"
+                    >
+                      <Smartphone size={48} />
+                    </motion.div>
+                    <h3 className="text-white font-black uppercase tracking-tighter italic text-lg mb-2">Gire o celular</h3>
+                    <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                      A assinatura fica muito melhor na horizontal. Gire seu dispositivo agora!
+                    </p>
+                    <button 
+                      onClick={(e) => {
+                        const target = (e.target as HTMLElement).closest('.absolute');
+                        if (target) (target as HTMLElement).style.display = 'none';
+                      }}
+                      className="mt-6 px-6 py-2 border border-zinc-700 rounded-sm text-zinc-500 text-[9px] font-black uppercase tracking-widest"
+                    >
+                      Continuar em Vertical
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pb-safe">
