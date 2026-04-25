@@ -70,7 +70,10 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
   };
 
   const confirm = () => {
-    if (sigCanvas.current?.isEmpty()) {
+    // Usa hasDrawing como fallback pois isEmpty() pode retornar true
+    // incorretamente após redimensionamento externo da canvas (ex: rotação)
+    const canvasEmpty = sigCanvas.current?.isEmpty() ?? true;
+    if (canvasEmpty && !hasDrawing) {
       return;
     }
     const dataUrl = sigCanvas.current?.getCanvas().toDataURL('image/png');
@@ -84,33 +87,50 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
 
   // Re-size signature pad on orientation change
   useEffect(() => {
-    const handleResize = () => {
+    const doResize = () => {
       if (sigCanvas.current) {
-        // Recalculate signature pad internal dimensions
         const canvas = sigCanvas.current.getCanvas();
         if (canvas) {
-          // Backup current signature
-          const data = sigCanvas.current.toDataURL();
-          const isEmpty = sigCanvas.current.isEmpty();
+          // Salva assinatura atual antes de redimensionar
+          const hadDrawing = !sigCanvas.current.isEmpty();
+          const data = hadDrawing ? sigCanvas.current.toDataURL() : null;
 
+          // Usa a API oficial da lib para limpar (reseta o estado interno corretamente)
+          sigCanvas.current.clear();
+
+          // Redimensiona o canvas para as novas dimensões
           const ratio = Math.max(window.devicePixelRatio || 1, 1);
           canvas.width = canvas.offsetWidth * ratio;
           canvas.height = canvas.offsetHeight * ratio;
-          canvas.getContext("2d")?.scale(ratio, ratio);
-          
-          // Restore if it wasn't empty
-          if (!isEmpty) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.scale(ratio, ratio);
+
+          // Restaura a assinatura se havia uma
+          if (hadDrawing && data) {
             sigCanvas.current.fromDataURL(data);
+            // fromDataURL não atualiza o _data interno, mas
+            // mantemos hasDrawing=true via estado para o confirm() funcionar
           }
         }
       }
     };
+
+    const handleOrientationChange = () => {
+      // O browser precisa de tempo para atualizar o layout após rotação
+      setTimeout(doResize, 300);
+    };
+
+    const handleResize = () => {
+      // Resize comum: delay menor é suficiente
+      setTimeout(doResize, 100);
+    };
+
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-    if (isOpen) setTimeout(handleResize, 100);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    if (isOpen) setTimeout(doResize, 150);
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, [isOpen]);
 
