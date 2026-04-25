@@ -311,13 +311,13 @@ export default function AgendaModule({
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
-              className="p-2 sm:px-4 sm:py-2.5 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl sm:rounded-2xl transition-all group flex items-center gap-2"
+              className="p-2 sm:px-4 sm:py-2.5 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-sm sm:rounded-sm transition-all group flex items-center gap-2"
             >
               <ArrowLeft size={16} className="text-zinc-500 group-hover:text-white transition-colors" />
               <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-white hidden sm:inline">Voltar</span>
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+              <div className="w-10 h-10 rounded-sm bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                 <Calendar className="text-blue-500" size={20} />
               </div>
               <div>
@@ -331,7 +331,7 @@ export default function AgendaModule({
             {canCreateTask && (
               <button
                 onClick={() => setIsNewTaskModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-5 py-3 bg-[#00E676] hover:bg-[#00E676]/90 text-black font-black rounded-xl uppercase text-[10px] tracking-widest transition-all shadow-[0_0_20px_rgba(0,230,118,0.15)] active:scale-95"
+                className="flex items-center justify-center gap-2 px-5 py-3 bg-[#00E676] hover:bg-[#00E676]/90 text-black font-black rounded-sm uppercase text-[10px] tracking-widest transition-all shadow-[0_0_20px_rgba(0,230,118,0.15)] active:scale-95"
               >
                 <Plus size={14} strokeWidth={3} />
                 Nova Tarefa
@@ -343,9 +343,9 @@ export default function AgendaModule({
 
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-32">
         {/* Filters Bar */}
-        <div className="bg-[#050505] border border-zinc-800/40 rounded-[24px] p-2 flex flex-col lg:flex-row gap-2 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#050505] border border-zinc-800/40 rounded-sm p-2 flex flex-col lg:flex-row gap-2 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full pointer-events-none"></div>
-          <div className="relative flex-1 flex items-center bg-zinc-950 border border-zinc-800/50 rounded-2xl px-4 focus-within:border-blue-500/30 transition-colors shadow-inner">
+          <div className="relative flex-1 flex items-center bg-zinc-950 border border-zinc-800/50 rounded-sm px-4 focus-within:border-blue-500/30 transition-colors shadow-inner">
             <Search className="text-zinc-600 shrink-0" size={18} />
             <input 
               type="text" 
@@ -358,22 +358,22 @@ export default function AgendaModule({
 
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-8">
             {/* Quick Date Filters */}
-            <div className="flex items-center gap-2 bg-[#050505] p-1.5 rounded-[20px] border border-zinc-800/50">
+            <div className="flex items-center gap-2 bg-[#050505] p-1.5 rounded-sm border border-zinc-800/50">
               <button 
                 onClick={() => setFilterDate(todayStr)}
-                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all ${filterDate === todayStr ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'text-zinc-500 hover:text-white'}`}
+                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${filterDate === todayStr ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'text-zinc-500 hover:text-white'}`}
               >
                 Hoje
               </button>
               <button 
                 onClick={() => setFilterDate(tomorrowStr)}
-                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all ${filterDate === tomorrowStr ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'text-zinc-500 hover:text-white'}`}
+                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${filterDate === tomorrowStr ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'text-zinc-500 hover:text-white'}`}
               >
                 Amanhã
               </button>
               <button 
                 onClick={() => setFilterDate('')}
-                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all ${filterDate === '' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                className={`flex-1 lg:flex-none px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${filterDate === '' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
               >
                 Tudo
               </button>
@@ -381,7 +381,7 @@ export default function AgendaModule({
 
             <div className="flex flex-1 flex-col sm:flex-row gap-2">
               {/* Custom Date Picker */}
-              <div className="relative flex items-center bg-[#050505] border border-zinc-800/50 rounded-[20px] overflow-hidden focus-within:border-blue-500/30 transition-shadow shadow-inner sm:w-44">
+              <div className="relative flex items-center bg-[#050505] border border-zinc-800/50 rounded-sm overflow-hidden focus-within:border-blue-500/30 transition-shadow shadow-inner sm:w-44">
                 <Calendar size={14} className="absolute left-4 text-zinc-600 pointer-events-none" />
                 <input 
                   type="date" 
@@ -392,7 +392,7 @@ export default function AgendaModule({
               </div>
 
               {/* Technician Filter */}
-              <div className="relative flex items-center bg-[#050505] border border-zinc-800/50 rounded-[20px] sm:w-48">
+              <div className="relative flex items-center bg-[#050505] border border-zinc-800/50 rounded-sm sm:w-48">
                 <Filter size={14} className="absolute left-4 text-zinc-600 pointer-events-none" />
                 <select 
                   value={filterTechnician}
@@ -407,7 +407,7 @@ export default function AgendaModule({
               </div>
 
               {/* Status Filter */}
-              <div className="relative flex items-center bg-[#050505] border border-zinc-800/50 rounded-[20px] sm:w-44">
+              <div className="relative flex items-center bg-[#050505] border border-zinc-800/50 rounded-sm sm:w-44">
                 <Activity size={14} className="absolute left-4 text-zinc-600 pointer-events-none" />
                 <select 
                   value={filterStatus}
@@ -432,7 +432,7 @@ export default function AgendaModule({
               <p className="text-[10px] font-black tracking-[0.3em] uppercase animate-pulse">Sincronizando Agenda...</p>
             </div>
           ) : filteredTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-32 bg-[#050505] border border-zinc-800/40 border-dashed rounded-[32px] text-zinc-500">
+            <div className="flex flex-col items-center justify-center py-32 bg-[#050505] border border-zinc-800/40 border-dashed rounded-sm text-zinc-500">
               <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mb-4">
                 <ClipboardList size={32} className="opacity-40" />
               </div>
@@ -453,9 +453,9 @@ export default function AgendaModule({
               return (
                 <div key={techId} className="space-y-6">
                   {/* Technician Header Section */}
-                  <div className="flex items-center gap-4 bg-[#050505] p-4 rounded-[28px] border border-zinc-800/50 shadow-lg relative overflow-hidden group">
+                  <div className="flex items-center gap-4 bg-[#050505] p-4 rounded-sm border border-zinc-800/50 shadow-lg relative overflow-hidden group">
                     <div className="absolute opacity-10 blur-xl w-32 h-32 bg-blue-500 top-1/2 -translate-y-1/2 left-0 pointer-events-none group-hover:scale-110 transition-transform"></div>
-                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-[18px] border-2 border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-sm border-2 border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center group-hover:border-blue-500/50 transition-colors">
                       {technician?.photo ? (
                         <img src={technician.photo} alt={technician.name} className="w-full h-full object-cover" />
                       ) : (
@@ -487,7 +487,7 @@ export default function AgendaModule({
                         <motion.div 
                           layout
                           key={task.id}
-                          className={`bg-[#050505] border ${status.border} rounded-[22px] overflow-hidden hover:border-zinc-700/80 transition-all group shadow-sm flex flex-col sm:flex-row sm:items-center relative`}
+                          className={`bg-[#050505] border ${status.border} rounded-sm overflow-hidden hover:border-zinc-700/80 transition-all group shadow-sm flex flex-col sm:flex-row sm:items-center relative`}
                         >
                           {/* Background Tint */}
                           <div className={`absolute inset-0 ${status.bg} opacity-[0.08] pointer-events-none`}></div>
@@ -534,7 +534,7 @@ export default function AgendaModule({
                             {/* Status & Date Column */}
                             <div className="flex items-center gap-4 sm:ml-auto">
                               <div className="flex flex-col items-end gap-1.5">
-                                <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border shadow-inner ${status.bg} ${status.color} border-${status.color.replace('text-', '')}/20`}>
+                                <div className={`px-3 py-1.5 rounded-sm text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border shadow-inner ${status.bg} ${status.color} border-${status.color.replace('text-', '')}/20`}>
                                   <StatusIcon size={12} strokeWidth={2.5} />
                                   {task.status}
                                 </div>
@@ -554,7 +554,7 @@ export default function AgendaModule({
                                   {task.status === 'Pendente' && (
                                     <button 
                                       onClick={() => handleUpdateStatus(task.id, 'Em andamento')}
-                                      className="flex items-center justify-center p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white rounded-xl transition-all border border-blue-500/20 active:scale-90"
+                                      className="flex items-center justify-center p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white rounded-sm transition-all border border-blue-500/20 active:scale-90"
                                       title="Iniciar"
                                     >
                                       <Play size={16} fill="currentColor" />
@@ -563,20 +563,20 @@ export default function AgendaModule({
                                   {task.status === 'Em andamento' && (
                                     <button 
                                       onClick={() => handleUpdateStatus(task.id, 'Concluída')}
-                                      className="flex items-center justify-center p-2.5 bg-[#00E676]/10 hover:bg-[#00E676] text-[#00E676] hover:text-black rounded-xl transition-all border border-[#00E676]/20 active:scale-90 shadow-lg shadow-[#00E676]/10"
+                                      className="flex items-center justify-center p-2.5 bg-[#00E676]/10 hover:bg-[#00E676] text-[#00E676] hover:text-black rounded-sm transition-all border border-[#00E676]/20 active:scale-90 shadow-lg shadow-[#00E676]/10"
                                       title="Concluir"
                                     >
                                       <Check size={18} strokeWidth={3} />
                                     </button>
                                   )}
                                   {task.status === 'Concluída' && (
-                                    <div className="p-2 text-emerald-500 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                    <div className="p-2 text-emerald-500 bg-emerald-500/10 rounded-sm border border-emerald-500/20">
                                       <CheckCircle2 size={18} strokeWidth={2.5} />
                                     </div>
                                   )}
                                 </>
                               ) : (
-                                <div className="p-2 text-zinc-700 bg-zinc-900 rounded-xl" title="Somente o técnico atribuído pode alterar">
+                                <div className="p-2 text-zinc-700 bg-zinc-900 rounded-sm" title="Somente o técnico atribuído pode alterar">
                                   <Clock size={16} />
                                 </div>
                               )}
@@ -585,7 +585,7 @@ export default function AgendaModule({
                             {canCreateTask && (
                               <button 
                                 onClick={() => handleDeleteTask(task.id)}
-                                className="p-2.5 bg-transparent hover:bg-red-500/10 text-zinc-600 hover:text-red-500 rounded-xl transition-all active:scale-95 sm:ml-1"
+                                className="p-2.5 bg-transparent hover:bg-red-500/10 text-zinc-600 hover:text-red-500 rounded-sm transition-all active:scale-95 sm:ml-1"
                                 title="Excluir"
                               >
                                 <X size={18} strokeWidth={2.5} />
@@ -616,11 +616,11 @@ export default function AgendaModule({
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#101010] border border-zinc-800 rounded-[32px] w-full max-w-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[95vh]"
+              className="bg-[#101010] border border-zinc-800 rounded-sm w-full max-w-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[95vh]"
             >
               <div className="p-6 sm:p-8 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-[18px] flex items-center justify-center border border-[#00E676]/20 shadow-inner">
+                  <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-sm flex items-center justify-center border border-[#00E676]/20 shadow-inner">
                     <ClipboardList size={24} />
                   </div>
                   <div>
@@ -644,7 +644,7 @@ export default function AgendaModule({
                         type="text" 
                         value={newTask.title}
                         onChange={e => setNewTask({...newTask, title: capFirst(e.target.value)})}
-                        className="w-full bg-[#050505] border border-zinc-800/80 rounded-2xl px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all placeholder:text-zinc-700 text-white shadow-inner"
+                        className="w-full bg-[#050505] border border-zinc-800/80 rounded-sm px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all placeholder:text-zinc-700 text-white shadow-inner"
                         placeholder="Ex: Revisar reparo pendente"
                       />
                     </div>
@@ -654,7 +654,7 @@ export default function AgendaModule({
                       <textarea 
                         value={newTask.description}
                         onChange={e => setNewTask({...newTask, description: capFirst(e.target.value)})}
-                        className="w-full bg-[#050505] border border-zinc-800/80 rounded-2xl px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all h-32 resize-none placeholder:text-zinc-700 text-white shadow-inner leading-relaxed"
+                        className="w-full bg-[#050505] border border-zinc-800/80 rounded-sm px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all h-32 resize-none placeholder:text-zinc-700 text-white shadow-inner leading-relaxed"
                         placeholder="Descreva detalhadamente o que deve ser feito..."
                       />
                     </div>
@@ -670,7 +670,7 @@ export default function AgendaModule({
                           type="date" 
                           value={newTask.date}
                           onChange={e => setNewTask({...newTask, date: e.target.value})}
-                          className="w-full bg-[#050505] border border-zinc-800/80 rounded-2xl px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all text-white shadow-inner [color-scheme:dark]"
+                          className="w-full bg-[#050505] border border-zinc-800/80 rounded-sm px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all text-white shadow-inner [color-scheme:dark]"
                         />
                       </div>
                       <div className="space-y-2">
@@ -678,7 +678,7 @@ export default function AgendaModule({
                         <select 
                           value={newTask.priority}
                           onChange={e => setNewTask({...newTask, priority: e.target.value as 'Baixa' | 'Média' | 'Alta'})}
-                          className="w-full bg-[#050505] border border-zinc-800/80 rounded-2xl px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all text-white shadow-inner cursor-pointer"
+                          className="w-full bg-[#050505] border border-zinc-800/80 rounded-sm px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all text-white shadow-inner cursor-pointer"
                         >
                           <option value="Baixa">🟢 Baixa</option>
                           <option value="Média">🟡 Média</option>
@@ -693,7 +693,7 @@ export default function AgendaModule({
                         required
                         value={newTask.technicianId}
                         onChange={e => setNewTask({...newTask, technicianId: e.target.value})}
-                        className="w-full bg-[#050505] border border-zinc-800/80 rounded-2xl px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all text-white shadow-inner cursor-pointer"
+                        className="w-full bg-[#050505] border border-zinc-800/80 rounded-sm px-5 py-4 text-xs font-bold focus:outline-none focus:border-[#00E676]/50 transition-all text-white shadow-inner cursor-pointer"
                       >
                         <option value="">Selecionar técnico...</option>
                         {technicians.map(t => (
@@ -704,18 +704,18 @@ export default function AgendaModule({
 
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Vincular à uma OS?</label>
-                      <div className="flex bg-[#050505] border border-zinc-800/80 p-1 rounded-2xl shadow-inner">
+                      <div className="flex bg-[#050505] border border-zinc-800/80 p-1 rounded-sm shadow-inner">
                         <button 
                           type="button"
                           onClick={() => setNewTask({...newTask, type: 'manual'})}
-                          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newTask.type === 'manual' ? 'bg-zinc-800 text-white shadow-lg' : 'bg-transparent text-zinc-600 hover:text-zinc-400'}`}
+                          className={`flex-1 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${newTask.type === 'manual' ? 'bg-zinc-800 text-white shadow-lg' : 'bg-transparent text-zinc-600 hover:text-zinc-400'}`}
                         >
                           Não
                         </button>
                         <button 
                           type="button"
                           onClick={() => setNewTask({...newTask, type: 'os'})}
-                          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newTask.type === 'os' ? 'bg-[#00E676] text-black shadow-[0_0_15px_rgba(0,230,118,0.2)]' : 'bg-transparent text-zinc-600 hover:text-zinc-400'}`}
+                          className={`flex-1 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${newTask.type === 'os' ? 'bg-[#00E676] text-black shadow-[0_0_15px_rgba(0,230,118,0.2)]' : 'bg-transparent text-zinc-600 hover:text-zinc-400'}`}
                         >
                           Sim (OS)
                         </button>
@@ -735,7 +735,7 @@ export default function AgendaModule({
                       required
                       value={newTask.osId}
                       onChange={e => setNewTask({...newTask, osId: e.target.value})}
-                      className="w-full bg-[#00E676]/5 border border-[#00E676]/30 rounded-2xl px-5 py-4 text-[11px] font-bold text-white focus:outline-none focus:border-[#00E676] transition-all"
+                      className="w-full bg-[#00E676]/5 border border-[#00E676]/30 rounded-sm px-5 py-4 text-[11px] font-bold text-white focus:outline-none focus:border-[#00E676] transition-all"
                     >
                       <option value="" className="bg-black text-zinc-500">Selecionar OS...</option>
                       {orders.map(o => {
@@ -753,7 +753,7 @@ export default function AgendaModule({
                 <div className="pt-6">
                   <button 
                     type="submit"
-                    className="w-full bg-gradient-to-r from-[#00E676] to-[#00C853] hover:from-[#00C853] hover:to-[#00B24A] text-black font-black uppercase tracking-[0.3em] text-[10px] py-5 rounded-[20px] transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-[0_15px_40px_rgba(0,230,118,0.2)] hover:shadow-[#00E676]/40 flex items-center justify-center gap-3"
+                    className="w-full bg-gradient-to-r from-[#00E676] to-[#00C853] hover:from-[#00C853] hover:to-[#00B24A] text-black font-black uppercase tracking-[0.3em] text-[10px] py-5 rounded-sm transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-[0_15px_40px_rgba(0,230,118,0.2)] hover:shadow-[#00E676]/40 flex items-center justify-center gap-3"
                   >
                     <Check size={18} strokeWidth={3} />
                     Confirmar Agendamento
@@ -773,9 +773,9 @@ export default function AgendaModule({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#111] border border-zinc-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center flex flex-col items-center"
+              className="bg-[#111] border border-zinc-800 rounded-sm p-8 max-w-sm w-full shadow-2xl text-center flex flex-col items-center"
             >
-              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mb-4 text-red-500">
+              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-sm flex items-center justify-center mb-4 text-red-500">
                 <X size={24} strokeWidth={3} />
               </div>
               <h3 className="text-lg font-black text-white mb-2">{confirmModal.title}</h3>
@@ -783,13 +783,13 @@ export default function AgendaModule({
               <div className="flex gap-3 w-full">
                 <button 
                   onClick={() => setConfirmModal(null)}
-                  className="flex-1 bg-[#1A1A1A] hover:bg-zinc-800 text-white py-3.5 rounded-xl text-[10px] uppercase tracking-widest font-black transition-colors"
+                  className="flex-1 bg-[#1A1A1A] hover:bg-zinc-800 text-white py-3.5 rounded-sm text-[10px] uppercase tracking-widest font-black transition-colors"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={confirmModal.onConfirm}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3.5 rounded-xl text-[10px] uppercase tracking-widest font-black transition-colors shadow-lg shadow-red-500/20"
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3.5 rounded-sm text-[10px] uppercase tracking-widest font-black transition-colors shadow-lg shadow-red-500/20"
                 >
                   Confirmar
                 </button>
@@ -814,16 +814,16 @@ export default function AgendaModule({
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-[#101010] border border-zinc-800 rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="bg-[#101010] border border-zinc-800 rounded-sm w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
               >
                 {/* Header */}
                 <div className="p-6 sm:p-8 border-b border-zinc-800 flex items-start justify-between bg-zinc-950/50">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <div className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] ${priority.bg} ${priority.color} border ${priority.border} shadow-inner`}>
+                      <div className={`px-2.5 py-1 rounded-sm text-[9px] font-black uppercase tracking-[0.2em] ${priority.bg} ${priority.color} border ${priority.border} shadow-inner`}>
                         {selectedTask.priority}
                       </div>
-                      <div className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] ${status.bg} ${status.color} border border-${status.color.replace('text-', '')}/20 flex items-center gap-1 shadow-inner`}>
+                      <div className={`px-2.5 py-1 rounded-sm text-[9px] font-black uppercase tracking-[0.2em] ${status.bg} ${status.color} border border-${status.color.replace('text-', '')}/20 flex items-center gap-1 shadow-inner`}>
                         <StatusIcon size={12} strokeWidth={2.5} />
                         {selectedTask.status}
                       </div>
@@ -859,7 +859,7 @@ export default function AgendaModule({
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                         Descrição da Tarefa
                       </label>
-                      <div className="bg-[#050505] border border-zinc-800/80 p-5 rounded-[24px] text-zinc-400 text-xs sm:text-sm leading-relaxed whitespace-pre-line shadow-inner">
+                      <div className="bg-[#050505] border border-zinc-800/80 p-5 rounded-sm text-zinc-400 text-xs sm:text-sm leading-relaxed whitespace-pre-line shadow-inner">
                         {selectedTask.description}
                       </div>
                     </div>
@@ -871,22 +871,22 @@ export default function AgendaModule({
                         <div className="w-1.5 h-1.5 rounded-full bg-[#00E676]"></div>
                         Vínculo de Ordem de Serviço
                       </label>
-                      <div className="bg-gradient-to-br from-[#00E676]/10 to-transparent border border-[#00E676]/20 rounded-[28px] p-6 relative overflow-hidden group">
+                      <div className="bg-gradient-to-br from-[#00E676]/10 to-transparent border border-[#00E676]/20 rounded-sm p-6 relative overflow-hidden group">
                         <div className="absolute -right-8 -top-8 opacity-5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
                           <Wrench size={160} />
                         </div>
                         <div className="relative flex flex-col gap-5 z-10">
                           <div className="flex items-center justify-between">
-                            <span className="bg-[#00E676] text-black text-[10px] font-black px-4 py-1.5 rounded-xl uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(0,230,118,0.3)]">
+                            <span className="bg-[#00E676] text-black text-[10px] font-black px-4 py-1.5 rounded-sm uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(0,230,118,0.3)]">
                               OS {selectedTask.osNumber?.toString().padStart(5, '0')}
                             </span>
                           </div>
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-black/40 p-3 rounded-2xl border border-white/5">
+                            <div className="bg-black/40 p-3 rounded-sm border border-white/5">
                               <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest mb-1 pb-1 border-b border-white/5">Aparelho</p>
                               <p className="text-xs text-white font-bold truncate">{order?.equipment.brand} {order?.equipment.model}</p>
                             </div>
-                            <div className="bg-black/40 p-3 rounded-2xl border border-white/5">
+                            <div className="bg-black/40 p-3 rounded-sm border border-white/5">
                               <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest mb-1 pb-1 border-b border-white/5">Cliente</p>
                               <p className="text-xs text-white font-bold truncate">{customer?.name || 'Avulso'}</p>
                             </div>
@@ -898,7 +898,7 @@ export default function AgendaModule({
                                 setSelectedTask(null);
                               }
                             }}
-                            className="w-full flex items-center justify-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black text-[10px] tracking-[0.2em] uppercase font-black py-4 rounded-[18px] transition-all shadow-lg hover:shadow-[#00E676]/40 active:scale-[0.98]"
+                            className="w-full flex items-center justify-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black text-[10px] tracking-[0.2em] uppercase font-black py-4 rounded-sm transition-all shadow-lg hover:shadow-[#00E676]/40 active:scale-[0.98]"
                           >
                             Abrir OS Completa
                             <ArrowLeft size={16} className="rotate-180" strokeWidth={3} />
@@ -919,7 +919,7 @@ export default function AgendaModule({
                             handleUpdateStatus(selectedTask.id, 'Em andamento');
                             setSelectedTask(null);
                           }}
-                          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-sm transition-all shadow-lg shadow-blue-600/20 active:scale-95"
                         >
                           <Play size={16} fill="currentColor" />
                           Iniciar Execução
@@ -931,21 +931,21 @@ export default function AgendaModule({
                             handleUpdateStatus(selectedTask.id, 'Concluída');
                             setSelectedTask(null);
                           }}
-                          className="flex-1 flex items-center justify-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black font-black text-[11px] uppercase tracking-widest py-4 rounded-2xl transition-all shadow-lg shadow-[#00E676]/20 active:scale-95"
+                          className="flex-1 flex items-center justify-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black font-black text-[11px] uppercase tracking-widest py-4 rounded-sm transition-all shadow-lg shadow-[#00E676]/20 active:scale-95"
                         >
                           <Check size={18} strokeWidth={3} />
                           Finalizar Tarefa
                         </button>
                       )}
                       {selectedTask.status === 'Concluída' && (
-                        <div className="flex-1 py-4 text-center text-emerald-400 font-black text-[10px] uppercase tracking-[0.2em] bg-emerald-400/5 border border-emerald-400/20 rounded-2xl flex items-center justify-center gap-2">
+                        <div className="flex-1 py-4 text-center text-emerald-400 font-black text-[10px] uppercase tracking-[0.2em] bg-emerald-400/5 border border-emerald-400/20 rounded-sm flex items-center justify-center gap-2">
                           <CheckCircle2 size={16} />
                           Atividade Finalizada
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className="flex-1 py-5 bg-zinc-950 border border-zinc-800/80 rounded-[20px] text-center flex flex-col items-center justify-center gap-1">
+                    <div className="flex-1 py-5 bg-zinc-950 border border-zinc-800/80 rounded-sm text-center flex flex-col items-center justify-center gap-1">
                       <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] flex items-center gap-1.5">
                         <Filter size={12} /> Acesso Restrito
                       </p>
