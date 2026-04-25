@@ -428,9 +428,9 @@ export default function ServyxApp() {
         {/* Global Toast Notification */}
         <AnimatePresence>
           {toastMessage && (
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-zinc-800 border border-zinc-700 text-white px-6 py-3 rounded-full shadow-2xl no-print">
+            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 text-white px-6 py-3 rounded-sm shadow-2xl no-print">
               {toastMessage === 'Acesso negado' ? <AlertCircle size={18} className="text-red-400" /> : <Activity size={18} className="text-blue-400" />}
-              <span className="font-medium text-sm">{toastMessage}</span>
+              <span className="font-medium text-sm tracking-tight">{toastMessage}</span>
             </motion.div>
           )}
         </AnimatePresence>
