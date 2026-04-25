@@ -1476,6 +1476,48 @@ export default function OrdemServicoModule({
 
   return (
     <div className="h-screen bg-[#0A0A0A] text-white flex flex-col print:bg-white print:text-black print:block overflow-hidden">
+      {/* ===== CSS DE IMPRESSÃO EXPLÍCITO (funciona em browsers mobile) ===== */}
+      <style>{`
+        /* Esconde containers de impressão na visualização normal */
+        .nova-os-print-a4,
+        .nova-os-print-thermal,
+        .nova-os-print-warranty,
+        .nova-os-print-warranty-thermal {
+          display: none;
+        }
+
+        @media print {
+          /* Oculta toda a interface da aplicação */
+          .nova-os-ui { display: none !important; }
+
+          /* Oculta todos os containers por padrão em print */
+          .nova-os-print-a4 { display: none !important; }
+          .nova-os-print-thermal { display: none !important; }
+          .nova-os-print-warranty { display: none !important; }
+          .nova-os-print-warranty-thermal { display: none !important; }
+
+          /* Mostra apenas o container correto pelo body class */
+          body.print-a4 .nova-os-print-a4 { display: block !important; }
+          body.print-thermal .nova-os-print-thermal { display: block !important; }
+          body.print-warranty .nova-os-print-warranty { display: block !important; }
+          body.print-warranty-thermal .nova-os-print-warranty-thermal { display: block !important; }
+
+          /* Garante que o conteúdo do template apareça */
+          .nova-os-print-a4 > *,
+          .nova-os-print-thermal > *,
+          .nova-os-print-warranty > *,
+          .nova-os-print-warranty-thermal > * {
+            display: block !important;
+            visibility: visible !important;
+          }
+
+          body, html {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+        }
+      `}</style>
       {/* Main App Content - Hidden on Print */}
         {/* Success Animation Modal */}
         <SuccessAnimationModal 
@@ -1484,7 +1526,7 @@ export default function OrdemServicoModule({
           onClose={() => setShowSuccessModal(false)}
         />
 
-        <div className="print:hidden flex flex-col flex-1 h-full overflow-hidden">
+        <div className="nova-os-ui flex flex-col flex-1 h-full overflow-hidden">
         {/* Header */}
       <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -3168,9 +3210,10 @@ export default function OrdemServicoModule({
       </AnimatePresence>
 
 
-      {/* Container de Impressão - Escondido completamente fora da impressão para não afetar o layout */}
-      <div className="hidden print:block absolute inset-0 pointer-events-none">
-        <div className="print-a4-container">
+      {/* ===== CONTAINERS DE IMPRESSÃO ===== */}
+      {/* Ficam fora do fluxo normal; o CSS acima controla quem aparece em @media print */}
+      <div>
+        <div className="nova-os-print-a4">
         <OrderPrintTemplate 
           order={{
             id: 'preview',
@@ -3199,7 +3242,7 @@ export default function OrdemServicoModule({
         />
       </div>
 
-      <div className="print-thermal-container">
+      <div className="nova-os-print-thermal">
         <ThermalReceiptTemplate 
           order={{
             id: 'preview',
@@ -3227,7 +3270,7 @@ export default function OrdemServicoModule({
           osSettings={osSettings}
         />
       </div>
-      <div className="print-warranty-container">
+      <div className="nova-os-print-warranty">
         <WarrantyPrintTemplate 
           order={{
             id: 'preview',
@@ -3263,7 +3306,7 @@ export default function OrdemServicoModule({
           osSettings={osSettings}
         />
       </div>
-      <div className="warranty-thermal-container">
+      <div className="nova-os-print-warranty-thermal">
         <WarrantyThermalTemplate 
           order={{
             id: 'preview',
