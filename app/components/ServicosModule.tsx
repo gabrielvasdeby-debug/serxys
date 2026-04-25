@@ -177,7 +177,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
       <header className="bg-black/60 backdrop-blur-xl border-b border-zinc-900 p-6 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
-            <button onClick={onBack} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group">
+            <button onClick={onBack} className="p-3 bg-white/5 hover:bg-white/10 rounded-sm transition-all border border-white/5 group">
               <ArrowLeft size={20} className="text-zinc-400 group-hover:text-white transition-colors" />
             </button>
             <div className="relative group/title">
@@ -197,7 +197,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                       initial={{ opacity: 0, y: 5, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                      className="absolute top-full left-0 mt-3 w-80 p-4 bg-zinc-900 border border-zinc-800 rounded-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] backdrop-blur-xl pointer-events-none"
+                      className="absolute top-full left-0 mt-3 w-80 p-4 bg-zinc-900 border border-zinc-800 rounded-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] backdrop-blur-xl pointer-events-none"
                     >
                       <div className="flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
@@ -226,13 +226,13 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                 placeholder="Pesquisar serviços..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[#00E676] transition-all"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-sm pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[#00E676] transition-all"
               />
             </div>
             {isAdmin && (
               <button
                 onClick={() => { setSelectedService({ category: 'Smartphone' }); setIsModalOpen(true); }}
-                className="px-6 py-3 bg-[#00E676] hover:bg-[#00C853] text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-[#00E676]/20 active:scale-[0.98]"
+                className="px-6 py-3 bg-[#00E676] hover:bg-[#00C853] text-black font-bold rounded-sm flex items-center gap-2 transition-all shadow-lg shadow-[#00E676]/20 active:scale-[0.98]"
               >
                 <Plus size={20} />
                 <span className="hidden sm:inline">Novo Serviço</span>
@@ -250,7 +250,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-sm text-xs font-bold whitespace-nowrap transition-all border ${
                   selectedCategory === cat
                     ? 'bg-[#00E676] border-[#00E676] text-black shadow-lg shadow-[#00E676]/20'
                     : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'
@@ -288,7 +288,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
             <div key={group.value}>
               {/* Group header */}
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-9 h-9 rounded-2xl bg-[#00E676]/10 text-[#00E676] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-sm bg-[#00E676]/10 text-[#00E676] flex items-center justify-center">
                   <group.icon size={18} />
                 </div>
                 <div>
@@ -309,7 +309,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                     className="group bg-zinc-900/40 border border-zinc-800/80 p-5 rounded-[1.75rem] hover:bg-zinc-900/60 transition-all hover:border-zinc-700/50"
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <div className="p-2.5 bg-zinc-950 rounded-xl text-[#00E676]">
+                      <div className="p-2.5 bg-zinc-950 rounded-sm text-[#00E676]">
                         <CategoryIcon category={service.category} size={18} />
                       </div>
                       {isAdmin && (
@@ -376,7 +376,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
             >
               <div className="p-7 border-b border-zinc-800/50 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-[#00E676]/10 text-[#00E676] rounded-sm flex items-center justify-center">
                     <CategoryIcon category={selectedService?.category} size={22} />
                   </div>
                   <div>
@@ -384,7 +384,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                     <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Informações do Serviço</p>
                   </div>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-zinc-800 rounded-xl transition-colors">
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-zinc-800 rounded-sm transition-colors">
                   <X size={20} />
                 </button>
               </div>
@@ -401,7 +401,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                           type="button"
                           onClick={() => setSelectedService(prev => ({ ...prev, category: cat.value }))}
                           title={cat.label}
-                          className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all text-xs font-semibold ${
+                          className={`flex flex-col items-center gap-1.5 p-2 rounded-sm border transition-all text-xs font-semibold ${
                             selectedService?.category === cat.value
                               ? 'bg-[#00E676]/15 border-[#00E676] text-[#00E676]'
                               : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
@@ -421,7 +421,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                       required
                       value={selectedService?.name || ''}
                       onChange={e => setSelectedService(prev => ({ ...prev, name: capFirst(e.target.value) }))}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-sm px-5 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
                       placeholder="Ex: Troca de Tela iPhone 11"
                     />
                   </div>
@@ -431,7 +431,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                     <textarea
                       value={selectedService?.description || ''}
                       onChange={e => setSelectedService(prev => ({ ...prev, description: capFirst(e.target.value) }))}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none h-24"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-sm px-5 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none h-24"
                       placeholder="Detalhes e riscos sobre o serviço..."
                     />
                     <p className="text-[9px] text-zinc-600 font-medium ml-1 flex items-center gap-1.5 uppercase tracking-widest">
@@ -451,7 +451,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                           required
                           value={selectedService?.default_value || ''}
                           onChange={e => setSelectedService(prev => ({ ...prev, default_value: Number(e.target.value) }))}
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all font-mono"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-sm pl-10 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all font-mono"
                           placeholder="0,00"
                         />
                       </div>
@@ -464,7 +464,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                           type="text"
                           value={selectedService?.estimated_time || ''}
                           onChange={e => setSelectedService(prev => ({ ...prev, estimated_time: e.target.value }))}
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-sm pl-10 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-all"
                           placeholder="Ex: 40 min"
                         />
                       </div>
@@ -475,13 +475,13 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="flex-1 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-bold rounded-2xl transition-all border border-zinc-800"
+                      className="flex-1 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-bold rounded-sm transition-all border border-zinc-800"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 py-3.5 bg-[#00E676] hover:bg-[#00C853] text-black font-bold rounded-2xl transition-all shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-2"
+                      className="flex-1 py-3.5 bg-[#00E676] hover:bg-[#00C853] text-black font-bold rounded-sm transition-all shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-2"
                     >
                       <Save size={18} />
                       Salvar Serviço
