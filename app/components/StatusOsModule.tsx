@@ -293,6 +293,7 @@ export default function StatusOsModule({
   const [searchQuery, setSearchQuery] = useState('');
   const [reportPhotos, setReportPhotos] = useState<string[]>([]);
   const [showMetrics, setShowMetrics] = useState(false);
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
   
   const handleCaptureReportPhoto = async () => {
     try {
@@ -1450,8 +1451,9 @@ export default function StatusOsModule({
             </div>
             
             <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 no-scrollbar snap-x">
-              <div className="relative group/dropdown no-print shrink-0 snap-start">
+              <div className="relative no-print shrink-0 snap-start">
                 <button
+                  onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
                   className={`px-4 py-2.5 rounded-sm text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 border bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700 min-w-[220px] shadow-sm relative z-10`}
                 >
                   <div className={`p-1.5 rounded-sm transition-colors ${groupBy !== 'nenhum' ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800 text-zinc-500'}`}>
@@ -1467,32 +1469,41 @@ export default function StatusOsModule({
                       {groupBy === 'data' && 'Data de Entrada'}
                     </span>
                   </div>
-                  <ChevronDown size={14} className="ml-auto text-zinc-600 group-hover/dropdown:text-[#00E676] transition-all duration-300" />
+                  <ChevronDown size={14} className={`ml-auto text-zinc-600 transition-all duration-300 ${isGroupDropdownOpen ? 'rotate-180 text-[#00E676]' : ''}`} />
                 </button>
                 
-                <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0A0A0A] border border-zinc-800 rounded-md overflow-hidden shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:translate-y-0 group-hover/dropdown:pointer-events-auto transition-all duration-300 z-50 p-1.5 backdrop-blur-xl">
-                  {[
-                    { id: 'nenhum', label: 'Sem Agrupamento', icon: Grid, desc: 'Visualização padrão' },
-                    { id: 'prioridade', label: 'Prioridade', icon: AlertCircle, desc: 'Alta, Normal, Baixa' },
-                    { id: 'data', label: 'Data de Entrada', icon: Calendar, desc: 'Hoje, Ontem, Semana' },
-                  ].map(opt => (
-                    <button
-                      key={opt.id}
-                      onClick={() => { setGroupBy(opt.id as any); setActiveStatus('ALL'); }}
-                      className={`w-full flex flex-col items-start px-4 py-2.5 rounded-sm text-xs font-bold transition-all hover:bg-zinc-800 group/item ${groupBy === opt.id ? 'bg-[#00E676]/10 text-[#00E676]' : 'text-zinc-400 hover:text-zinc-200'}`}
-                    >
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <opt.icon size={14} className={groupBy === opt.id ? 'text-[#00E676]' : 'text-zinc-500 group-hover/item:text-zinc-300'} />
-                        <span className="uppercase tracking-widest">{opt.label}</span>
-                      </div>
-                      <span className="text-[9px] text-zinc-600 font-medium group-hover/item:text-zinc-500">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
+                {isGroupDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsGroupDropdownOpen(false)} />
+                    <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0A0A0A] border border-zinc-800 rounded-md overflow-hidden shadow-2xl z-50 p-1.5 backdrop-blur-xl">
+                      {[
+                        { id: 'nenhum', label: 'Sem Agrupamento', icon: Grid, desc: 'Visualização padrão' },
+                        { id: 'prioridade', label: 'Prioridade', icon: AlertCircle, desc: 'Alta, Normal, Baixa' },
+                        { id: 'data', label: 'Data de Entrada', icon: Calendar, desc: 'Hoje, Ontem, Semana' },
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => { 
+                            setGroupBy(opt.id as any); 
+                            setActiveStatus('ALL'); 
+                            setIsGroupDropdownOpen(false);
+                          }}
+                          className={`w-full flex flex-col items-start px-4 py-2.5 rounded-sm text-xs font-bold transition-all hover:bg-zinc-800 group/item ${groupBy === opt.id ? 'bg-[#00E676]/10 text-[#00E676]' : 'text-zinc-400 hover:text-zinc-200'}`}
+                        >
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <opt.icon size={14} className={groupBy === opt.id ? 'text-[#00E676]' : 'text-zinc-500 group-hover/item:text-zinc-300'} />
+                            <span className="uppercase tracking-widest">{opt.label}</span>
+                          </div>
+                          <span className="text-[9px] text-zinc-600 font-medium group-hover/item:text-zinc-500">{opt.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
               <button
                 onClick={() => setActiveStatus('Orçamento Cancelado')}
-                className={`shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
+                className={`hidden md:flex shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all items-center justify-center gap-2 border ${
                   activeStatus === 'Orçamento Cancelado'
                   ? 'bg-red-400 text-black border-red-400 shadow-lg shadow-red-400/20'
                   : 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700'
@@ -1504,7 +1515,7 @@ export default function StatusOsModule({
               </button>
               <button
                 onClick={() => setActiveStatus('Sem Reparo')}
-                className={`shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
+                className={`hidden md:flex shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all items-center justify-center gap-2 border ${
                   activeStatus === 'Sem Reparo'
                   ? 'bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/20'
                   : 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700'
