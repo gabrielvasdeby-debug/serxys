@@ -1439,7 +1439,7 @@ export default function StatusOsModule({
               {showMetrics ? 'Ocultar Painel' : 'Métricas do Mês'}
             </button>
 
-            <div className="relative flex-1 lg:w-96">
+            <div className="relative flex-1 lg:w-96 order-2 lg:order-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input
                 type="text"
@@ -1449,12 +1449,11 @@ export default function StatusOsModule({
                 className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
               />
             </div>
-            
-            <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 no-scrollbar snap-x">
-              <div className="relative no-print shrink-0 snap-start">
+
+            <div className="relative no-print shrink-0 order-3 lg:order-none w-full sm:w-auto">
                 <button
                   onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
-                  className={`px-4 py-2.5 rounded-sm text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 border bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700 min-w-[220px] shadow-sm relative z-10`}
+                  className={`w-full sm:px-4 py-2.5 rounded-sm text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 border bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700 sm:min-w-[220px] shadow-sm relative z-10`}
                 >
                   <div className={`p-1.5 rounded-sm transition-colors ${groupBy !== 'nenhum' ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800 text-zinc-500'}`}>
                      {groupBy === 'nenhum' && <Grid size={16} />}
@@ -1469,7 +1468,7 @@ export default function StatusOsModule({
                       {groupBy === 'data' && 'Data de Entrada'}
                     </span>
                   </div>
-                  <ChevronDown size={14} className={`ml-auto text-zinc-600 transition-all duration-300 ${isGroupDropdownOpen ? 'rotate-180 text-[#00E676]' : ''}`} />
+                  <ChevronDown size={14} className={`ml-auto sm:ml-4 text-zinc-600 transition-all duration-300 ${isGroupDropdownOpen ? 'rotate-180 text-[#00E676]' : ''}`} />
                 </button>
                 
                 {isGroupDropdownOpen && (
@@ -1500,7 +1499,9 @@ export default function StatusOsModule({
                     </div>
                   </>
                 )}
-              </div>
+            </div>
+            
+            <div className="flex sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 no-scrollbar snap-x order-4 lg:order-none">
               <button
                 onClick={() => setActiveStatus('Orçamento Cancelado')}
                 className={`hidden md:flex shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all items-center justify-center gap-2 border ${
