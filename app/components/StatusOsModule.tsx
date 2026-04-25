@@ -1867,78 +1867,78 @@ export default function StatusOsModule({
                       <div
                         key={order.id}
                         onClick={() => setSelectedOrder(order)}
-                        className="bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-600 rounded-sm p-4 sm:p-5 cursor-pointer transition-all hover:bg-zinc-800/30 hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1"
+                        className="bg-zinc-800/40 border border-zinc-700/50 hover:border-zinc-500 rounded-sm p-4 cursor-pointer transition-all hover:bg-zinc-800/60 hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-2 min-h-[140px]"
                       >
                         {/* Visual Status Indicator on Card Left */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/60')}`} />
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/80')}`} />
                         
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[10px] font-black font-mono text-zinc-500 bg-black/40 border border-white/5 px-2 py-0.5 rounded-md uppercase tracking-widest">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black font-mono text-white bg-zinc-900 border border-zinc-700 px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-sm">
                               OS {order.osNumber.toString().padStart(4, '0')}
                             </span>
                             {(activeStatus === 'ALL' || groupBy !== 'nenhum') && (
-                              <span className={`text-[9px] px-2 py-0.5 rounded-md font-black uppercase tracking-tighter ${STATUS_CONFIG[order.status].bg} ${STATUS_CONFIG[order.status].color}`}>
+                              <span className={`text-[9px] px-2 py-0.5 rounded-sm font-black uppercase tracking-tighter ${STATUS_CONFIG[order.status].bg} ${STATUS_CONFIG[order.status].color}`}>
                                 {order.status}
                               </span>
                             )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[9px] text-zinc-400 font-bold uppercase tracking-widest">
+                            <Calendar size={10} className="text-zinc-500" />
+                            {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-[13px] text-white line-clamp-1 group-hover:text-[#00E676] transition-colors">{customer?.name || 'Cliente não encontrado'}</h4>
+                          <p className="text-[10px] font-bold text-zinc-400 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
+                        </div>
+
+                        <div className="pl-2 border-l-2 border-zinc-700 my-0.5">
+                          <p className="text-[10px] text-zinc-400 line-clamp-2 italic leading-relaxed" title={order.defect}>{order.defect || 'Sem defeito relatado'}</p>
+                        </div>
+
+                        <div className="flex items-end justify-between mt-auto pt-1">
+                          <div className="flex flex-col gap-1.5">
                             {order.signatures?.mode === 'remote' && order.signatures?.client && (
-                              <span className="text-[9px] px-2 py-0.5 rounded-md font-black uppercase tracking-tighter bg-blue-500/10 text-blue-400 border border-blue-500/20" title="OS Assinada via Link">
+                              <span className="text-[8px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter bg-blue-500/20 text-blue-300 w-max">
                                 Assinado
                               </span>
                             )}
                             {order.budget?.status === 'Aprovado' && order.history.some(h => h.user === 'Cliente (Via Portal)' && h.description.includes('APROVADO')) && (
-                              <span className="text-[9px] px-2 py-0.5 rounded-md font-black uppercase tracking-tighter bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Orçamento Aprovado via Link">
+                              <span className="text-[8px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter bg-emerald-500/20 text-emerald-300 w-max">
                                 Aprovado (Cliente)
                               </span>
                             )}
                             {order.budget?.status === 'Recusado' && order.history.some(h => h.user === 'Cliente (Via Portal)' && h.description.includes('RECUSADO')) && (
-                              <span className="text-[9px] px-2 py-0.5 rounded-md font-black uppercase tracking-tighter bg-red-500/10 text-red-400 border border-red-500/20" title="Orçamento Recusado via Link">
+                              <span className="text-[8px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter bg-red-500/20 text-red-300 w-max">
                                 Recusado (Cliente)
                               </span>
                             )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {order.deliveryForecast && 
-                             new Date(order.deliveryForecast) < new Date() && 
-                             !['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status) && (
-                              <span className="flex items-center gap-1 text-[8px] bg-red-500/10 text-red-500 border border-red-500/20 px-1.5 py-0.5 rounded-md font-black animate-pulse uppercase tracking-tighter">
-                                <AlertTriangle size={10} />
-                                Atrasado
+                            {order.deliveryForecast && new Date(order.deliveryForecast) < new Date() && !['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status) && (
+                              <span className="flex items-center gap-1 text-[8px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-sm font-black animate-pulse uppercase tracking-tighter w-max">
+                                <AlertTriangle size={8} /> Atrasado
                               </span>
                             )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
                             {!['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status) && (
                               <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]}`} title={`Prioridade: ${order.priority}`} />
                             )}
-                          </div>
-                        </div>
-
-                        <h4 className="font-bold text-sm sm:text-sm text-zinc-200 mb-0.5 line-clamp-1 group-hover:text-white transition-colors mt-1">{customer?.name || 'Cliente não encontrado'}</h4>
-                        <p className="text-[11px] sm:text-[11px] font-bold text-zinc-600 mb-3 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
-
-                        <div className="bg-[#050505] rounded-sm p-2.5 mb-3 border border-zinc-900/50">
-                          <p className="text-[10px] sm:text-[11px] text-zinc-500 line-clamp-2 italic" title={order.defect}>{order.defect}</p>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar size={11} className="text-zinc-600" />
-                            {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                          </div>
-                          <div className="flex items-center gap-2">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleViewDocs(order);
                               }}
-                              className="p-1.5 rounded-sm bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:text-zinc-200 transition-all"
+                              className="p-1.5 rounded-sm bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 hover:text-white text-zinc-400 transition-all shadow-sm"
                               title={order.scannedOsUrl ? 'Ver PDF Escaneado' : 'Ver Documentos'}
                             >
                               <FileText size={12} />
                             </button>
-                            <div className="flex items-center gap-1.5 bg-zinc-900/50 px-2 py-1 rounded-sm">
-                              <User size={11} className="text-zinc-600" />
-                              {order.history[0]?.user?.split(' ')[0] || 'Téc'}
+                            <div className="flex items-center gap-1.5 bg-zinc-900/80 px-2 py-1 rounded-sm border border-zinc-800 shadow-sm">
+                              <User size={10} className="text-zinc-500" />
+                              <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">{order.history[0]?.user?.split(' ')[0] || 'Téc'}</span>
                             </div>
                           </div>
                         </div>
