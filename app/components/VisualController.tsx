@@ -83,38 +83,38 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
           {/* ABSOLUTE POSITIONED BUTTONS (PERCENTAGE BASED) */}
           
           {/* L1/L2 and R1/R2 (Top Bar) */}
-          <ButtonSpot id="L2" label="L2" style={{ left: '16.5%', top: '0%' }} size={28} />
-          <ButtonSpot id="L1" label="L1" style={{ left: '16.5%', top: '10%' }} size={28} />
-          <ButtonSpot id="R2" label="R2" style={{ right: '16.5%', top: '0%' }} size={28} />
-          <ButtonSpot id="R1" label="R1" style={{ right: '16.5%', top: '10%' }} size={28} />
+          <ButtonSpot id="L2" label="L2" style={{ left: '16.5%', top: '0%' }} size={34} />
+          <ButtonSpot id="L1" label="L1" style={{ left: '16.5%', top: '10%' }} size={34} />
+          <ButtonSpot id="R2" label="R2" style={{ right: '16.5%', top: '0%' }} size={34} />
+          <ButtonSpot id="R1" label="R1" style={{ right: '16.5%', top: '10%' }} size={34} />
 
           {/* D-PAD */}
-          <ButtonSpot id="D-Pad Cima" label="DPAD ↑" style={{ left: '22%', top: '24%' }} size={22} />
-          <ButtonSpot id="D-Pad Baixo" label="DPAD ↓" style={{ left: '22%', top: '42%' }} size={22} />
-          <ButtonSpot id="D-Pad Esquerda" label="DPAD ←" style={{ left: '15%', top: '33%' }} size={22} />
-          <ButtonSpot id="D-Pad Direita" label="DPAD →" style={{ left: '29%', top: '33%' }} size={22} />
+          <ButtonSpot id="D-Pad Cima" label="DPAD ↑" style={{ left: '22%', top: '24%' }} size={30} />
+          <ButtonSpot id="D-Pad Baixo" label="DPAD ↓" style={{ left: '22%', top: '42%' }} size={30} />
+          <ButtonSpot id="D-Pad Esquerda" label="DPAD ←" style={{ left: '15%', top: '33%' }} size={30} />
+          <ButtonSpot id="D-Pad Direita" label="DPAD →" style={{ left: '29%', top: '33%' }} size={30} />
 
           {/* FACE BUTTONS */}
-          <ButtonSpot id="Triângulo" label="▲" style={{ right: '22%', top: '24%' }} size={22} />
-          <ButtonSpot id="Cross / X" label="✖" style={{ right: '22%', top: '42%' }} size={22} />
-          <ButtonSpot id="Quadrado" label="■" style={{ right: '29%', top: '33%' }} size={22} />
-          <ButtonSpot id="Círculo" label="●" style={{ right: '15%', top: '33%' }} size={22} />
+          <ButtonSpot id="Triângulo" label="▲" style={{ right: '22%', top: '24%' }} size={30} />
+          <ButtonSpot id="Cross / X" label="✖" style={{ right: '22%', top: '42%' }} size={30} />
+          <ButtonSpot id="Quadrado" label="■" style={{ right: '29%', top: '33%' }} size={30} />
+          <ButtonSpot id="Círculo" label="●" style={{ right: '15%', top: '33%' }} size={30} />
 
           {/* STICKS */}
-          <ButtonSpot id="L3 (Analógico)" label="L3" style={{ left: '32.5%', top: '53%' }} size={30} />
-          <ButtonSpot id="R3 (Analógico)" label="R3" style={{ right: '32.5%', top: '53%' }} size={30} />
+          <ButtonSpot id="L3 (Analógico)" label="L3" style={{ left: '32.5%', top: '53%' }} size={40} />
+          <ButtonSpot id="R3 (Analógico)" label="R3" style={{ right: '32.5%', top: '53%' }} size={40} />
 
           {/* UTILITY BUTTONS */}
-          <ButtonSpot id="PS Button" label="Home" style={{ left: '50%', top: '51%', transform: 'translateX(-50%)' }} size={28} />
-          <ButtonSpot id="Touchpad" label="TPAD" style={{ left: '50%', top: '24%', transform: 'translateX(-50%)' }} size={34} />
-          <ButtonSpot id="Create" label="SHRE" style={{ left: '32%', top: '22%' }} size={16} />
-          <ButtonSpot id="Options" label="OPTS" style={{ right: '32%', top: '22%' }} size={16} />
+          <ButtonSpot id="PS Button" label="Home" style={{ left: '50%', top: '51%', transform: 'translateX(-50%)' }} size={34} />
+          <ButtonSpot id="Touchpad" label="TPAD" style={{ left: '50%', top: '24%', transform: 'translateX(-50%)' }} size={42} />
+          <ButtonSpot id="Create" label="SHRE" style={{ left: '32%', top: '22%' }} size={24} />
+          <ButtonSpot id="Options" label="OPTS" style={{ right: '32%', top: '22%' }} size={24} />
           
           {/* CONECTOR CARGA (Moved to TOP as requested) */}
-          <ButtonSpot id="Conector Carga" label="CRGA" style={{ left: '50%', top: '0%', transform: 'translateX(-50%)' }} size={24} />
+          <ButtonSpot id="Conector Carga" label="CRGA" style={{ left: '50%', top: '0%', transform: 'translateX(-50%)' }} size={32} />
           
           {/* ENTRADA FONE / P2 (New - at BOTTOM as requested) */}
-          <ButtonSpot id="Entrada Fone P2" label="FONE" style={{ left: '50%', top: '63.5%', transform: 'translateX(-50%)' }} size={22} />
+          <ButtonSpot id="Entrada Fone P2" label="FONE" style={{ left: '50%', top: '63.5%', transform: 'translateX(-50%)' }} size={30} />
         </div>
       </div>
 

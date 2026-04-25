@@ -5,7 +5,7 @@ import {
   ArrowLeft, Search, Plus, User, Smartphone, 
   CheckCircle2, AlertCircle, AlertTriangle, Save, Printer, MessageCircle,
   Check, X, Banknote, FileText, PenTool, Grid, Eye, Trash2, Camera, UploadCloud, Loader2, ShieldCheck, Mail, Pencil,
-  Shield, Hash, Key, Lock, Home
+  Shield, Hash, Key, Lock, Home, ChevronLeft
 } from 'lucide-react';
 import { Customer, DeviceType } from './ClientesModule';
 import { Transaction } from './CaixaModule';
@@ -46,12 +46,17 @@ interface OrdemServicoModuleProps {
 }
 
 // Signature Pad Component
-const SignaturePad = ({ title, onSave, onClear }: { title: string, onSave: (dataUrl: string) => void, onClear: () => void }) => {
+const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onSave: (dataUrl: string) => void, onClear: () => void, autoOpen?: boolean }) => {
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [hasDrawing, setHasDrawing] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(autoOpen || false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Re-open if autoOpen changes
+  useEffect(() => {
+    if (autoOpen) setIsOpen(true);
+  }, [autoOpen]);
 
   const clear = () => {
     sigCanvas.current?.clear();
@@ -117,26 +122,25 @@ const SignaturePad = ({ title, onSave, onClear }: { title: string, onSave: (data
               initial={{ scale: 0.95, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 20, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-800 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col"
+              className="bg-[#141414] border border-zinc-800 rounded-sm w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col h-[95vh] sm:h-auto"
             >
-              <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between bg-zinc-900/40">
+              <div className="p-4 sm:p-8 border-b border-zinc-800/50 flex items-center justify-between bg-zinc-900/40">
                 <div>
-                   <h3 className="text-xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3">
-                      <PenTool className="text-[#00E676]" />
+                   <h3 className="text-lg font-black text-white uppercase tracking-tighter italic flex items-center gap-3">
+                      <PenTool size={20} className="text-[#00E676]" />
                       {title}
                    </h3>
-                   <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Desenhe sua assinatura no campo abaixo</p>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-12 h-12 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-full transition-all flex items-center justify-center active:scale-95"
+                  className="w-10 h-10 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-full transition-all flex items-center justify-center active:scale-95"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
 
-              <div className="p-8">
-                <div className="bg-white rounded-[2rem] overflow-hidden h-[300px] shadow-inner relative ring-8 ring-black/20">
+              <div className="flex-1 p-4 sm:p-8 flex flex-col gap-6 overflow-hidden">
+                <div className="flex-1 bg-white rounded-sm overflow-hidden shadow-inner relative ring-1 ring-zinc-200">
                   <SignatureCanvas 
                     ref={sigCanvas}
                     penColor="black"
@@ -148,27 +152,28 @@ const SignaturePad = ({ title, onSave, onClear }: { title: string, onSave: (data
                   />
                   {!hasDrawing && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-20">
-                      <PenTool size={48} className="text-zinc-600 mb-2" />
-                      <span className="text-zinc-500 text-sm font-black uppercase tracking-[0.2em]">Assine Aqui</span>
+                      <PenTool size={48} className="text-black mb-2" />
+                      <p className="text-black font-black uppercase tracking-widest text-[10px]">Assine aqui</p>
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className="p-8 bg-zinc-900/40 border-t border-zinc-800/50 flex gap-4">
-                 <button 
-                   onClick={clear}
-                   className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold rounded-md transition-all active:scale-95 uppercase tracking-widest text-[10px]"
-                 >
-                   Limpar Tudo
-                 </button>
-                 <button 
-                   onClick={confirm}
-                   disabled={!hasDrawing}
-                   className="flex-[2] py-4 bg-[#00E676] hover:bg-[#00C853] text-black font-black rounded-md transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:grayscale disabled:shadow-none"
-                 >
-                   Confirmar Assinatura
-                 </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={clear}
+                    className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-sm border border-zinc-800 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Trash2 size={16} />
+                    Limpar
+                  </button>
+                  <button
+                    onClick={confirm}
+                    className="flex-[2] h-12 bg-[#00E676] hover:bg-[#00C853] text-black font-black uppercase tracking-widest text-[10px] rounded-sm transition-all shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-2"
+                  >
+                    <Save size={16} />
+                    Salvar Assinatura
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -1399,18 +1404,11 @@ export default function OrdemServicoModule({
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center gap-2 sm:gap-3">
               <button 
-                onClick={step === 'DETAILS' ? () => setStep('CLIENT') : onBack}
-                className="w-10 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
-                title="Voltar"
-              >
-                <ArrowLeft size={22} />
-              </button>
-              <button 
                 onClick={onBack}
                 className="w-10 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
-                title="Ir para o Início"
+                title="Voltar ao Dashboard"
               >
-                <Home size={22} />
+                <ChevronLeft size={24} />
               </button>
             </div>
 
@@ -2726,84 +2724,79 @@ export default function OrdemServicoModule({
                       <h3 className="text-sm font-bold text-white uppercase tracking-widest">Assinaturas</h3>
                     </div>
                     
-                    <div className="space-y-6">
                       {/* Signature Mode Selection */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {/* 1 - Digital */}
                         <button
                           type="button"
                           onClick={() => {
                             setSignatureMode('digital');
                             setSignatures(prev => ({ ...prev, mode: 'digital', isManual: false }));
                           }}
-                          className={`p-5 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-4 group relative overflow-hidden ${
+                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
                             signatureMode === 'digital'
-                              ? 'bg-[#00E676]/5 border-[#00E676] text-[#00E676] shadow-[0_0_20px_rgba(0,230,118,0.1)]' 
-                              : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
+                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
                           }`}
                         >
-                           <div className={`w-14 h-14 rounded-md flex items-center justify-center transition-all duration-500 ${signatureMode === 'digital' ? 'bg-[#00E676] text-black scale-110 shadow-lg shadow-[#00E676]/20' : 'bg-zinc-800 text-zinc-600 group-hover:text-zinc-400'}`}>
-                              <Smartphone size={28} />
+                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'digital' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                              <Smartphone size={20} />
                            </div>
                            <div className="text-center relative z-10">
-                              <h4 className={`text-[10px] uppercase font-black tracking-widest leading-none mb-1.5 ${signatureMode === 'digital' ? 'text-white' : 'text-zinc-500'}`}>Assinatura Digital</h4>
-                              <p className="text-[11px] font-bold uppercase tracking-tight italic leading-none opacity-80">Coleta na Tela</p>
+                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'digital' ? 'text-white' : 'text-zinc-500'}`}>Digital</h4>
+                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Na tela</p>
                            </div>
-                           {signatureMode === 'digital' && (
-                             <motion.div layoutId="sig-active" className="absolute inset-0 bg-[#00E676]/5 pointer-events-none" />
-                           )}
                         </button>
 
+                        {/* 2 - Via Link (WhatsApp) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSignatureMode('remote');
+                            setSignatures(prev => ({ ...prev, mode: 'remote', isManual: false }));
+                            // Prompt for technician signature immediately as requested
+                            // This will be handled by the effect or conditional rendering below
+                          }}
+                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+                            signatureMode === 'remote'
+                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
+                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                          }`}
+                        >
+                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'remote' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                              <MessageCircle size={20} />
+                           </div>
+                           <div className="text-center relative z-10">
+                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'remote' ? 'text-white' : 'text-zinc-500'}`}>Via WhatsApp</h4>
+                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Link Remoto</p>
+                           </div>
+                        </button>
+
+                        {/* 3 - Manual */}
                         <button
                           type="button"
                           onClick={() => {
                             setSignatureMode('manual');
                             setSignatures(prev => ({ ...prev, mode: 'manual', isManual: true }));
                           }}
-                          className={`p-5 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-4 group relative overflow-hidden ${
+                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
                             signatureMode === 'manual'
-                              ? 'bg-blue-500/5 border-blue-500/50 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.1)]' 
-                              : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
+                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
                           }`}
                         >
-                           <div className={`w-14 h-14 rounded-md flex items-center justify-center transition-all duration-500 ${signatureMode === 'manual' ? 'bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20' : 'bg-zinc-800 text-zinc-600 group-hover:text-zinc-400'}`}>
-                              <Pencil size={28} />
+                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-zinc-900 text-blue-400 shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                              <Pencil size={20} />
                            </div>
                            <div className="text-center relative z-10">
-                              <h4 className={`text-[10px] uppercase font-black tracking-widest leading-none mb-1.5 ${signatureMode === 'manual' ? 'text-white' : 'text-zinc-500'}`}>Assinatura Manual</h4>
-                              <p className="text-[11px] font-bold uppercase tracking-tight italic leading-none opacity-80">Papel Físico</p>
+                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'manual' ? 'text-white' : 'text-zinc-500'}`}>Manual</h4>
+                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Papel Físico</p>
                            </div>
-                           {signatureMode === 'manual' && (
-                             <motion.div layoutId="sig-active" className="absolute inset-0 bg-blue-500/5 pointer-events-none" />
-                           )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSignatureMode('remote');
-                            setSignatures(prev => ({ ...prev, mode: 'remote', isManual: false }));
-                          }}
-                          className={`p-5 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-4 group relative overflow-hidden ${
-                            signatureMode === 'remote'
-                              ? 'bg-emerald-500/5 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]' 
-                              : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700'
-                          }`}
-                        >
-                           <div className={`w-14 h-14 rounded-md flex items-center justify-center transition-all duration-500 ${signatureMode === 'remote' ? 'bg-emerald-500 text-white scale-110 shadow-lg shadow-emerald-500/20' : 'bg-zinc-800 text-zinc-600 group-hover:text-zinc-400'}`}>
-                              <MessageCircle size={28} />
-                           </div>
-                           <div className="text-center relative z-10">
-                              <h4 className={`text-[10px] uppercase font-black tracking-widest leading-none mb-1.5 ${signatureMode === 'remote' ? 'text-white' : 'text-zinc-500'}`}>Via WhatsApp</h4>
-                              <p className="text-[11px] font-bold uppercase tracking-tight italic leading-none opacity-80">Link Remoto</p>
-                           </div>
-                           {signatureMode === 'remote' && (
-                             <motion.div layoutId="sig-active" className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />
-                           )}
                         </button>
                       </div>
 
                       {signatureMode === 'digital' ? (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                           <SignaturePad 
                             title="Assinatura do Técnico" 
                             onSave={(dataUrl) => setSignatures(prev => ({ ...prev, technician: dataUrl }))}
@@ -2815,33 +2808,38 @@ export default function OrdemServicoModule({
                             onClear={() => setSignatures(prev => ({ ...prev, client: null }))}
                           />
                         </div>
-                      ) : signatureMode === 'manual' ? (
-                        <div className="p-8 text-center bg-zinc-900/40 border-2 border-dashed border-zinc-800 rounded-[2.5rem] flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
-                          <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400/80">
-                             <Pencil size={32} />
+                      ) : signatureMode === 'remote' ? (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="p-6 text-center bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-sm">
+                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                              Ao escolher via WhatsApp, você deve assinar como técnico primeiro. Após salvar, a OS será criada e você poderá enviar o link para o cliente.
+                            </p>
+                            <SignaturePad 
+                              title="Assinatura do Técnico" 
+                              autoOpen={signatureMode === 'remote' && !signatures.technician}
+                              onSave={(dataUrl) => {
+                                setSignatures(prev => ({ ...prev, technician: dataUrl }));
+                                // Auto-save trigger
+                                setTimeout(() => handleSaveOS(), 500);
+                              }}
+                              onClear={() => setSignatures(prev => ({ ...prev, technician: null }))}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center bg-zinc-900/40 border border-dashed border-zinc-800 rounded-sm animate-in zoom-in-95 duration-300">
+                          <div className="w-12 h-12 rounded-sm bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto mb-3">
+                             <Pencil size={24} />
                           </div>
                           <div>
-                            <h4 className="text-white font-black uppercase tracking-widest text-[11px] italic">Assinatura Manual Selecionada</h4>
-                            <p className="text-[10px] text-zinc-500 mt-2 max-w-[200px] mx-auto font-bold uppercase tracking-tight leading-relaxed">
+                            <h4 className="text-white font-black uppercase tracking-widest text-[10px]">Assinatura Manual</h4>
+                            <p className="text-[9px] text-zinc-500 mt-1 max-w-[240px] mx-auto font-bold uppercase tracking-tight leading-relaxed">
                               O cliente deverá assinar o documento físico após a impressão da Ordem de Serviço.
                             </p>
                           </div>
                         </div>
-                      ) : (
-                        <div className="p-8 text-center bg-zinc-900/40 border-2 border-dashed border-emerald-900/50 rounded-[2.5rem] flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
-                          <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400/80">
-                             <MessageCircle size={32} />
-                          </div>
-                          <div>
-                            <h4 className="text-white font-black uppercase tracking-widest text-[11px] italic">Assinatura Remota via Link</h4>
-                            <p className="text-[10px] text-zinc-500 mt-2 max-w-[280px] mx-auto font-bold uppercase tracking-tight leading-relaxed">
-                              Após salvar a Ordem de Serviço, você poderá enviar o link para o cliente assinar o documento digitalmente através do próprio celular.
-                            </p>
-                          </div>
-                        </div>
                       )}
-                    </div>
-                  </section>
+                    </section>
                   
                   <div className="flex flex-col sm:flex-row justify-between items-center mt-6 py-4 border-t border-zinc-800/50 gap-4">
                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
@@ -2995,15 +2993,14 @@ export default function OrdemServicoModule({
                     </div>
                   </div>
                 </>
-                )}
+              )}
 
-                  <div className="pb-8" />
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </main>
+              <div className="pb-8" />
+            </div>
+          </motion.div>
+        )}
       </div>
+    </main>
 
       <AnimatePresence>
         {/* Actions Footer Removed - Buttons moved to Header */}
@@ -3296,6 +3293,7 @@ export default function OrdemServicoModule({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
     </div>
   );
 }
