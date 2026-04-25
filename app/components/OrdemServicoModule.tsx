@@ -2021,19 +2021,18 @@ export default function OrdemServicoModule({
 
                     {/* Password Section (Hidden for Controllers) */}
                     {equipment.type !== 'Controle' && (
-                      <div className="space-y-6 mb-10 bg-black/40 border-2 border-white/5 rounded-[32px] p-6 sm:p-8 relative overflow-hidden group/pass-sec shadow-2xl">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] blur-3xl rounded-full pointer-events-none group-hover/pass-sec:bg-white/[0.05] transition-all duration-700"></div>
-                        <div className="flex items-center gap-4 mb-2 relative z-10">
-                          <div className="w-10 h-10 rounded-sm bg-white/5 flex items-center justify-center text-[#00E676] shadow-inner">
-                             <Lock size={20} />
+                      <div className="space-y-4 mb-8 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-5 sm:p-6 shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 rounded-sm bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+                             <Lock size={16} />
                           </div>
                           <div>
-                            <h3 className="text-base font-black text-white uppercase tracking-tight italic">Senha / Padrão</h3>
-                            <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest leading-none mt-1">Proteção e identificação do aparelho</p>
+                            <h3 className="text-sm font-black text-white uppercase tracking-wider">Senha / Padrão</h3>
+                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest leading-none mt-1">Proteção do aparelho</p>
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-4 relative z-10">
+                        <div className="grid grid-cols-3 gap-3">
                           {[
                             { id: 'none', label: 'Sem Senha', icon: ShieldCheck, desc: 'Aparelho livre' },
                             { id: 'text', label: 'PIN / Senha', icon: Key, desc: 'Texto ou números' },
@@ -2054,28 +2053,21 @@ export default function OrdemServicoModule({
                                     setEquipment({...equipment, passwordType: type.id as any, passwordValue: ''});
                                   }
                                 }}
-                                className={`flex flex-col items-center justify-center gap-4 p-5 rounded-[24px] border-2 transition-all group/p-btn relative ${
+                                className={`flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-sm border transition-all group/p-btn relative ${
                                   isSelected 
-                                    ? 'bg-[#00E676]/5 border-[#00E676] shadow-[0_0_20px_rgba(0,230,118,0.1)]' 
-                                    : 'bg-black/40 border-white/5 hover:border-white/20'
-                                } shadow-inner`}
+                                    ? 'bg-zinc-800/80 border-zinc-600 shadow-sm' 
+                                    : 'bg-[#141414] border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                                }`}
                               >
-                                {isSelected ? (
-                                  <div className="w-12 h-12 rounded-md bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20 flex items-center justify-center transition-all scale-110">
-                                     <Icon size={24} />
-                                  </div>
-                                ) : (
-                                  <div className="w-12 h-12 rounded-md bg-white/5 text-zinc-500 group-hover/p-btn:bg-white/10 group-hover/p-btn:text-white flex items-center justify-center shadow-inner transition-all group-hover/p-btn:scale-110">
-                                     <Icon size={24} />
-                                  </div>
-                                )}
-                                <div className="text-center">
-                                  <p className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-zinc-500 group-hover/p-btn:text-zinc-300'} transition-colors`}>{type.label}</p>
-                                  <p className="text-[8px] text-zinc-600 font-black uppercase tracking-[0.1em] mt-1 hidden sm:block">{type.desc}</p>
+                                <div className={`w-8 h-8 rounded-sm flex items-center justify-center transition-all ${
+                                  isSelected ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover/p-btn:text-zinc-400'
+                                }`}>
+                                   <Icon size={16} />
                                 </div>
-                                {isSelected && (
-                                  <motion.div layoutId="pass-indicator" className="absolute -inset-[2px] rounded-[24px] border-2 border-[#00E676] z-[-1] opacity-50" />
-                                )}
+                                <div className="text-center mt-1">
+                                  <p className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-zinc-500'} transition-colors`}>{type.label}</p>
+                                  <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5 hidden sm:block">{type.desc}</p>
+                                </div>
                               </button>
                             );
                           })}
