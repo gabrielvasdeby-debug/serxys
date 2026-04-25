@@ -52,11 +52,11 @@ export default function CountryCodePicker({ selectedCountry, onSelect, disabled 
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-3 py-3 bg-[#0A0A0A] border border-zinc-800 rounded-sm hover:border-zinc-700 transition-colors focus:outline-none focus:border-[#00E676] disabled:opacity-50 h-full min-w-[90px] justify-center"
+        className="flex items-center gap-1.5 px-3 py-3 bg-[#0A0A0A] border border-zinc-800 rounded-sm hover:border-zinc-700 transition-colors focus:outline-none focus:border-[#00E676] disabled:opacity-50 h-full min-w-[90px] justify-center shrink-0"
       >
-        <span className="text-xl leading-none">{selectedCountry.flag}</span>
-        <span className="text-sm font-bold text-zinc-300">{selectedCountry.dialCode}</span>
-        <ChevronDown size={14} className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-xl leading-none shrink-0">{selectedCountry.flag}</span>
+        <span className="text-sm font-bold text-zinc-300 whitespace-nowrap shrink-0">{selectedCountry.dialCode}</span>
+        <ChevronDown size={14} className={`text-zinc-500 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
