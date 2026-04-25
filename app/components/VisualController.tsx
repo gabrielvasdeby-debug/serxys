@@ -46,8 +46,8 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
   };
 
   return (
-    <div className="w-full bg-[#080808] rounded-[1rem] sm:rounded-[2rem] p-1 sm:p-4 border border-zinc-900 shadow-3xl overflow-hidden">
-      <div className="w-full max-w-4xl mx-auto overflow-visible">
+    <div className="w-full bg-[#080808] rounded-[1rem] sm:rounded-[2rem] p-0 sm:p-4 border border-zinc-900 shadow-3xl overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto overflow-visible mt-10 sm:mt-4 scale-[1.08] sm:scale-100 origin-top">
         <div className="relative aspect-[1.35/1] w-full select-none pointer-events-none">
           {/* Sharper Professional Symmetric Controller SVG */}
           <svg viewBox="0 0 500 350" className="w-full h-full drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
