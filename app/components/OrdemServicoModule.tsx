@@ -2227,7 +2227,7 @@ export default function OrdemServicoModule({
                         </p>
                       </div>
                     ) : showVisualChecklist && equipment.type === 'Controle' ? (
-                      <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-6 mb-8 overflow-hidden">
+                      <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-1 sm:p-4 mb-8 overflow-hidden">
                         <VisualController 
                           checklist={checklist} 
                           onChange={(item, status) => setChecklist(prev => ({ ...prev, [item]: status }))} 
