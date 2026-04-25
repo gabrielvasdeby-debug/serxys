@@ -1723,6 +1723,9 @@ export default function StatusOsModule({
                   >
                     <XCircle size={16} />
                     <span className="text-xs font-bold uppercase tracking-tighter">Cancelados</span>
+                    <span className="ml-auto text-[10px] font-black bg-black/40 px-2 py-0.5 rounded-full">
+                      {orders.filter(o => o.status === 'Orçamento Cancelado').length}
+                    </span>
                   </button>
                   <button
                     onClick={() => { setActiveStatus('Sem Reparo'); setIsStatusPickerOpen(false); }}
@@ -1734,6 +1737,9 @@ export default function StatusOsModule({
                   >
                     <AlertTriangle size={16} />
                     <span className="text-xs font-bold uppercase tracking-tighter">Sem Reparo</span>
+                    <span className="ml-auto text-[10px] font-black bg-black/40 px-2 py-0.5 rounded-full">
+                      {orders.filter(o => o.status === 'Sem Reparo').length}
+                    </span>
                   </button>
                 </div>
 
@@ -1743,6 +1749,7 @@ export default function StatusOsModule({
                   const config = STATUS_CONFIG[status];
                   const Icon = config.icon;
                   const isSelected = activeStatus === status;
+                  const count = orders.filter(o => o.status === status).length;
 
                   return (
                     <button
@@ -1758,7 +1765,12 @@ export default function StatusOsModule({
                         <Icon size={20} />
                       </div>
                       <span className="text-sm font-bold">{status}</span>
-                      {isSelected && <Check className="ml-auto" size={18} />}
+                      <div className="ml-auto flex items-center gap-2">
+                        <span className={`text-xs font-black px-2 py-0.5 rounded-full ${isSelected ? 'bg-black/40 text-white' : 'bg-black/60 text-zinc-500'}`}>
+                          {count}
+                        </span>
+                        {isSelected && <Check size={18} />}
+                      </div>
                     </button>
                   );
                 })}
@@ -1777,7 +1789,12 @@ export default function StatusOsModule({
                     <Grid size={20} />
                   </div>
                   <span className="text-sm font-bold">Todos os Status</span>
-                  {activeStatus === 'ALL' && <Check className="ml-auto" size={18} />}
+                  <div className="ml-auto flex items-center gap-2">
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full ${activeStatus === 'ALL' ? 'bg-black/40 text-[#00E676]' : 'bg-black/60 text-zinc-500'}`}>
+                      {orders.length}
+                    </span>
+                    {activeStatus === 'ALL' && <Check size={18} />}
+                  </div>
                 </button>
               </div>
             </motion.div>
