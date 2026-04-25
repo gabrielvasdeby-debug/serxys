@@ -40,7 +40,7 @@ export default function TechnicalReportPrintTemplate({
     <div className="hidden print:block bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full">
 
       {/* A4 WRAPPER */}
-      <div className="max-w-[210mm] mx-auto bg-white p-[5mm] print:p-0">
+      <div className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0">
         
         {/* 1. CABEÇALHO */}
         <header className="flex justify-between items-start mb-6 border-b border-zinc-200 pb-4">

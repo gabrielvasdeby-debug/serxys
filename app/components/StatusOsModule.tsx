@@ -3761,8 +3761,8 @@ export default function StatusOsModule({
                 </div>
               </div>
               
-              <div className="flex-1 overflow-y-auto bg-zinc-900 p-4 sm:p-8 custom-scrollbar">
-                <div className="max-w-[210mm] mx-auto bg-white shadow-2xl rounded-sm overflow-hidden">
+              <div className="flex-1 overflow-auto bg-zinc-900 p-4 sm:p-8 custom-scrollbar">
+                <div className="w-[210mm] min-w-[210mm] mx-auto bg-white shadow-2xl rounded-sm overflow-hidden">
                    <OrderPrintTemplate
                       order={previewOrder}
                       customer={customers.find(c => c.id === previewOrder.customerId)}
@@ -4048,8 +4048,8 @@ export default function StatusOsModule({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-zinc-950/50 custom-scrollbar">
-                <div className="max-w-[210mm] mx-auto shadow-2xl rounded-sm overflow-hidden bg-white">
+              <div className="flex-1 overflow-auto p-4 sm:p-8 bg-zinc-950/50 custom-scrollbar">
+                <div className="w-[210mm] min-w-[210mm] mx-auto shadow-2xl rounded-sm overflow-hidden bg-white">
                   <BudgetDocumentView
                     order={selectedOrder}
                     customer={customers.find(c => c.id === selectedOrder.customerId)}
@@ -4104,8 +4104,8 @@ export default function StatusOsModule({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-zinc-950/50 custom-scrollbar">
-                <div className="max-w-[210mm] mx-auto shadow-2xl rounded-sm overflow-hidden bg-white">
+              <div className="flex-1 overflow-auto p-4 sm:p-8 bg-zinc-950/50 custom-scrollbar">
+                <div className="w-[210mm] min-w-[210mm] mx-auto shadow-2xl rounded-sm overflow-hidden bg-white">
                   <TechnicalReportPrintTemplate
                     order={selectedOrder}
                     customer={customers.find(c => c.id === selectedOrder.customerId)}

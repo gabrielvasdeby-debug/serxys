@@ -36,9 +36,9 @@ export default function OrderPrintTemplate({ order, customer, companySettings, o
   const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
 
   return (
-    <div className={`${isPreview ? 'block' : 'hidden print:block'} bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+    <div className={`${isPreview ? 'block overflow-x-auto custom-scrollbar' : 'hidden print:block'} bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      <div className="max-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border">
+      <div className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border">
         {/* CABEÇALHO */}
         <header className="flex flex-col mb-1.5">
           <div className="flex justify-between items-center mb-2 pl-2">
