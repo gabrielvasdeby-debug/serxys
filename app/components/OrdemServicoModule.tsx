@@ -586,6 +586,8 @@ export default function OrdemServicoModule({
     email: '',
     document: '',
     notes: '',
+    birthDate: '',
+    customer_origin: '',
     address: {
       street: '',
       number: '',
@@ -924,7 +926,8 @@ export default function OrdemServicoModule({
       document: customer.document,
       address: customer.address || { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
       notes: customer.notes,
-      birthDate: customer.birthDate || ''
+      birthDate: customer.birthDate || '',
+      customer_origin: customer.customer_origin || ''
     });
     setIsCreatingCustomer(true);
     setStep('CLIENT');
@@ -954,6 +957,7 @@ export default function OrdemServicoModule({
           document: newCustomer.document,
           address: newCustomer.address,
           notes: newCustomer.notes,
+          customer_origin: newCustomer.customer_origin || null,
           updated_at: now
         };
 
@@ -975,7 +979,7 @@ export default function OrdemServicoModule({
         setNewCustomer({
           name: '', phone: '', whatsapp: '', email: '', document: '',
           address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-          notes: '', birthDate: ''
+          notes: '', birthDate: '', customer_origin: ''
         });
         setStep('DETAILS');
         onShowToast('Cliente atualizado com sucesso');
@@ -994,6 +998,7 @@ export default function OrdemServicoModule({
           document: newCustomer.document,
           address: newCustomer.address,
           notes: newCustomer.notes,
+          customer_origin: newCustomer.customer_origin || null,
           devices: [],
           created_at: now,
           updated_at: now,
@@ -1111,6 +1116,7 @@ export default function OrdemServicoModule({
         budget: localOrder?.budget || null,
         technical_report: localOrder?.technicalReport || null,
         completion_data: localOrder?.completionData || null,
+        customer_origin_snapshot: selectedCustomer?.customer_origin || null,
         updated_at: now
       };
 
@@ -1566,6 +1572,19 @@ export default function OrdemServicoModule({
                           onChange={e => setNewCustomer({...newCustomer, birthDate: e.target.value})}
                           className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors [color-scheme:dark]"
                         />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-zinc-400">Origem do Cliente</label>
+                        <select 
+                          value={newCustomer.customer_origin}
+                          onChange={e => setNewCustomer({...newCustomer, customer_origin: e.target.value})}
+                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                        >
+                          <option value="">Selecione a origem</option>
+                          {['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'].map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 

@@ -189,6 +189,7 @@ export interface Order {
   isVisualChecklist?: boolean;
   deliveryForecast?: string;
   scannedOsUrl?: string;
+  customer_origin_snapshot?: string;
   createdAt: string;
   updatedAt: string;
 }

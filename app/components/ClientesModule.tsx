@@ -39,6 +39,7 @@ export interface Customer {
     zipCode: string;
   };
   notes: string;
+  customer_origin?: string;
   createdAt: string;
   devices: Device[];
 }
@@ -141,6 +142,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
           document: customerData.document,
           address: customerData.address,
           notes: customerData.notes,
+          customer_origin: customerData.customer_origin || null,
           updated_at: new Date().toISOString(),
         }).eq('id', editingCustomer.id).eq('company_id', profile.company_id);
         if (error) throw error;
@@ -172,6 +174,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
           document: customerData.document,
           address: customerData.address,
           notes: customerData.notes,
+          customer_origin: customerData.customer_origin || null,
           devices: [],
           created_at: now,
           updated_at: now,
@@ -721,7 +724,8 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
       city: initialData?.address.city || '',
       state: initialData?.address.state || '',
       zipCode: initialData?.address.zipCode || ''
-    }
+    },
+    customer_origin: initialData?.customer_origin || ''
   });
 
   const [whatsappCountry, setWhatsappCountry] = useState<Country>(countries[0]);
@@ -835,6 +839,8 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
     }
   };
 
+  const originOptions = ['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'];
+
   return (
     <div className="max-w-3xl mx-auto bg-[#1A1A1A] border border-zinc-800 rounded-md p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -871,6 +877,20 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">CPF ou CNPJ</label>
               <input type="text" name="document" value={formData.document} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-zinc-400">Origem do Cliente</label>
+              <select 
+                name="customer_origin" 
+                value={formData.customer_origin} 
+                onChange={(e) => setFormData(prev => ({ ...prev, customer_origin: e.target.value }))}
+                className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all appearance-none"
+              >
+                <option value="">Selecione a origem</option>
+                {originOptions.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </div>
           </div>
         </section>

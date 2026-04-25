@@ -249,25 +249,82 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
   const mostProductsData = useMemo(() => {
     const productCounts: Record<string, { quantity: number, total: number }> = {};
     
-    filteredData.fSales.forEach(s => {
-      const items = s.items || [];
-      items.forEach((item: any) => {
-        const name = item.productName || 'Produto Desconhecido';
-        const brand = item.productBrand || '';
-        const model = item.productModel || '';
-        const displayName = (brand || model) ? `${name} (${[brand, model].filter(Boolean).join(' ')})` : name;
-        
-        if (!productCounts[displayName]) productCounts[displayName] = { quantity: 0, total: 0 };
-        productCounts[displayName].quantity += Number(item.quantity || 0);
-        productCounts[displayName].total += Number(item.total || 0);
-      });
-    });
-
     return Object.entries(productCounts)
       .map(([name, stats]) => ({ name, quantity: stats.quantity, total: stats.total }))
       .sort((a, b) => b.total - a.total) // Ordenar por faturamento
       .slice(0, 6);
   }, [filteredData]);
+
+  // 5. Customer Origin Distribution
+  const acquisitionData = useMemo(() => {
+    const originCounts: Record<string, number> = {};
+    const revenueByOrigin: Record<string, number> = {};
+    
+    filteredData.fOrders.forEach(o => {
+      const origin = o.customer_origin_snapshot || 'Desconhecido';
+      originCounts[origin] = (originCounts[origin] || 0) + 1;
+      
+      const total = Number(o.financials?.totalValue || 0);
+      revenueByOrigin[origin] = (revenueByOrigin[origin] || 0) + total;
+    });
+
+    const colors = ['#00E676', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
+    
+    const distribution = Object.entries(originCounts).map(([name, value], i) => ({
+      name,
+      value,
+      color: colors[i % colors.length]
+    })).sort((a, b) => b.value - a.value);
+
+    const revenue = Object.entries(revenueByOrigin).map(([name, value], i) => ({
+      name,
+      value,
+      color: colors[i % colors.length]
+    })).sort((a, b) => b.value - a.value);
+
+    return { distribution, revenue };
+  }, [filteredData]);
+
+  // 6. Recurrence Analysis
+  const recurrenceStats = useMemo(() => {
+    const customerOsCount: Record<string, number> = {};
+    
+    // We look at ALL orders to determine if a customer is recurring, 
+    // but we only count those that occurred in the filtered period as "Returning"
+    orders.forEach(o => {
+      customerOsCount[o.customerId] = (customerOsCount[o.customerId] || 0) + 1;
+    });
+
+    let newClients = 0;
+    let recurringClients = 0;
+    const uniqueClientsInPeriod = new Set();
+
+    filteredData.fOrders.forEach(o => {
+      if (uniqueClientsInPeriod.has(o.customerId)) return;
+      uniqueClientsInPeriod.add(o.customerId);
+
+      // If they have more than 1 OS total in history, they are recurring
+      if (customerOsCount[o.customerId] > 1) {
+        recurringClients++;
+      } else {
+        newClients++;
+      }
+    });
+
+    const total = newClients + recurringClients;
+    const rate = total > 0 ? (recurringClients / total) * 100 : 0;
+
+    return {
+      newClients,
+      recurringClients,
+      total,
+      rate,
+      chartData: [
+        { name: 'Novos', value: newClients, color: '#3b82f6' },
+        { name: 'Recorrentes', value: recurringClients, color: '#00E676' }
+      ]
+    };
+  }, [filteredData, orders]);
 
   if (loading) {
     return (
@@ -602,6 +659,136 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
             </ResponsiveContainer>
           </div>
         </motion.div>
+
+        {/* CRM Section: Acquisition & Recurrence */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           {/* Acquisition Channels */}
+           <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="lg:col-span-2 bg-[#111111] border border-zinc-800 p-8 rounded-[2.5rem] relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+               <Target size={120} />
+            </div>
+            <div className="relative z-10">
+              <h3 className="text-xl font-bold mb-1">Origem & Aquisição</h3>
+              <p className="text-xs text-zinc-500 mb-8 uppercase tracking-widest font-bold">De onde vêm seus clientes e quanto geram</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div>
+                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Volume por Canal</p>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={acquisitionData.distribution}
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={4}
+                          dataKey="value"
+                        >
+                          {acquisitionData.distribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '12px' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    {acquisitionData.distribution.slice(0, 4).map(item => (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span className="text-[9px] font-bold text-zinc-400 uppercase truncate">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Receita por Canal</p>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={acquisitionData.revenue} layout="vertical">
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" hide />
+                        <Tooltip 
+                          cursor={{ fill: 'transparent' }}
+                          contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '12px' }}
+                          formatter={(val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val))}
+                        />
+                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={12}>
+                           {acquisitionData.revenue.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-2 mt-4">
+                    {acquisitionData.revenue.slice(0, 3).map(item => (
+                      <div key={item.name} className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold text-zinc-500 uppercase">{item.name}</span>
+                        <span className="text-[10px] font-black text-[#00E676]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Recurrence Stats */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#111111] border border-zinc-800 p-8 rounded-[2.5rem] flex flex-col"
+          >
+            <h3 className="text-xl font-bold mb-1">Recorrência</h3>
+            <p className="text-xs text-zinc-500 mb-8 uppercase tracking-widest font-bold">Retenção de Clientes</p>
+            
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="text-center py-6">
+                <div className="text-5xl font-black text-[#00E676] tracking-tighter mb-1">
+                  {recurrenceStats.rate.toFixed(1)}%
+                </div>
+                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em]">Taxa de Retorno</p>
+              </div>
+
+              <div className="h-[140px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={recurrenceStats.chartData}
+                      innerRadius={45}
+                      outerRadius={55}
+                      paddingAngle={8}
+                      dataKey="value"
+                      startAngle={90}
+                      endAngle={450}
+                    >
+                      {recurrenceStats.chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-6">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{recurrenceStats.newClients}</div>
+                  <div className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Novos</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-[#00E676]">{recurrenceStats.recurringClients}</div>
+                  <div className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Recorrentes</div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
       </main>
     </div>
