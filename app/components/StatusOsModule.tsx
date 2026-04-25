@@ -2492,8 +2492,10 @@ export default function StatusOsModule({
                             </p>
                           </div>
                         ) : (selectedOrder.isVisualChecklist || (selectedOrder as any).is_visual_checklist) ? (
-                          <div className="flex-1">
-                            <ControllerChecklistPrint checklist={selectedOrder.checklist} theme="dark" />
+                          <div className="flex-1 -mx-2 sm:mx-0 overflow-x-auto custom-scrollbar pb-2">
+                            <div className="min-w-[450px] sm:min-w-0">
+                              <ControllerChecklistPrint checklist={selectedOrder.checklist} theme="dark" />
+                            </div>
                           </div>
                         ) : (
                           <div className="flex-1">
