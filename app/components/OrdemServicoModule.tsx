@@ -116,20 +116,26 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/98 backdrop-blur-2xl"
           >
             <motion.div
-              initial={{ scale: 0.95, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.95, y: 20, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-800 rounded-sm w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col h-[95vh] sm:h-auto"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#141414] border border-zinc-800 w-full sm:max-w-4xl overflow-hidden shadow-2xl flex flex-col h-full sm:h-auto sm:rounded-sm
+                         portrait:max-sm:rotate-90 portrait:max-sm:w-[92vh] portrait:max-sm:h-[100vw] portrait:max-sm:fixed"
             >
               <div className="p-4 sm:p-8 border-b border-zinc-800/50 flex items-center justify-between bg-zinc-900/40">
-                <div>
-                   <h3 className="text-lg font-black text-white uppercase tracking-tighter italic flex items-center gap-3">
-                      <PenTool size={20} className="text-[#00E676]" />
-                      {title}
-                   </h3>
+                <div className="flex items-center gap-3">
+                   <div className="p-2 rounded-sm bg-[#00E676]/10 text-[#00E676]">
+                      <PenTool size={18} />
+                   </div>
+                   <div>
+                      <h3 className="text-sm sm:text-lg font-black text-white uppercase tracking-tighter italic">
+                        {title}
+                      </h3>
+                      <p className="sm:hidden text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Modo Horizontal Ativo</p>
+                   </div>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -139,7 +145,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                 </button>
               </div>
 
-              <div className="flex-1 p-4 sm:p-8 flex flex-col gap-6 overflow-hidden">
+              <div className="flex-1 p-4 sm:p-8 flex flex-col gap-4 sm:gap-6 overflow-hidden">
                 <div className="flex-1 bg-white rounded-sm overflow-hidden shadow-inner relative ring-1 ring-zinc-200">
                   <SignatureCanvas 
                     ref={sigCanvas}
@@ -158,17 +164,17 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                   )}
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-3 pb-safe">
                   <button
                     onClick={clear}
-                    className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-sm border border-zinc-800 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] rounded-sm border border-zinc-800 transition-all flex items-center justify-center gap-2"
                   >
                     <Trash2 size={16} />
                     Limpar
                   </button>
                   <button
                     onClick={confirm}
-                    className="flex-[2] h-12 bg-[#00E676] hover:bg-[#00C853] text-black font-black uppercase tracking-widest text-[10px] rounded-sm transition-all shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-2"
+                    className="flex-[2] h-12 bg-[#00E676] hover:bg-[#00C853] text-black font-black uppercase tracking-widest text-[9px] sm:text-[10px] rounded-sm transition-all shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-2"
                   >
                     <Save size={16} />
                     Salvar Assinatura
