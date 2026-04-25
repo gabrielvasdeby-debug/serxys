@@ -54,6 +54,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
   const [hasDrawing, setHasDrawing] = useState(false);
   const [isOpen, setIsOpen] = useState(autoOpen || false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isOrientationPromptDismissed, setIsOrientationPromptDismissed] = useState(false);
 
   // Re-open if autoOpen changes
   useEffect(() => {
@@ -88,11 +89,19 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
         // Recalculate signature pad internal dimensions
         const canvas = sigCanvas.current.getCanvas();
         if (canvas) {
+          // Backup current signature
+          const data = sigCanvas.current.toDataURL();
+          const isEmpty = sigCanvas.current.isEmpty();
+
           const ratio = Math.max(window.devicePixelRatio || 1, 1);
           canvas.width = canvas.offsetWidth * ratio;
           canvas.height = canvas.offsetHeight * ratio;
           canvas.getContext("2d")?.scale(ratio, ratio);
-          sigCanvas.current.clear(); // Reset to avoid mirroring
+          
+          // Restore if it wasn't empty
+          if (!isEmpty) {
+            sigCanvas.current.fromDataURL(data);
+          }
         }
       }
     };
@@ -189,7 +198,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                     </div>
                   )}
                   {/* Orientation Warning Overlay for Portrait */}
-                  <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center sm:hidden portrait:flex hidden pointer-events-auto">
+                  <div className={`absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center sm:hidden portrait:flex hidden pointer-events-auto ${isOrientationPromptDismissed ? '!hidden' : ''}`}>
                     <motion.div 
                       animate={{ rotate: 90 }}
                       transition={{ repeat: Infinity, duration: 2, repeatDelay: 1 }}
@@ -202,10 +211,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                       A assinatura fica muito melhor na horizontal. Gire seu dispositivo agora!
                     </p>
                     <button 
-                      onClick={(e) => {
-                        const target = (e.target as HTMLElement).closest('.absolute');
-                        if (target) (target as HTMLElement).style.display = 'none';
-                      }}
+                      onClick={() => setIsOrientationPromptDismissed(true)}
                       className="mt-6 px-6 py-2 border border-zinc-700 rounded-sm text-zinc-500 text-[9px] font-black uppercase tracking-widest"
                     >
                       Continuar em Vertical
