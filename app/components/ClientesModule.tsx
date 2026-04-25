@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Search, Plus, Edit2, Trash2, Eye, 
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, Box,
-  MapPin, Phone, Mail, FileText, Calendar, AlertCircle, Loader2
+  MapPin, Phone, Mail, FileText, Calendar, AlertCircle, Loader2, MessageCircle
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { formatPhone } from '../utils/formatPhone';
+import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { capFirst } from '../utils/capFirst';
 
 export type DeviceType = 'Celular' | 'Smartphone' | 'Notebook' | 'Computador' | 'Videogame' | 'Tablet' | 'Outro';
@@ -723,9 +724,42 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
     }
   });
 
+  const [whatsappCountry, setWhatsappCountry] = useState<Country>(countries[0]);
+  const [phoneCountry, setPhoneCountry] = useState<Country>(countries[0]);
+
+  // Pre-fill countries if editing and data exists
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.whatsapp?.startsWith('+')) {
+        const dial = initialData.whatsapp.split(' ')[0];
+        const country = countries.find(c => c.dialCode === dial);
+        if (country) {
+          setWhatsappCountry(country);
+          setFormData(prev => ({ ...prev, whatsapp: initialData.whatsapp.replace(dial, '').trim() }));
+        }
+      }
+      if (initialData.phone?.startsWith('+')) {
+        const dial = initialData.phone.split(' ')[0];
+        const country = countries.find(c => c.dialCode === dial);
+        if (country) {
+          setPhoneCountry(country);
+          setFormData(prev => ({ ...prev, phone: initialData.phone.replace(dial, '').trim() }));
+        }
+      }
+    }
+  }, [initialData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Combine country code with number before saving
+    const finalData = {
+      ...formData,
+      whatsapp: formData.whatsapp ? `${whatsappCountry.dialCode} ${formData.whatsapp}` : '',
+      phone: formData.phone ? `${phoneCountry.dialCode} ${formData.phone}` : ''
+    };
+    
+    onSave(finalData);
   };
 
   const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
@@ -818,11 +852,17 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">WhatsApp</label>
-              <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              <div className="flex gap-2">
+                <CountryCodePicker selectedCountry={whatsappCountry} onSelect={setWhatsappCountry} />
+                <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Telefone</label>
-              <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              <div className="flex gap-2">
+                <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
+                <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Email</label>

@@ -13,6 +13,7 @@ import { generateCashReportPDF } from '../utils/pdfGenerator';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { capFirst } from '../utils/capFirst';
+import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { formatPhone } from '../utils/formatPhone';
 import InfoTooltip from './InfoTooltip';
 import { Product } from '../types';
@@ -2338,6 +2339,7 @@ function QuickCustomerModal({ onClose, onSave }: { onClose: () => void, onSave: 
   const [name, setName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [document, setDocument] = useState('');
+  const [country, setCountry] = useState<Country>(countries[0]);
 
   return (
     <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -2364,13 +2366,16 @@ function QuickCustomerModal({ onClose, onSave }: { onClose: () => void, onSave: 
           <div className="grid grid-cols-1 gap-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest px-1">Telefone / WhatsApp *</label>
-              <input 
-                type="text" 
-                value={whatsapp} 
-                onChange={e => setWhatsapp(formatPhone(e.target.value))} 
-                placeholder="(00) 00000-0000" 
-                className="w-full bg-zinc-950 border border-zinc-900 rounded-2xl px-4 py-4 text-[13px] font-bold text-white focus:outline-none focus:border-blue-500/50 shadow-inner" 
-              />
+              <div className="flex gap-2">
+                <CountryCodePicker selectedCountry={country} onSelect={setCountry} />
+                <input 
+                  type="text" 
+                  value={whatsapp} 
+                  onChange={e => setWhatsapp(formatPhone(e.target.value))} 
+                  placeholder="(00) 00000-0000" 
+                  className="flex-1 bg-zinc-950 border border-zinc-900 rounded-2xl px-4 py-4 text-[13px] font-bold text-white focus:outline-none focus:border-blue-500/50 shadow-inner" 
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest px-1">CPF ou CNPJ</label>
@@ -2385,7 +2390,11 @@ function QuickCustomerModal({ onClose, onSave }: { onClose: () => void, onSave: 
           </div>
           <button 
             disabled={!name.trim() || !whatsapp.trim()}
-            onClick={() => onSave({ name, whatsapp, document })}
+            onClick={() => onSave({ 
+              name, 
+              whatsapp: `${country.dialCode} ${whatsapp}`, 
+              document 
+            })}
             className="w-full py-5 bg-blue-600 hover:bg-blue-500 disabled:opacity-20 text-white font-black rounded-[20px] text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/10 active:scale-95"
           >
             Cadastrar Cliente

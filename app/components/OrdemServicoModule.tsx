@@ -18,8 +18,9 @@ import WarrantyPrintTemplate from './WarrantyPrintTemplate';
 import WarrantyThermalTemplate from './WarrantyThermalTemplate';
 import VisualController from './VisualController';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData } from '../types';
-import { capFirst } from '../utils/capFirst';
 import { formatPhone } from '../utils/formatPhone';
+import { capFirst } from '../utils/capFirst';
+import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { jsPDF } from 'jspdf';
 
 
@@ -562,6 +563,9 @@ export default function OrdemServicoModule({
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
   
+  const [whatsappCountry, setWhatsappCountry] = useState<Country>(countries[0]);
+  const [phoneCountry, setPhoneCountry] = useState<Country>(countries[0]);
+
   // New Customer Form State (Full)
   const [newCustomer, setNewCustomer] = useState({
     name: '',
@@ -880,10 +884,31 @@ export default function OrdemServicoModule({
 
   const handleEditCustomer = (customer: Customer) => {
     setEditingCustomerId(customer.id);
+    
+    let extractedWhatsapp = customer.whatsapp;
+    if (customer.whatsapp?.startsWith('+')) {
+      const dial = customer.whatsapp.split(' ')[0];
+      const country = countries.find(c => c.dialCode === dial);
+      if (country) {
+        setWhatsappCountry(country);
+        extractedWhatsapp = customer.whatsapp.replace(dial, '').trim();
+      }
+    }
+
+    let extractedPhone = customer.phone;
+    if (customer.phone?.startsWith('+')) {
+      const dial = customer.phone.split(' ')[0];
+      const country = countries.find(c => c.dialCode === dial);
+      if (country) {
+        setPhoneCountry(country);
+        extractedPhone = customer.phone.replace(dial, '').trim();
+      }
+    }
+
     setNewCustomer({
       name: customer.name,
-      phone: customer.phone,
-      whatsapp: customer.whatsapp,
+      phone: extractedPhone,
+      whatsapp: extractedWhatsapp,
       email: customer.email,
       document: customer.document,
       address: customer.address || { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
@@ -905,12 +930,15 @@ export default function OrdemServicoModule({
     try {
       const now = new Date().toISOString();
 
+      const finalWhatsapp = newCustomer.whatsapp ? `${whatsappCountry.dialCode} ${newCustomer.whatsapp}` : '';
+      const finalPhone = newCustomer.phone ? `${phoneCountry.dialCode} ${newCustomer.phone}` : '';
+
       if (editingCustomerId) {
         const customerToUpdate = {
           name: newCustomer.name,
           birth_date: newCustomer.birthDate || null,
-          phone: newCustomer.phone,
-          whatsapp: newCustomer.whatsapp,
+          phone: finalPhone,
+          whatsapp: finalWhatsapp,
           email: newCustomer.email,
           document: newCustomer.document,
           address: newCustomer.address,
@@ -924,6 +952,8 @@ export default function OrdemServicoModule({
         const updatedCustomerList = customers.map(c => c.id === editingCustomerId ? { 
           ...c, 
           ...newCustomer, 
+          whatsapp: finalWhatsapp,
+          phone: finalPhone,
           birthDate: newCustomer.birthDate 
         } as Customer : c);
         
@@ -940,12 +970,15 @@ export default function OrdemServicoModule({
         onShowToast('Cliente atualizado com sucesso');
       } else {
         const customerId = crypto.randomUUID();
+        const finalWhatsapp = newCustomer.whatsapp ? `${whatsappCountry.dialCode} ${newCustomer.whatsapp}` : '';
+        const finalPhone = newCustomer.phone ? `${phoneCountry.dialCode} ${newCustomer.phone}` : '';
+
         const customerToAdd = {
           id: customerId,
           name: newCustomer.name,
           birth_date: newCustomer.birthDate || null,
-          phone: newCustomer.phone,
-          whatsapp: newCustomer.whatsapp,
+          phone: finalPhone,
+          whatsapp: finalWhatsapp,
           email: newCustomer.email,
           document: newCustomer.document,
           address: newCustomer.address,
@@ -962,6 +995,8 @@ export default function OrdemServicoModule({
         const customerForState: Customer = {
           ...newCustomer,
           id: customerId,
+          whatsapp: finalWhatsapp,
+          phone: finalPhone,
           devices: [],
           createdAt: now
         };
@@ -1384,7 +1419,7 @@ export default function OrdemServicoModule({
                 <span className="text-zinc-500 text-[10px] sm:text-sm font-black uppercase tracking-widest sm:hidden">
                   {localOrder ? 'Editar' : 'Nova OS'}
                 </span>
-                <span className="text-lg sm:text-xs font-black font-mono bg-zinc-900 border border-white/5 text-[#00E676] px-3 py-1.5 sm:px-2 sm:py-1 rounded-lg shadow-inner">
+                <span className="text-base sm:text-xs font-black font-mono bg-zinc-900 border border-white/5 text-zinc-400 px-3 py-1.5 sm:px-2 sm:py-1 rounded-lg shadow-inner">
                   OS {localOrder ? localOrder.osNumber.toString().padStart(4, '0') : 
                       (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
                 </span>
@@ -1475,23 +1510,29 @@ export default function OrdemServicoModule({
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-zinc-400">WhatsApp</label>
-                        <input
-                          type="text"
-                          value={newCustomer.whatsapp}
-                          onChange={e => setNewCustomer({...newCustomer, whatsapp: formatPhone(e.target.value)})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="(00) 00000-0000"
-                        />
+                        <div className="flex gap-2">
+                          <CountryCodePicker selectedCountry={whatsappCountry} onSelect={setWhatsappCountry} />
+                          <input
+                            type="text"
+                            value={newCustomer.whatsapp}
+                            onChange={e => setNewCustomer({...newCustomer, whatsapp: formatPhone(e.target.value)})}
+                            className="flex-1 bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            placeholder="(00) 00000-0000"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-zinc-400">Telefone</label>
-                        <input
-                          type="text"
-                          value={newCustomer.phone}
-                          onChange={e => setNewCustomer({...newCustomer, phone: formatPhone(e.target.value)})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="(00) 0000-0000"
-                        />
+                        <div className="flex gap-2">
+                          <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
+                          <input
+                            type="text"
+                            value={newCustomer.phone}
+                            onChange={e => setNewCustomer({...newCustomer, phone: formatPhone(e.target.value)})}
+                            className="flex-1 bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            placeholder="(00) 0000-0000"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-zinc-400">CPF ou CNPJ</label>
@@ -1795,7 +1836,7 @@ export default function OrdemServicoModule({
                        <button
                          key={tab.id}
                          onClick={() => setActiveTab(tab.id as any)}
-                         className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 h-16 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
+                         className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 h-14 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
                            isSelected 
                              ? 'bg-[#00E676]/20 border border-[#00E676]/50' 
                              : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
