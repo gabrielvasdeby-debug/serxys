@@ -350,19 +350,22 @@ textarea {
     opacity: 1 !important;
   }
 
-  /* Page setup for A4 */
-  body.print-a4, body.print-warranty, body.print-laudo {
-    @page {
-      size: A4;
-      margin: 0;
-    }
+  /* Page setup using named pages to avoid invalid nesting */
+  .print-a4-container, .print-warranty-container, .print-laudo-container {
+    page: standard-a4;
   }
+  
+  .print-thermal-container, .print-warranty-thermal-container {
+    page: thermal-80mm;
+  }
+}
 
-  /* Page setup for Thermal (80mm) */
-  body.print-thermal, body.print-warranty-thermal {
-    @page {
-      size: 80mm auto;
-      margin: 0;
-    }
-  }
+@page standard-a4 {
+  size: A4;
+  margin: 0;
+}
+
+@page thermal-80mm {
+  size: 80mm auto;
+  margin: 0;
 }
