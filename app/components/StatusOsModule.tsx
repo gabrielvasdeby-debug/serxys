@@ -1436,8 +1436,8 @@ export default function StatusOsModule({
               />
             </div>
             
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative group/dropdown no-print">
+            <div className="flex overflow-x-auto sm:flex-wrap items-center gap-2 pb-2 sm:pb-0 no-scrollbar snap-x">
+              <div className="relative group/dropdown no-print shrink-0 snap-start">
                 <button
                   className={`px-4 py-2.5 rounded-sm text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 border bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700 min-w-[220px] shadow-sm relative z-10`}
                 >
@@ -1479,7 +1479,7 @@ export default function StatusOsModule({
               </div>
               <button
                 onClick={() => setActiveStatus('Orçamento Cancelado')}
-                className={`px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
+                className={`shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
                   activeStatus === 'Orçamento Cancelado'
                   ? 'bg-red-400 text-black border-red-400 shadow-lg shadow-red-400/20'
                   : 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700'
@@ -1491,7 +1491,7 @@ export default function StatusOsModule({
               </button>
               <button
                 onClick={() => setActiveStatus('Sem Reparo')}
-                className={`px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
+                className={`shrink-0 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-center gap-2 border ${
                   activeStatus === 'Sem Reparo'
                   ? 'bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/20'
                   : 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700'
@@ -1844,7 +1844,7 @@ export default function StatusOsModule({
                       <div
                         key={order.id}
                         onClick={() => setSelectedOrder(order)}
-                        className="bg-[#141414] border border-zinc-800/80 hover:border-zinc-600 rounded-md p-4 sm:p-5 cursor-pointer transition-all hover:bg-zinc-800/30 hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden"
+                        className="bg-[#141414] border border-zinc-800/80 hover:border-zinc-600 rounded-md p-5 sm:p-5 cursor-pointer transition-all hover:bg-zinc-800/30 hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1"
                       >
                         {/* Visual Status Indicator on Card Left */}
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/60')}`} />
@@ -1890,8 +1890,8 @@ export default function StatusOsModule({
                           </div>
                         </div>
 
-                        <h4 className="font-bold text-sm text-zinc-200 mb-1 line-clamp-1 group-hover:text-white transition-colors">{customer?.name || 'Cliente não encontrado'}</h4>
-                        <p className="text-[11px] font-bold text-zinc-500 mb-4 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
+                        <h4 className="font-bold text-base sm:text-sm text-zinc-200 mb-1 line-clamp-1 group-hover:text-white transition-colors mt-2">{customer?.name || 'Cliente não encontrado'}</h4>
+                        <p className="text-[12px] sm:text-[11px] font-bold text-zinc-500 mb-4 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
 
                         <div className="bg-[#0A0A0A] rounded-sm p-3 mb-4 border border-zinc-900/50">
                           <p className="text-[11px] text-zinc-400 line-clamp-2 italic" title={order.defect}>{order.defect}</p>
@@ -2088,8 +2088,9 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Linha 2: Ações */}
-                <div className="flex flex-wrap items-center gap-1.5 px-5 py-2.5">
-                  <select
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-1.5 px-4 sm:px-5 py-3 sm:py-2.5 overflow-y-auto max-h-[30vh] sm:max-h-none sm:overflow-visible">
+                  <div className="flex items-center gap-2">
+                    <select
                     value={selectedOrder.status}
                     onChange={(e) => {
                       const newStatus = e.target.value as OrderStatus;
@@ -2115,26 +2116,36 @@ export default function StatusOsModule({
                         setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                       }
                     }}
-                    className="bg-[#1A1A1A] border border-zinc-800 hover:border-zinc-600 rounded-sm px-3 py-2 text-[11px] font-bold text-white focus:outline-none focus:border-[#00E676] shrink-0 transition-colors"
+                    className="flex-1 sm:flex-none bg-[#1A1A1A] border border-zinc-800 hover:border-zinc-600 rounded-sm px-3 py-3 sm:py-2 text-[13px] sm:text-[11px] font-bold text-white focus:outline-none focus:border-[#00E676] shrink-0 transition-colors min-h-[44px] sm:min-h-0"
                   >
                     {Object.keys(STATUS_CONFIG).map(status => (
                       <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
 
-                  <div className="h-5 w-px bg-zinc-800 shrink-0 mx-1" />
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="sm:hidden p-3 bg-[#1A1A1A] border border-zinc-800 text-zinc-400 hover:text-white rounded-sm min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors shrink-0"
+                    title="Fechar"
+                  >
+                    <X size={20} />
+                  </button>
+                  </div>
 
+                  <div className="hidden sm:block h-5 w-px bg-zinc-800 shrink-0 mx-1" />
+
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-1.5 mt-2 sm:mt-0 pb-2 sm:pb-0">
                   {onEdit && (
-                    <button onClick={() => onEdit(selectedOrder)} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all shrink-0 text-[10px] font-black uppercase tracking-wider" title="Editar OS">
-                      <Pencil size={13} /> Editar
+                    <button onClick={() => onEdit(selectedOrder)} className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider" title="Editar OS">
+                      <Pencil className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Editar
                     </button>
                   )}
                   <button
                     onClick={() => handleViewDocs(selectedOrder)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-[#00E676] border border-zinc-800 rounded-sm transition-all shrink-0 text-[10px] font-black uppercase tracking-wider"
+                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-[#00E676] border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
                     title="Ver Documentos"
                   >
-                    <FileText size={13} /> Documentos
+                    <FileText className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Documentos
                   </button>
                   <button
                     onClick={() => {
@@ -2174,13 +2185,13 @@ export default function StatusOsModule({
                       link.click();
                       document.body.removeChild(link);
                     }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-[#25D366] border border-zinc-800 rounded-sm transition-all shrink-0 text-[10px] font-black uppercase tracking-wider"
+                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-[#25D366] border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
                     title="Enviar WhatsApp"
                   >
-                    <MessageCircle size={13} /> WhatsApp
+                    <MessageCircle className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> WhatsApp
                   </button>
 
-                  <div className="h-5 w-px bg-zinc-800 shrink-0 mx-1" />
+                  <div className="hidden sm:block h-5 w-px bg-zinc-800 shrink-0 mx-1" />
 
                   <button
                     onClick={() => {
@@ -2193,10 +2204,10 @@ export default function StatusOsModule({
                       window.print();
                       setTimeout(() => { document.title = originalTitle; }, 100);
                     }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all shrink-0 text-[10px] font-black uppercase tracking-wider"
+                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
                     title="Imprimir A4"
                   >
-                    <Printer size={13} /> Impr. A4
+                    <Printer className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Impr. A4
                   </button>
                   <button
                     onClick={() => {
@@ -2209,35 +2220,36 @@ export default function StatusOsModule({
                       window.print();
                       setTimeout(() => { document.title = originalTitle; }, 100);
                     }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-zinc-700 text-orange-400/70 hover:text-orange-400 border border-zinc-800 rounded-sm transition-all shrink-0 text-[10px] font-black uppercase tracking-wider"
+                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-orange-400/70 hover:text-orange-400 border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
                     title="Imprimir Cupom Térmico"
                   >
-                    <Printer size={13} /> Cupom
+                    <Printer className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Cupom
                   </button>
                   {selectedOrder.completionData?.warrantyDays && (
                     <button
                       onClick={() => setIsWarrantyPreviewOpen(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-zinc-700 text-purple-400/70 hover:text-purple-400 border border-zinc-800 rounded-sm transition-all shrink-0 text-[10px] font-black uppercase tracking-wider"
+                      className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-purple-400/70 hover:text-purple-400 border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
                       title="Ver Garantia"
                     >
-                      <ShieldCheck size={13} /> Garantia
+                      <ShieldCheck className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Garantia
                     </button>
                   )}
 
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="ml-auto p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors shrink-0"
+                    className="hidden sm:flex ml-auto p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors shrink-0"
                     title="Fechar"
                   >
                     <X size={18} />
                   </button>
+                  </div>
                 </div>
               </div>
               {/* === CORPO (SIDEBAR ESQUERDA + CONTEÚDO DIREITA) === */}
               <div className="flex flex-1 overflow-hidden relative">
                 
                 {/* Fallback Mobile Tabs */}
-                <div className="md:hidden absolute top-0 left-0 right-0 z-30 flex flex-wrap items-center p-3 gap-2 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-zinc-800/50 shadow-lg">
+                <div className="md:hidden absolute top-0 left-0 right-0 z-30 flex overflow-x-auto snap-x no-scrollbar items-center p-3 gap-2 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-zinc-800/50 shadow-lg">
                   {[
                     { id: 'geral', label: 'Geral', icon: FileText },
                     { id: 'laudo', label: 'Laudo', icon: CheckCircle2 },
