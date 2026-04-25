@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Search, Plus, User, Smartphone, 
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
-  Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2,
+  Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, Loader2, Pencil,
   Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon
 } from 'lucide-react';
@@ -292,6 +292,7 @@ export default function StatusOsModule({
 }: StatusOsModuleProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [reportPhotos, setReportPhotos] = useState<string[]>([]);
+  const [showMetrics, setShowMetrics] = useState(false);
   
   const handleCaptureReportPhoto = async () => {
     try {
@@ -1425,6 +1426,18 @@ export default function StatusOsModule({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <button
+              onClick={() => setShowMetrics(!showMetrics)}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+                showMetrics 
+                ? 'bg-[#00E676]/10 text-[#00E676] border-[#00E676]/30 shadow-[0_0_15px_rgba(0,230,118,0.1)]' 
+                : 'bg-[#0A0A0A] text-zinc-500 border-zinc-800 hover:border-zinc-700 hover:text-white'
+              }`}
+            >
+              <LayoutDashboard size={16} />
+              {showMetrics ? 'Ocultar Painel' : 'Métricas do Mês'}
+            </button>
+
             <div className="relative flex-1 lg:w-96">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input
@@ -1507,72 +1520,70 @@ export default function StatusOsModule({
       </header>
 
       {/* Compact Metrics Dashboard */}
-      <div className="bg-[#0A0A0A] border-b border-zinc-800/30 relative group">
-        <div className="max-w-[1600px] mx-auto px-4 py-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:items-center lg:justify-between gap-6 sm:gap-4">
-            
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-emerald-500/10 text-emerald-500 rounded-sm">
-                <TrendingUp size={14} />
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-0.5">Faturamento Potencial</span>
-                <span className="text-[13px] font-black text-white font-mono">
-                  R$ {metrics.potentialRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-blue-500/10 text-blue-500 rounded-sm">
-                <Wrench size={14} />
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-0.5">Laboratório</span>
-                <span className="text-[13px] font-black text-white font-mono">
-                  {metrics.labLoad} <span className="text-[10px] text-zinc-500">Ordens</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-amber-500/10 text-amber-500 rounded-sm">
-                <CheckCircle2 size={14} />
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-0.5">Concluídos/Mês</span>
-                <span className="text-[13px] font-black text-white font-mono">
-                  {metrics.concludedCount} <span className="text-[10px] text-zinc-500">Itens</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-purple-500/10 text-purple-500 rounded-sm">
-                <Calculator size={14} />
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-0.5">Ticket Médio</span>
-                <span className="text-[13px] font-black text-white font-mono">
-                  R$ {metrics.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-
-            <div className="hidden lg:flex items-center gap-3 opacity-50">
-              <div className="flex -space-x-1.5">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-4 h-4 rounded-full border border-[#0A0A0A] bg-zinc-800 flex items-center justify-center">
-                    <User size={8} className="text-zinc-500" />
+      <AnimatePresence>
+        {showMetrics && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-[#0A0A0A] border-b border-zinc-800/30 overflow-hidden no-print"
+          >
+            <div className="max-w-[1600px] mx-auto px-4 py-6 sm:px-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-4">
+                
+                <div className="flex items-center gap-3 bg-zinc-900/50 p-3 rounded-sm border border-zinc-800/50">
+                  <div className="p-1.5 bg-emerald-500/10 text-emerald-500 rounded-sm">
+                    <TrendingUp size={16} />
                   </div>
-                ))}
-              </div>
-              <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Time Ativo</span>
-            </div>
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-1">Faturamento Potencial</span>
+                    <span className="text-[14px] font-black text-white font-mono">
+                      R$ {metrics.potentialRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
 
-          </div>
-        </div>
-      </div>
+                <div className="flex items-center gap-3 bg-zinc-900/50 p-3 rounded-sm border border-zinc-800/50">
+                  <div className="p-1.5 bg-blue-500/10 text-blue-500 rounded-sm">
+                    <Wrench size={16} />
+                  </div>
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-1">Laboratório</span>
+                    <span className="text-[14px] font-black text-white font-mono">
+                      {metrics.labLoad} <span className="text-[10px] text-zinc-500">Ordens</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-zinc-900/50 p-3 rounded-sm border border-zinc-800/50">
+                  <div className="p-1.5 bg-amber-500/10 text-amber-500 rounded-sm">
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-1">Concluídos/Mês</span>
+                    <span className="text-[14px] font-black text-white font-mono">
+                      {metrics.concludedCount} <span className="text-[10px] text-zinc-500">Itens</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-zinc-900/50 p-3 rounded-sm border border-zinc-800/50">
+                  <div className="p-1.5 bg-purple-500/10 text-purple-500 rounded-sm">
+                    <Calculator size={16} />
+                  </div>
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[8px] font-black uppercase tracking-wider text-zinc-600 mb-1">Ticket Médio</span>
+                    <span className="text-[14px] font-black text-white font-mono">
+                      R$ {metrics.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ribbon Timeline - FIXADA NO TOPO DA MAINKANBAN */}
       <div className="bg-[#141414] border-b border-zinc-800/50 sticky top-[73px] sm:top-[85px] z-20 no-print">
