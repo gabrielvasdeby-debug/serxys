@@ -1106,7 +1106,7 @@ export default function OrdemServicoModule({
     }
   };
 
-  const handleSaveOS = async (providedId?: string) => {
+  const handleSaveOS = async (providedId?: string, signaturesOverride?: typeof signatures) => {
     if (!selectedCustomer) {
       onShowToast('Selecione um cliente');
       return;
@@ -1115,7 +1115,8 @@ export default function OrdemServicoModule({
       onShowToast('Preencha os dados básicos do aparelho');
       return;
     }
-    if (signatureMode === 'digital' && !signatures.client) {
+    const effectiveSignatures = signaturesOverride ?? signatures;
+    if (signatureMode === 'digital' && !effectiveSignatures.client) {
       onShowToast('É necessário coletar a assinatura do cliente.');
       return;
     }
@@ -1163,7 +1164,7 @@ export default function OrdemServicoModule({
         technician_notes: technicianNotes,
         service,
         financials,
-        signatures: { ...signatures, isManual: signatureMode === 'manual', mode: signatureMode },
+        signatures: { ...effectiveSignatures, isManual: signatureMode === 'manual', mode: signatureMode },
         priority,
         is_visual_checklist: showVisualChecklist,
         delivery_forecast: deliveryForecast || null,
@@ -1201,7 +1202,7 @@ export default function OrdemServicoModule({
           technicianNotes,
           service,
           financials,
-          signatures,
+          signatures: effectiveSignatures,
           priority,
           isVisualChecklist: showVisualChecklist,
           deliveryForecast,
@@ -2897,9 +2898,10 @@ export default function OrdemServicoModule({
                               title="Assinatura do Técnico" 
                               autoOpen={signatureMode === 'remote' && !signatures.technician}
                               onSave={(dataUrl) => {
-                                setSignatures(prev => ({ ...prev, technician: dataUrl }));
-                                // Auto-save trigger
-                                setTimeout(() => handleSaveOS(), 500);
+                                const updatedSigs = { ...signatures, technician: dataUrl };
+                                setSignatures(updatedSigs);
+                                // Passa a assinatura diretamente para evitar closure stale no estado
+                                setTimeout(() => handleSaveOS(undefined, updatedSigs), 500);
                               }}
                               onClear={() => setSignatures(prev => ({ ...prev, technician: null }))}
                             />
