@@ -586,7 +586,6 @@ export default function OrdemServicoModule({
     email: '',
     document: '',
     notes: '',
-    birthDate: '',
     customer_origin: '',
     address: {
       street: '',
@@ -1023,7 +1022,7 @@ export default function OrdemServicoModule({
         setNewCustomer({
           name: '', phone: '', whatsapp: '', email: '', document: '',
           address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-          notes: '', birthDate: ''
+          notes: '', birthDate: '', customer_origin: ''
         });
         // Blur the active submit button BEFORE changing step so browser doesn't scroll to it
         if (document.activeElement instanceof HTMLElement) {
@@ -1479,7 +1478,7 @@ export default function OrdemServicoModule({
                         setNewCustomer({
                           name: '', phone: '', whatsapp: '', email: '', document: '',
                           address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-                          notes: '', birthDate: ''
+                          notes: '', birthDate: '', customer_origin: ''
                         });
                       }
                       setIsCreatingCustomer(!isCreatingCustomer);
