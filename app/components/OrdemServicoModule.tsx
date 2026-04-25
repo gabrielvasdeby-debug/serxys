@@ -1359,45 +1359,41 @@ export default function OrdemServicoModule({
 
         <div className="print:hidden flex flex-col flex-1 h-full overflow-hidden">
         {/* Header */}
-      <header className="bg-[#141414]/80 backdrop-blur-md border-b border-zinc-800/50 p-4 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button 
-              onClick={step === 'DETAILS' ? () => setStep('CLIENT') : onBack}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
-              title="Voltar"
-            >
-              <ArrowLeft size={20} className="text-zinc-400" />
-            </button>
-            <button 
-              onClick={onBack}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
-              title="Ir para o Início"
-            >
-              <Home size={20} className="text-zinc-400" />
-            </button>
-            <div>
-              <h1 className="text-base sm:text-xl font-bold text-white flex items-center gap-2">
-                {localOrder ? 'Editar OS' : 'Nova OS'}
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] sm:text-xs font-mono bg-zinc-800 text-zinc-400 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md">
-                    OS {localOrder ? localOrder.osNumber.toString().padStart(4, '0') : 
-                        (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
-                  </span>
-                  {!localOrder && orders.length === 0 && osSettings.nextOsNumber > 1 && (
-                    <button 
-                      onClick={() => setOsSettings({ ...osSettings, nextOsNumber: 1 })}
-                      className="text-[10px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md hover:bg-red-500 hover:text-white transition-all font-bold uppercase"
-                    >
-                      Zerar para 1
-                    </button>
-                  )}
-                </div>
+      <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button 
+                onClick={step === 'DETAILS' ? () => setStep('CLIENT') : onBack}
+                className="w-10 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
+                title="Voltar"
+              >
+                <ArrowLeft size={22} />
+              </button>
+              <button 
+                onClick={onBack}
+                className="w-10 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
+                title="Ir para o Início"
+              >
+                <Home size={22} />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-end sm:items-start text-right sm:text-left">
+              <div className="flex items-center gap-3 sm:gap-2">
+                <span className="text-zinc-500 text-[10px] sm:text-sm font-black uppercase tracking-widest sm:hidden">
+                  {localOrder ? 'Editar' : 'Nova OS'}
+                </span>
+                <span className="text-lg sm:text-xs font-black font-mono bg-zinc-900 border border-white/5 text-[#00E676] px-3 py-1.5 sm:px-2 sm:py-1 rounded-lg shadow-inner">
+                  OS {localOrder ? localOrder.osNumber.toString().padStart(4, '0') : 
+                      (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
+                </span>
+              </div>
+              <h1 className="hidden sm:block text-xl font-black text-white tracking-tight">
+                {localOrder ? 'Editar Ordem de Serviço' : 'Nova Ordem de Serviço'}
               </h1>
-              <p className="hidden sm:block text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Registro de Atendimento</p>
             </div>
           </div>
-
         </div>
       </header>
 
@@ -1749,19 +1745,23 @@ export default function OrdemServicoModule({
               className="space-y-6"
             >
               {/* Selected Client Summary */}
-              <div className="bg-[#141414] border border-zinc-800 rounded-md p-4 flex items-center justify-between shadow-xl">
+              <div className="bg-[#141414] border border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 flex items-center justify-center text-white font-black">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00E676]/20 to-zinc-900 border border-[#00E676]/30 flex items-center justify-center text-[#00E676] font-black text-xl shadow-inner">
                     {selectedCustomer.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-white uppercase tracking-tight">{selectedCustomer.name}</h3>
                     <div className="flex items-center gap-3 mt-0.5">
-                       {selectedCustomer.whatsapp && <span className="text-[10px] font-bold text-[#00E676] uppercase tracking-widest">WhatsApp: {selectedCustomer.whatsapp}</span>}
+                       {selectedCustomer.whatsapp && (
+                         <span className="text-[10px] font-bold text-[#00E676]/80 uppercase tracking-widest flex items-center gap-1">
+                           <MessageCircle size={10} /> {selectedCustomer.whatsapp}
+                         </span>
+                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-end gap-4 border-t sm:border-t-0 border-zinc-800/50 pt-3 sm:pt-0">
                   <button 
                     onClick={() => handleEditCustomer(selectedCustomer)}
                     className="text-xs text-zinc-400 hover:text-[#00E676] flex items-center gap-1 transition-colors"
@@ -1795,7 +1795,7 @@ export default function OrdemServicoModule({
                        <button
                          key={tab.id}
                          onClick={() => setActiveTab(tab.id as any)}
-                         className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 h-10 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
+                         className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 h-16 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
                            isSelected 
                              ? 'bg-[#00E676]/20 border border-[#00E676]/50' 
                              : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
