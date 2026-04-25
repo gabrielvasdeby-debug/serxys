@@ -1845,7 +1845,7 @@ export default function StatusOsModule({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {isLoading ? (
                     Array.from({ length: 4 }).map((_, i) => (
-                      <div key={`skeleton-${i}`} className="bg-[#141414] border border-zinc-800/50 rounded-md p-6 space-y-4 animate-pulse">
+                      <div key={`skeleton-${i}`} className="bg-zinc-900/60 border border-zinc-800/50 rounded-sm p-4 sm:p-6 space-y-4 animate-pulse">
                         <div className="flex items-center justify-between">
                             <div className="h-3 w-16 bg-zinc-800 rounded-full" />
                             <div className="h-3 w-16 bg-zinc-800 rounded-full" />
@@ -1854,7 +1854,7 @@ export default function StatusOsModule({
                            <div className="h-4 w-3/4 bg-zinc-800 rounded-sm" />
                            <div className="h-3 w-1/2 bg-zinc-800 rounded-md" />
                         </div>
-                        <div className="h-12 bg-zinc-900 rounded-sm border border-zinc-800/50" />
+                        <div className="h-10 bg-zinc-900 rounded-sm border border-zinc-800/50" />
                         <div className="flex items-center justify-between pt-2">
                            <div className="h-3 w-20 bg-zinc-800 rounded-full" />
                            <div className="h-6 w-12 bg-zinc-800 rounded-sm" />
@@ -1867,12 +1867,12 @@ export default function StatusOsModule({
                       <div
                         key={order.id}
                         onClick={() => setSelectedOrder(order)}
-                        className="bg-[#141414] border border-zinc-800/80 hover:border-zinc-600 rounded-md p-5 sm:p-5 cursor-pointer transition-all hover:bg-zinc-800/30 hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1"
+                        className="bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-600 rounded-sm p-4 sm:p-5 cursor-pointer transition-all hover:bg-zinc-800/30 hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1"
                       >
                         {/* Visual Status Indicator on Card Left */}
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/60')}`} />
                         
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-[10px] font-black font-mono text-zinc-500 bg-black/40 border border-white/5 px-2 py-0.5 rounded-md uppercase tracking-widest">
                               OS {order.osNumber.toString().padStart(4, '0')}
@@ -1913,11 +1913,11 @@ export default function StatusOsModule({
                           </div>
                         </div>
 
-                        <h4 className="font-bold text-base sm:text-sm text-zinc-200 mb-1 line-clamp-1 group-hover:text-white transition-colors mt-2">{customer?.name || 'Cliente não encontrado'}</h4>
-                        <p className="text-[12px] sm:text-[11px] font-bold text-zinc-500 mb-4 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
+                        <h4 className="font-bold text-sm sm:text-sm text-zinc-200 mb-0.5 line-clamp-1 group-hover:text-white transition-colors mt-1">{customer?.name || 'Cliente não encontrado'}</h4>
+                        <p className="text-[11px] sm:text-[11px] font-bold text-zinc-600 mb-3 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
 
-                        <div className="bg-[#0A0A0A] rounded-sm p-3 mb-4 border border-zinc-900/50">
-                          <p className="text-[11px] text-zinc-400 line-clamp-2 italic" title={order.defect}>{order.defect}</p>
+                        <div className="bg-[#050505] rounded-sm p-2.5 mb-3 border border-zinc-900/50">
+                          <p className="text-[10px] sm:text-[11px] text-zinc-500 line-clamp-2 italic" title={order.defect}>{order.defect}</p>
                         </div>
 
                         <div className="flex items-center justify-between text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
