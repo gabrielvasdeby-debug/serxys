@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { formatPhone } from '../utils/formatPhone';
+import { formatDocument } from '../utils/formatDocument';
+import { applyMaskWithCursor } from '../utils/maskUtils';
 import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { capFirst } from '../utils/capFirst';
 
@@ -828,7 +830,9 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
     if (capFields.includes(name)) {
       finalValue = capFirst(value);
     } else if (name === 'whatsapp' || name === 'phone') {
-      finalValue = formatPhone(value);
+      finalValue = applyMaskWithCursor(e.target as HTMLInputElement, 'phone');
+    } else if (name === 'document') {
+      finalValue = applyMaskWithCursor(e.target as HTMLInputElement, 'document');
     }
 
     if (name.startsWith('address.')) {
@@ -860,14 +864,14 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
               <label className="block text-sm font-medium text-zinc-400">WhatsApp</label>
               <div className="flex gap-2">
                 <CountryCodePicker selectedCountry={whatsappCountry} onSelect={setWhatsappCountry} />
-                <input type="text" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+                <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
               </div>
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Telefone</label>
               <div className="flex gap-2">
                 <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
-                <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
               </div>
             </div>
             <div className="space-y-1.5">
@@ -876,7 +880,7 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">CPF ou CNPJ</label>
-              <input type="text" name="document" value={formData.document} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+              <input type="tel" name="document" value={formData.document} onChange={handleChange} placeholder="000.000.000-00" className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Origem do Cliente</label>

@@ -19,6 +19,8 @@ import WarrantyThermalTemplate from './WarrantyThermalTemplate';
 import VisualController from './VisualController';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData } from '../types';
 import { formatPhone } from '../utils/formatPhone';
+import { formatDocument } from '../utils/formatDocument';
+import { applyMaskWithCursor } from '../utils/maskUtils';
 import { capFirst } from '../utils/capFirst';
 import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { jsPDF } from 'jspdf';
@@ -1522,9 +1524,9 @@ export default function OrdemServicoModule({
                         <div className="flex gap-2">
                           <CountryCodePicker selectedCountry={whatsappCountry} onSelect={setWhatsappCountry} />
                           <input
-                            type="text"
+                            type="tel"
                             value={newCustomer.whatsapp}
-                            onChange={e => setNewCustomer({...newCustomer, whatsapp: formatPhone(e.target.value)})}
+                            onChange={e => setNewCustomer({...newCustomer, whatsapp: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
                             className="flex-1 bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="(00) 00000-0000"
                           />
@@ -1535,9 +1537,9 @@ export default function OrdemServicoModule({
                         <div className="flex gap-2">
                           <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
                           <input
-                            type="text"
+                            type="tel"
                             value={newCustomer.phone}
-                            onChange={e => setNewCustomer({...newCustomer, phone: formatPhone(e.target.value)})}
+                            onChange={e => setNewCustomer({...newCustomer, phone: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
                             className="flex-1 bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="(00) 0000-0000"
                           />
@@ -1546,9 +1548,9 @@ export default function OrdemServicoModule({
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-zinc-400">CPF ou CNPJ</label>
                         <input
-                          type="text"
+                          type="tel"
                           value={newCustomer.document}
-                          onChange={e => setNewCustomer({...newCustomer, document: e.target.value})}
+                          onChange={e => setNewCustomer({...newCustomer, document: applyMaskWithCursor(e.target as HTMLInputElement, 'document')})}
                           className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="000.000.000-00"
                         />
