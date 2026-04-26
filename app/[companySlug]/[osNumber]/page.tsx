@@ -173,13 +173,15 @@ export default function CustomerPortal() {
         } else {
           const isNumeric = /^\d+$/.test(osNumberStr);
           if (isNumeric) {
-            const { data: rpcData, error: rpcError } = await supabase.rpc('get_order_public_id', {
-              p_slug: companySlug,
-              p_os_number: parseInt(osNumberStr, 10)
-            });
+            const { data: orderData, error: orderErr } = await supabase
+              .from('orders')
+              .select('id')
+              .eq('os_number', parseInt(osNumberStr, 10))
+              .eq('company_id', companyData.id)
+              .maybeSingle();
 
-            if (!rpcError && rpcData && rpcData.length > 0) {
-              currentPublicId = rpcData[0].p_id;
+            if (!orderErr && orderData) {
+              currentPublicId = orderData.id;
             }
           }
         }
@@ -192,9 +194,9 @@ export default function CustomerPortal() {
 
         // 3. Fetch Full Data using Secure RPCs
         const [orderRes, custRes, compSettingsRes] = await Promise.all([
-          supabase.rpc('get_public_order', { p_public_id: currentPublicId }),
-          supabase.rpc('get_public_customer', { p_public_id: currentPublicId }),
-          supabase.rpc('get_public_company_settings', { p_public_id: currentPublicId })
+          supabase.from('orders').select('*').eq('id', currentPublicId).maybeSingle(),
+          supabase.from('customers').select('*').eq('id', (await supabase.from('orders').select('customer_id').eq('id', currentPublicId).single()).data?.customer_id).maybeSingle(),
+          supabase.from('company_settings').select('*').eq('id', (await supabase.from('orders').select('company_id').eq('id', currentPublicId).single()).data?.company_id).maybeSingle()
         ]);
 
         const orderResult = orderRes.data && orderRes.data.length > 0 ? orderRes.data[0] : null;

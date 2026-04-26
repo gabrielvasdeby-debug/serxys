@@ -707,7 +707,7 @@ export default function StatusOsModule({
     const total = calculateBudgetTotal() || parseFloat(budgetPrice) || 0;
     const portalUrl = companySettings?.publicSlug 
       ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}`
-      : `${window.location.origin}/os/${selectedOrder.public_id || selectedOrder.id}`;
+      : `${window.location.origin}/os/${selectedOrder.id}`;
 
     const template = osSettings.whatsappMessages?.['Aguardando Aprovação'] ||
       `Olá, [nome_cliente]! 👋\nSeu orçamento está pronto OS: [numero_os]\n🔧 [defeito]\n💰 [valor_total]  \n Aprove aqui:\n👉 [link_os]\n\nQualquer dúvida é só chamar 👍`;
@@ -1099,10 +1099,9 @@ export default function StatusOsModule({
       const customer = customers.find(c => c.id === order.customerId);
       if (!customer?.whatsapp) {
         onShowToast('Cliente sem número de WhatsApp cadastrado');
-      } else {
         const portalUrl = companySettings.publicSlug
           ? `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber}`
-          : `${window.location.origin}/os/${order.public_id || order.id}`;
+          : `${window.location.origin}/os/${order.id}`;
         const template = osSettings.whatsappMessages?.[newStatus] || companySettings.followUpMessage || 
           `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
         
@@ -1219,7 +1218,7 @@ export default function StatusOsModule({
         if (customer?.whatsapp) {
           const portalUrl = companySettings.publicSlug
             ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}`
-            : `${window.location.origin}/os/${selectedOrder.public_id || selectedOrder.id}`;
+            : `${window.location.origin}/os/${selectedOrder.id}`;
           const template = osSettings.whatsappMessages?.['Reparo Concluído'] ||
             `Olá {nome_cliente}! 👋\n\nInformamos que o seu equipamento ({equipamento}) já está pronto para retirada!\n\nVocê pode conferir os detalhes no link:\n{link_os}\n\nAtenciosamente, {nome_assistencia}`;
           
@@ -2268,7 +2267,7 @@ export default function StatusOsModule({
 
                       const portalUrl = companySettings.publicSlug
                         ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}`
-                        : `${window.location.origin}/os/${selectedOrder.public_id || selectedOrder.id}`;
+                        : `${window.location.origin}/os/${selectedOrder.id}`;
                       
                       const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
                         `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
