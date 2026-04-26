@@ -3379,6 +3379,7 @@ export default function OrdemServicoModule({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </>
   );
 }
