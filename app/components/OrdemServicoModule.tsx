@@ -1301,8 +1301,14 @@ export default function OrdemServicoModule({
           description: 'Ordem de Serviço criada'
         }];
 
-        const { error: osError } = await supabase.from('orders').insert(osData);
+        const { data: insertedOrder, error: osError } = await supabase.from('orders').insert(osData).select('id, public_id, os_number').single();
         if (osError) throw osError;
+        
+        // Update local osData with real values from DB (including generated public_id)
+        if (insertedOrder) {
+          osData.os_number = insertedOrder.os_number;
+          (osData as any).public_id = insertedOrder.public_id;
+        }
         
         // Update local osData number for consistency in following logic
         osData.os_number = newOsNumber;
@@ -1419,8 +1425,8 @@ export default function OrdemServicoModule({
       
       if (signatureMode === 'remote' && selectedCustomer.whatsapp) {
         const portalUrl = companySettings.publicSlug
-          ? `${window.location.origin}/${companySettings.publicSlug}/${osData.id}`
-          : `${window.location.origin}/os/${osData.id}`;
+          ? `${window.location.origin}/${companySettings.publicSlug}/${osData.os_number}`
+          : `${window.location.origin}/os/${(osData as any).public_id || osData.id}`;
         
         const template = osSettings.whatsappMessages?.['Assinatura Remota'] || 
           `Olá [nome_cliente]! 👋\nSeu atendimento já está em fase final (OS [numero_os]).\n\nFalta só sua confirmação para concluirmos:\n👉 [link_assinatura]\n\nAssim que confirmar, já damos continuidade 👍\n\nAguardamos você\n\n[nome_assistencia]`;
