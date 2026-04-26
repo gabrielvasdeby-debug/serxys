@@ -322,7 +322,7 @@ textarea {
   }
 
   /* Hide the entire app UI during print if any print class is active */
-  body[class*="print-"] #__next,
+  body[class*="print-"] #main-app-layout,
   body[class*="print-"] .no-print,
   body[class*="print-"] .print\:hidden {
     display: none !important;
@@ -355,7 +355,7 @@ textarea {
     page: standard-a4;
   }
   
-  .print-thermal-container, .print-warranty-thermal-container {
+  .print-thermal-container, .warranty-thermal-container {
     page: thermal-80mm;
   }
 }

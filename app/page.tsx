@@ -94,8 +94,8 @@ export default function ServyxApp() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden print:overflow-visible print:bg-white relative">
-      <div className="flex-1 relative">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden print:overflow-visible print:bg-white relative main-app-layout">
+      <div id="main-app-layout" className="flex-1 relative">
         {/* Decorative glowing blobs */}
         <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] bg-[#00E676]/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
@@ -278,7 +278,7 @@ export default function ServyxApp() {
             </motion.div>
           )}
           {view === 'NOVA_OS' && selectedProfile && (
-            <motion.div key="nova_os" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute inset-0 print:static print:overflow-visible">
+            <motion.div key="nova_os" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute inset-0 overflow-y-auto">
               <OrdemServicoModule 
                 profile={selectedProfile} 
                 onBack={() => { 

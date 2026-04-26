@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import { 
@@ -91,25 +92,55 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
       if (sigCanvas.current) {
         const canvas = sigCanvas.current.getCanvas();
         if (canvas) {
-          // Salva assinatura atual antes de redimensionar
-          const hadDrawing = !sigCanvas.current.isEmpty();
-          const data = hadDrawing ? sigCanvas.current.toDataURL() : null;
-
-          // Usa a API oficial da lib para limpar (reseta o estado interno corretamente)
-          sigCanvas.current.clear();
-
-          // Redimensiona o canvas para as novas dimensões
+          // Salva assinatura atual (pontos) antes de redimensionar para poder escalar
+          const data = sigCanvas.current.toData();
+          
+          // Largura lógica antiga (sem o ratio)
           const ratio = Math.max(window.devicePixelRatio || 1, 1);
+          const oldWidth = canvas.width / ratio;
+          const oldHeight = canvas.height / ratio;
+
+          // Redimensiona o canvas para as novas dimensões do offset
           canvas.width = canvas.offsetWidth * ratio;
           canvas.height = canvas.offsetHeight * ratio;
           const ctx = canvas.getContext('2d');
           if (ctx) ctx.scale(ratio, ratio);
 
-          // Restaura a assinatura se havia uma
-          if (hadDrawing && data) {
-            sigCanvas.current.fromDataURL(data);
-            // fromDataURL não atualiza o _data interno, mas
-            // mantemos hasDrawing=true via estado para o confirm() funcionar
+          // Limpa internamente para resetar o estado da lib
+          sigCanvas.current.clear();
+
+          // Se havia pontos, restaura-os aplicando o ajuste de escala proporcional
+          if (data && data.length > 0) {
+            const newWidth = canvas.offsetWidth;
+            const newHeight = canvas.offsetHeight;
+            
+            // Se as dimensões mudaram, escalamos os pontos
+            if (oldWidth !== newWidth || oldHeight !== newHeight) {
+              const scaleX = newWidth / oldWidth;
+              const scaleY = newHeight / oldHeight;
+
+              const scaledData = data.map((group: any) => {
+                if (group.points) {
+                  return {
+                    ...group,
+                    points: group.points.map((point: any) => ({
+                      ...point,
+                      x: point.x * scaleX,
+                      y: point.y * scaleY
+                    }))
+                  };
+                }
+                return group.map((point: any) => ({
+                  ...point,
+                  x: point.x * scaleX,
+                  y: point.y * scaleY
+                }));
+              });
+              sigCanvas.current.fromData(scaledData as any);
+            } else {
+              sigCanvas.current.fromData(data as any);
+            }
+            setHasDrawing(true);
           }
         }
       }
@@ -121,13 +152,14 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
     };
 
     const handleResize = () => {
-      // Resize comum: delay menor é suficiente
       setTimeout(doResize, 100);
     };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleOrientationChange);
-    if (isOpen) setTimeout(doResize, 150);
+    if (isOpen) {
+      setTimeout(doResize, 150);
+    }
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleOrientationChange);
@@ -206,6 +238,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
                     ref={sigCanvas}
                     penColor="black"
                     onBegin={() => setHasDrawing(true)}
+                    onEnd={() => sigCanvas.current && setHasDrawing(!sigCanvas.current.isEmpty())}
                     canvasProps={{
                       className: "w-full h-full cursor-crosshair",
                       style: { width: '100%', height: '100%' }
@@ -697,6 +730,7 @@ export default function OrdemServicoModule({
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isScanReminderOpen, setIsScanReminderOpen] = useState(false);
+  const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
   // Monitor scroll for header styling if needed, otherwise simplified
@@ -1474,50 +1508,88 @@ export default function OrdemServicoModule({
     setWhatsappPrompt({ isOpen: false, newStatus: '' });
   };
 
+  const printOrder = useMemo(() => {
+    return localOrder || {
+      id: 'preview',
+      companyId: companySettings?.id || 'default',
+      osNumber: orders.length === 0 ? (osSettings?.nextOsNumber || 1) : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings?.nextOsNumber || 1),
+      customerId: selectedCustomer?.id || '',
+      signatures: { ...signatures, isManual: signatureMode === 'manual', mode: signatureMode },
+      equipment,
+      defect,
+      service,
+      checklist,
+      checklistNotPossible,
+      checklistNotes,
+      technicianNotes,
+      financials,
+      status: 'Entrada',
+      priority,
+      isVisualChecklist: showVisualChecklist,
+      history: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } as Order;
+  }, [
+    localOrder, companySettings.id, orders, osSettings.nextOsNumber, 
+    selectedCustomer?.id, signatures, signatureMode, equipment, defect, 
+    service, checklist, checklistNotPossible, checklistNotes, technicianNotes, 
+    financials, priority, showVisualChecklist
+  ]);
+
+  const warrantyOrder = useMemo(() => {
+    return {
+      ...printOrder,
+      status: 'Reparo Concluído',
+      completionData: localOrder?.completionData || {
+          servicesPerformed: service,
+          exitChecklist: checklist,
+          supplier: '',
+          partsUsed: '',
+          warrantyDays: 90,
+          warrantyTerms: osSettings.printTerms
+      }
+    } as Order;
+  }, [printOrder, localOrder, service, checklist, osSettings.printTerms]);
+
+  // Efeito para gerenciar a impressão com delay para estabilidade
+  useEffect(() => {
+    if (!printMode) return;
+
+    const originalTitle = document.title;
+    const osNumber = (localOrder ? localOrder.osNumber : printOrder.osNumber).toString().padStart(4, '0');
+    const companyName = companySettings.name || 'Servyx';
+    const isWarranty = printMode.includes('warranty');
+    
+    document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isWarranty ? 'Garantia' : 'OS'}_${osNumber}`;
+    
+    // Limpa classes anteriores
+    document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal');
+    
+    // Adiciona a classe atual
+    document.body.classList.add(`print-${printMode}`);
+
+    // Pequeno delay para garantir que o Portal renderizou e o browser processou as classes CSS
+    const timer = setTimeout(() => {
+      window.print();
+      
+      // Limpeza após fechar o diálogo de impressão
+      document.body.classList.remove(`print-${printMode}`);
+      document.title = originalTitle;
+      setPrintMode(null);
+      
+      if (signatureMode === 'manual' && (printMode === 'a4' || printMode === 'thermal')) {
+        setTimeout(() => setIsScanReminderOpen(true), 1000);
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [printMode, localOrder, printOrder.osNumber, companySettings.name, signatureMode]);
+
   return (
-    <div className="h-screen bg-[#0A0A0A] text-white flex flex-col print:bg-white print:text-black print:block overflow-hidden">
-      {/* ===== CSS DE IMPRESSÃO EXPLÍCITO (funciona em browsers mobile) ===== */}
-      <style>{`
-        /* Esconde containers de impressão na visualização normal */
-        .nova-os-print-a4,
-        .nova-os-print-thermal,
-        .nova-os-print-warranty,
-        .nova-os-print-warranty-thermal {
-          display: none;
-        }
+    <>
+      <div className="h-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden">
 
-        @media print {
-          /* Oculta toda a interface da aplicação */
-          .nova-os-ui { display: none !important; }
-
-          /* Oculta todos os containers por padrão em print */
-          .nova-os-print-a4 { display: none !important; }
-          .nova-os-print-thermal { display: none !important; }
-          .nova-os-print-warranty { display: none !important; }
-          .nova-os-print-warranty-thermal { display: none !important; }
-
-          /* Mostra apenas o container correto pelo body class */
-          body.print-a4 .nova-os-print-a4 { display: block !important; }
-          body.print-thermal .nova-os-print-thermal { display: block !important; }
-          body.print-warranty .nova-os-print-warranty { display: block !important; }
-          body.print-warranty-thermal .nova-os-print-warranty-thermal { display: block !important; }
-
-          /* Garante que o conteúdo do template apareça */
-          .nova-os-print-a4 > *,
-          .nova-os-print-thermal > *,
-          .nova-os-print-warranty > *,
-          .nova-os-print-warranty-thermal > * {
-            display: block !important;
-            visibility: visible !important;
-          }
-
-          body, html {
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-        }
-      `}</style>
       {/* Main App Content - Hidden on Print */}
         {/* Success Animation Modal */}
         <SuccessAnimationModal 
@@ -3049,38 +3121,14 @@ export default function OrdemServicoModule({
                       {/* Printing Group */}
                       <div className="flex items-center bg-black/40 rounded-sm p-1 border border-white/5 gap-1">
                         <button 
-                          onClick={() => {
-                            const originalTitle = document.title;
-                            const osNumber = (localOrder ? localOrder.osNumber : osSettings.nextOsNumber).toString().padStart(4, '0');
-                            const companyName = companySettings.name || 'Servyx';
-                            document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_OS_${osNumber}`;
-                            document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal');
-                            document.body.classList.add('print-a4');
-                            window.print();
-                            setTimeout(() => { document.title = originalTitle; }, 100);
-                            if (signatureMode === 'manual') {
-                              setTimeout(() => setIsScanReminderOpen(true), 1000);
-                            }
-                          }}
+                          onClick={() => setPrintMode('a4')}
                           className="px-3 h-8 flex items-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
                         >
                           <Printer size={14} />
                           A4
                         </button>
                         <button 
-                          onClick={() => {
-                            const originalTitle = document.title;
-                            const osNumber = (localOrder ? localOrder.osNumber : osSettings.nextOsNumber).toString().padStart(4, '0');
-                            const companyName = companySettings.name || 'Servyx';
-                            document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_OS_${osNumber}`;
-                            document.body.classList.remove('print-a4', 'print-warranty', 'print-warranty-thermal');
-                            document.body.classList.add('print-thermal');
-                            window.print();
-                            setTimeout(() => { document.title = originalTitle; }, 100);
-                            if (signatureMode === 'manual') {
-                              setTimeout(() => setIsScanReminderOpen(true), 1000);
-                            }
-                          }}
+                          onClick={() => setPrintMode('thermal')}
                           className="px-3 h-8 flex items-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
                         >
                           <Printer size={14} />
@@ -3091,32 +3139,14 @@ export default function OrdemServicoModule({
                       {localOrder && ['Pronto', 'Entregue'].includes(localOrder.status) && (
                         <div className="flex items-center bg-black/40 rounded-sm p-1 border border-white/5 gap-1">
                           <button 
-                            onClick={() => {
-                              const originalTitle = document.title;
-                              const osNumber = (localOrder ? localOrder.osNumber : osSettings.nextOsNumber).toString().padStart(4, '0');
-                              const companyName = companySettings.name || 'Servyx';
-                              document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
-                              document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty-thermal');
-                              document.body.classList.add('print-warranty');
-                              window.print();
-                              setTimeout(() => { document.title = originalTitle; }, 100);
-                            }}
+                            onClick={() => setPrintMode('warranty')}
                             className="px-3 h-8 flex items-center gap-2 rounded-sm text-emerald-500 hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
                           >
                             <ShieldCheck size={14} />
                             Garantia A4
                           </button>
                           <button 
-                            onClick={() => {
-                              const originalTitle = document.title;
-                              const osNumber = (localOrder ? localOrder.osNumber : osSettings.nextOsNumber).toString().padStart(4, '0');
-                              const companyName = companySettings.name || 'Servyx';
-                              document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
-                              document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty');
-                              document.body.classList.add('print-warranty-thermal');
-                              window.print();
-                              setTimeout(() => { document.title = originalTitle; }, 100);
-                            }}
+                            onClick={() => setPrintMode('warranty-thermal')}
                             className="px-3 h-8 flex items-center gap-2 rounded-sm text-[#00E676] hover:bg-[#00E676]/10 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
                           >
                             <ShieldCheck size={14} />
@@ -3210,137 +3240,49 @@ export default function OrdemServicoModule({
       </AnimatePresence>
 
 
-      {/* ===== CONTAINERS DE IMPRESSÃO ===== */}
-      {/* Ficam fora do fluxo normal; o CSS acima controla quem aparece em @media print */}
-      <div>
-        <div className="nova-os-print-a4">
-        <OrderPrintTemplate 
-          order={{
-            id: 'preview',
-            companyId: companySettings.id,
-            osNumber: localOrder ? localOrder.osNumber : osSettings.nextOsNumber,
-            customerId: selectedCustomer?.id || '',
-            signatures,
-            equipment,
-            defect,
-            service,
-            checklist,
-            checklistNotPossible,
-            checklistNotes,
-            technicianNotes: '',
-            financials,
-            status: 'Entrada',
-            priority,
-            isVisualChecklist: showVisualChecklist,
-            history: [],
-            createdAt: localOrder ? localOrder.createdAt : new Date().toISOString(),
-            updatedAt: localOrder ? localOrder.updatedAt : new Date().toISOString()
-          }}
-          customer={selectedCustomer || undefined}
-          companySettings={companySettings}
-          osSettings={osSettings}
-        />
       </div>
 
-      <div className="nova-os-print-thermal">
-        <ThermalReceiptTemplate 
-          order={{
-            id: 'preview',
-            companyId: companySettings.id,
-            osNumber: localOrder ? localOrder.osNumber : osSettings.nextOsNumber,
-            customerId: selectedCustomer?.id || '',
-            signatures,
-            equipment,
-            defect,
-            service,
-            checklist,
-            checklistNotPossible,
-            checklistNotes,
-            technicianNotes: '',
-            financials,
-            status: 'Entrada',
-            priority,
-            isVisualChecklist: showVisualChecklist,
-            history: [],
-            createdAt: localOrder ? localOrder.createdAt : new Date().toISOString(),
-            updatedAt: localOrder ? localOrder.updatedAt : new Date().toISOString()
-          }}
-          customer={selectedCustomer || undefined}
-          companySettings={companySettings}
-          osSettings={osSettings}
-        />
-      </div>
-      <div className="nova-os-print-warranty">
-        <WarrantyPrintTemplate 
-          order={{
-            id: 'preview',
-            companyId: companySettings.id,
-            osNumber: localOrder ? localOrder.osNumber : osSettings.nextOsNumber,
-            customerId: selectedCustomer?.id || '',
-            signatures,
-            equipment,
-            defect,
-            service,
-            checklist,
-            checklistNotPossible,
-            checklistNotes,
-            technicianNotes: '',
-            financials,
-            status: 'Reparo Concluído',
-            priority,
-            isVisualChecklist: showVisualChecklist,
-            history: [],
-            completionData: {
-                servicesPerformed: service,
-                exitChecklist: checklist,
-                supplier: '',
-                partsUsed: '',
-                warrantyDays: 90,
-                warrantyTerms: osSettings.printTerms
-            },
-            createdAt: localOrder ? localOrder.createdAt : new Date().toISOString(),
-            updatedAt: localOrder ? localOrder.updatedAt : new Date().toISOString()
-          }}
-          customer={selectedCustomer || undefined}
-          companySettings={companySettings}
-          osSettings={osSettings}
-        />
-      </div>
-      <div className="nova-os-print-warranty-thermal">
-        <WarrantyThermalTemplate 
-          order={{
-            id: 'preview',
-            companyId: companySettings.id,
-            osNumber: localOrder ? localOrder.osNumber : osSettings.nextOsNumber,
-            customerId: selectedCustomer?.id || '',
-            signatures,
-            equipment,
-            defect,
-            service,
-            checklist,
-            checklistNotPossible,
-            checklistNotes,
-            technicianNotes: '',
-            financials,
-            status: 'Reparo Concluído',
-            priority,
-            history: [],
-            completionData: {
-                servicesPerformed: service,
-                exitChecklist: checklist,
-                supplier: '',
-                partsUsed: '',
-                warrantyDays: 90
-            },
-            createdAt: localOrder ? localOrder.createdAt : new Date().toISOString(),
-            updatedAt: localOrder ? localOrder.updatedAt : new Date().toISOString()
-          }}
-          customer={selectedCustomer || undefined}
-          companySettings={companySettings}
-          osSettings={osSettings}
-        />
-      </div>
-    </div>
+      {/* ===== CONTAINERS DE IMPRESSÃO ===== */}
+      {/* Usamos Portal para que fiquem fora da estrutura principal do app e não sejam ocultados pelo display:none do CSS de impressão */}
+      {selectedCustomer && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}`}>
+            <OrderPrintTemplate 
+              order={printOrder}
+              customer={selectedCustomer}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+
+          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}`}>
+            <ThermalReceiptTemplate 
+              order={printOrder}
+              customer={selectedCustomer}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+
+          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}`}>
+            <WarrantyPrintTemplate 
+              order={warrantyOrder}
+              customer={selectedCustomer}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}`}>
+            <WarrantyThermalTemplate 
+              order={warrantyOrder}
+              customer={selectedCustomer}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+        </>,
+        document.body
+      )}
 
       <AnimatePresence>
         {whatsappPrompt.isOpen && (
@@ -3437,7 +3379,6 @@ export default function OrdemServicoModule({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-    </div>
+    </>
   );
 }

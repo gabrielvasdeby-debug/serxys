@@ -21,7 +21,7 @@ export default function ThermalReceiptTemplate({
   const remainingValue = order.financials.totalValue - (order.financials.amountPaid || 0);
 
   return (
-    <div className="thermal-receipt hidden print:block w-[80mm] mx-auto p-2 bg-white text-black font-mono text-[10px] leading-tight">
+    <div className="thermal-receipt block print:block w-[80mm] mx-auto p-2 bg-white text-black font-mono text-[10px] leading-tight">
 
       {/* HEADER */}
       <div className="text-center mb-1 space-y-0.5">

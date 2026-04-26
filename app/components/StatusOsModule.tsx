@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -106,6 +107,70 @@ const SignaturePad = ({ title, onSave, onClear, initialSignature }: { title: str
     }
   };
 
+  // Re-size signature pad on orientation change
+  useEffect(() => {
+    const doResize = () => {
+      if (sigCanvas.current) {
+        const canvas = sigCanvas.current.getCanvas();
+        if (canvas) {
+          const data = sigCanvas.current.toData();
+          const ratio = Math.max(window.devicePixelRatio || 1, 1);
+          const oldWidth = canvas.width / ratio;
+          const oldHeight = canvas.height / ratio;
+
+          canvas.width = canvas.offsetWidth * ratio;
+          canvas.height = canvas.offsetHeight * ratio;
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.scale(ratio, ratio);
+
+          sigCanvas.current.clear();
+
+          if (data && data.length > 0) {
+            const newWidth = canvas.offsetWidth;
+            const newHeight = canvas.offsetHeight;
+            if (oldWidth !== newWidth || oldHeight !== newHeight) {
+              const scaleX = newWidth / oldWidth;
+              const scaleY = newHeight / oldHeight;
+              const scaledData = data.map((group: any) => {
+                if (group.points) {
+                  return {
+                    ...group,
+                    points: group.points.map((point: any) => ({
+                      ...point,
+                      x: point.x * scaleX,
+                      y: point.y * scaleY
+                    }))
+                  };
+                }
+                return group.map((point: any) => ({
+                  ...point,
+                  x: point.x * scaleX,
+                  y: point.y * scaleY
+                }));
+              });
+              sigCanvas.current.fromData(scaledData as any);
+            } else {
+              sigCanvas.current.fromData(data as any);
+            }
+            setHasDrawing(true);
+          }
+        }
+      }
+    };
+
+    const handleOrientationChange = () => setTimeout(doResize, 300);
+    const handleResize = () => setTimeout(doResize, 100);
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    if (isOpen) setTimeout(doResize, 150);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, [isOpen]);
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -188,6 +253,7 @@ const SignaturePad = ({ title, onSave, onClear, initialSignature }: { title: str
                       className: "w-full h-[200px] cursor-crosshair touch-none"
                     }}
                     onBegin={() => setHasDrawing(true)}
+                    onEnd={() => sigCanvas.current && setHasDrawing(!sigCanvas.current.isEmpty())}
                   />
                 </div>
               </div>
@@ -2493,7 +2559,7 @@ export default function StatusOsModule({
                           </div>
                         ) : (selectedOrder.isVisualChecklist || (selectedOrder as any).is_visual_checklist) ? (
                           <div className="flex-1 -mx-2 sm:mx-0 overflow-x-auto custom-scrollbar pb-2">
-                            <div className="min-w-[450px] sm:min-w-0">
+                            <div className="min-w-[450px] sm:min-w-0 sm:max-w-[320px] mx-auto">
                               <ControllerChecklistPrint checklist={selectedOrder.checklist} theme="dark" />
                             </div>
                           </div>
@@ -3836,8 +3902,8 @@ export default function StatusOsModule({
         )}
       </AnimatePresence>
 
-      {/* PROFESSIONAL PRINT TEMPLATE */}
-      {selectedOrder && (
+      {/* HIDDEN PRINT CONTAINERS (Moved to Portal for reliable printing) */}
+      {selectedOrder && typeof document !== 'undefined' && createPortal(
         <>
           <div className="print-laudo-container" key={`laudo-${selectedOrder.id}`}>
             <TechnicalReportPrintTemplate
@@ -3862,7 +3928,24 @@ export default function StatusOsModule({
               osSettings={osSettings}
             />
           </div>
-        </>
+          <div className="print-warranty-container" key={`warranty-${selectedOrder.id}`}>
+            <WarrantyPrintTemplate
+              order={selectedOrder}
+              customer={customers.find(c => c.id === selectedOrder.customerId)}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+          <div className="warranty-thermal-container" key={`warranty-thermal-${selectedOrder.id}`}>
+            <WarrantyThermalTemplate
+              order={selectedOrder}
+              customer={customers.find(c => c.id === selectedOrder.customerId)}
+              companySettings={companySettings}
+              osSettings={osSettings}
+            />
+          </div>
+        </>,
+        document.body
       )}
 
       {/* Document Hub Modal */}

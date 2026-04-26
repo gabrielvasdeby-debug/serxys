@@ -25,7 +25,7 @@ export default function WarrantyThermalTemplate({
   const warrantyEndDate = addDays(createdAtDate, warrantyDays);
 
   return (
-    <div className="warranty-thermal hidden print:block w-[80mm] mx-auto p-2 bg-white text-black font-mono text-[10px] leading-tight">
+    <div className="warranty-thermal block print:block w-[80mm] mx-auto p-2 bg-white text-black font-mono text-[10px] leading-tight">
 
       {/* HEADER */}
       <div className="text-center mb-1 space-y-0.5">

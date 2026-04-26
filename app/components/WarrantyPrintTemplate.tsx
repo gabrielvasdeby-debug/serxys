@@ -70,7 +70,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}/${companySettings?.publicSlug}/${order.id || order.osNumber}` : '';
 
   return (
-    <div className={`${isPreview ? 'block overflow-x-auto custom-scrollbar' : 'hidden print:block'} print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+    <div className={`print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block overflow-x-auto custom-scrollbar' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
       <div className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border">
         {/* CABEÇALHO PADRÃO OS */}
