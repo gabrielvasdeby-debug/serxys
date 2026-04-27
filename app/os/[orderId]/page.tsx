@@ -222,13 +222,6 @@ export default function TrackingPage() {
         setLoading(false);
       }
     };
-      } catch (err: any) {
-        setError('Erro ao carregar informações da OS.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrder();
   }, [orderId]);
 
