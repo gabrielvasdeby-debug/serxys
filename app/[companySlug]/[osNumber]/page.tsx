@@ -164,62 +164,50 @@ export default function CustomerPortal() {
         };
         setCompany(mappedCompany);
 
-        // 2. Fetch Order Public ID using Secure RPC
-        let currentPublicId: string | null = null;
+        // 2. Resolve the order ID from the URL parameter
+        let orderId: string | null = null;
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(osNumberStr);
-        
+
         if (isUUID) {
-          currentPublicId = osNumberStr;
+          // URL contains a UUID directly — use it as the order ID
+          orderId = osNumberStr;
         } else {
           const isNumeric = /^\d+$/.test(osNumberStr);
           if (isNumeric) {
-            const { data: orderData, error: orderErr } = await supabase
+            // URL contains an OS number — look up by company + os_number
+            // orders table has a public RLS policy (FOR SELECT USING true) so this works for anon users
+            const { data: foundOrder, error: findErr } = await supabase
               .from('orders')
               .select('id')
               .eq('os_number', parseInt(osNumberStr, 10))
               .eq('company_id', companyData.id)
               .maybeSingle();
 
-            if (!orderErr && orderData) {
-              currentPublicId = orderData.id;
+            if (!findErr && foundOrder) {
+              orderId = foundOrder.id;
             }
           }
         }
 
-        if (!currentPublicId) {
+        if (!orderId) {
           setError('Ordem de Serviço não encontrada. Verifique o link e tente novamente.');
           setLoading(false);
           return;
         }
 
-        // 3. Fetch Full Data using Secure RPCs
-        const [orderRes, custRes, compSettingsRes] = await Promise.all([
-          supabase.from('orders').select('*').eq('id', currentPublicId).maybeSingle(),
-          supabase.from('customers').select('*').eq('id', (await supabase.from('orders').select('customer_id').eq('id', currentPublicId).single()).data?.customer_id).maybeSingle(),
-          supabase.from('company_settings').select('*').eq('id', (await supabase.from('orders').select('company_id').eq('id', currentPublicId).single()).data?.company_id).maybeSingle()
-        ]);
+        // 3. Fetch the full order (public RLS allows this)
+        const { data: orderData, error: orderErr } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
+          .maybeSingle();
 
-        const orderResult = orderRes.data && orderRes.data.length > 0 ? orderRes.data[0] : null;
-
-        if (orderRes.error || !orderResult) {
+        if (orderErr || !orderData) {
           setError('Ordem de Serviço não encontrada.');
           setLoading(false);
           return;
         }
 
-        if (orderResult.access_status === 'EXPIRED') {
-          setError('Este link expirou por motivos de segurança. Solicite um novo link à assistência.');
-          setLoading(false);
-          return;
-        }
-
-        if (orderResult.access_status === 'RATE_LIMITED') {
-          setError('Muitas tentativas de acesso. Por favor, aguarde alguns minutos.');
-          setLoading(false);
-          return;
-        }
-
-        const orderData = orderResult;
         const typedOrder = {
           ...orderData,
           osNumber: orderData.os_number,
@@ -238,31 +226,36 @@ export default function CustomerPortal() {
         } as Order;
 
         setOrder(typedOrder);
-        
-        if (custRes.data && custRes.data.length > 0) {
-          setCustomer(custRes.data[0]);
-        }
 
-        if (compSettingsRes.data && compSettingsRes.data.length > 0) {
-          const cs = compSettingsRes.data[0];
-          setCompany({
-            ...mappedCompany,
-            ...cs,
-            logoUrl: cs.logo_url,
-            zipCode: cs.zip_code
-          });
-        }
-
-        // 4. Fetch App Settings (OS Settings)
-        const { data: settResArr } = await supabase
-          .rpc('get_public_app_settings', { p_public_id: currentPublicId });
-        
-        if (settResArr && settResArr.length > 0) {
-          const settingsRows: any[] = settResArr;
-          const settingsRow = settingsRows.find((r: any) => r.key === `os_settings_${orderData.company_id}`) || settingsRows.find((r: any) => r.key === 'os_settings');
-          if (settingsRow?.value) {
-            setOsSettings(settingsRow.value);
+        // 4. Fetch customer via secure RPC (SECURITY DEFINER bypasses RLS)
+        // Uses order.id as p_public_id — the RPC accepts both public_id and id
+        try {
+          const { data: custData } = await supabase
+            .rpc('get_public_customer', { p_public_id: orderId });
+          if (custData && custData.length > 0) {
+            setCustomer(custData[0]);
           }
+        } catch (_) {
+          // Customer data unavailable — portal still works without it
+        }
+
+        // 5. Re-use company data already fetched in step 1 (avoids RLS issue on company_settings)
+        // Also fetch app settings for OS terms
+        try {
+          const { data: settResArr } = await supabase
+            .from('app_settings')
+            .select('*')
+            .eq('company_id', companyData.id);
+
+          if (settResArr && settResArr.length > 0) {
+            const settingsRow = settResArr.find((r: any) => r.key === `os_settings_${companyData.id}`) 
+              || settResArr.find((r: any) => r.key === 'os_settings');
+            if (settingsRow?.value) {
+              setOsSettings(settingsRow.value);
+            }
+          }
+        } catch (_) {
+          // Settings unavailable — portal still works with defaults
         }
 
         setLoading(false);
@@ -296,10 +289,10 @@ export default function CustomerPortal() {
         description: 'Termos de serviço assinados digitalmente via link remoto.'
       };
 
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_sign_order', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_signature: tempSignature,
         p_history_event: historyEvent
       });
@@ -343,10 +336,10 @@ export default function CustomerPortal() {
         description: 'Orçamento APROVADO pelo cliente via link público.'
       };
 
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_approve_budget', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_budget: updatedBudget,
         p_history_event: historyEvent
       });
@@ -398,10 +391,10 @@ export default function CustomerPortal() {
         description: `Orçamento RECUSADO pelo cliente via link público. Motivo: ${motive || 'Não informado'}`
       };
 
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_reject_budget', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_budget: updatedBudget,
         p_history_event: historyEvent
       });

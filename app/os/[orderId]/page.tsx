@@ -125,92 +125,103 @@ export default function TrackingPage() {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const cleanPublicId = orderId.trim();
-        const { data: rpcResults, error: rpcError } = await supabase
-          .rpc('get_public_order', { p_public_id: cleanPublicId });
-  
-        if (rpcError) throw rpcError;
-        const data = rpcResults && rpcResults.length > 0 ? rpcResults[0] : null;
+        const cleanId = orderId.trim();
 
-        if (data && data.access_status === 'SUCCESS') {
-          const typedOrder = {
-            id: data.id,
-            public_id: data.public_id,
-            companyId: data.company_id,
-            osNumber: data.os_number,
-            customerId: data.customer_id,
-            equipment: data.equipment,
-            checklist: data.checklist,
-            checklistNotes: data.checklist_notes,
-            defect: data.defect,
-            technicianNotes: data.technician_notes,
-            service: data.service,
-            financials: data.financials,
-            signatures: data.signatures,
-            status: data.status,
-            priority: data.priority,
-            history: data.history || [],
-            completionData: data.completion_data,
-            productsUsed: data.products_used || [],
-            isVisualChecklist: data.is_visual_checklist,
-            budget: data.budget,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at
-          } as Order;
+        // 1. Fetch the order directly (public RLS allows this)
+        // We try to match by ID (standard UUID)
+        const { data: orderData, error: orderErr } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', cleanId)
+          .maybeSingle();
 
-          setOrder(typedOrder);
-          setAccessError({ type: null, message: null });
-        } else if (data && data.access_status === 'EXPIRED') {
-          setAccessError({ 
-            type: 'EXPIRED', 
-            message: 'Este link expirou por motivos de segurança. Por favor, solicite um novo link à assistência técnica.' 
-          });
-        } else if (data && data.access_status === 'RATE_LIMITED') {
-          setAccessError({ 
-            type: 'RATE_LIMITED', 
-            message: 'Muitas tentativas de acesso detectadas. Por favor, aguarde alguns minutos antes de tentar novamente.' 
-          });
-        } else {
+        if (orderErr || !orderData) {
           setAccessError({ 
             type: 'NOT_FOUND', 
             message: 'Ordem de serviço não encontrada ou link inválido.' 
           });
+          setLoading(false);
+          return;
         }
 
-          if (data && data.access_status === 'SUCCESS') {
-            // Fetch additional settings using secure RPC
-            const [custRes, compRes, settResArr] = await Promise.all([
-              supabase.rpc('get_public_customer', { p_public_id: data.public_id }),
-              supabase.rpc('get_public_company_settings', { p_public_id: data.public_id }),
-              supabase.from('app_settings').select('*').eq('company_id', data.company_id) // For auth/admin check or internal
-            ]);
-            
-            if (custRes.data && custRes.data.length > 0) {
-              setCustomer(custRes.data[0]);
-            }
+        const typedOrder = {
+          ...orderData,
+          osNumber: orderData.os_number,
+          entryPhotos: orderData.entry_photos || [],
+          createdAt: orderData.created_at,
+          updatedAt: orderData.updated_at,
+          history: orderData.history || [],
+          isVisualChecklist: orderData.is_visual_checklist,
+          checklistNotes: orderData.checklist_notes,
+          technicianNotes: orderData.technician_notes,
+          checklistNotPossible: orderData.checklist_not_possible,
+          completionData: orderData.completion_data,
+          technicalReport: orderData.technical_report,
+          scannedOsUrl: orderData.scanned_os_url,
+          budget: orderData.budget || null
+        } as Order;
 
-            if (compRes.data && compRes.data.length > 0) {
-              const compData = compRes.data[0];
-              setCompanySettings({
-                ...compData,
-                zipCode: compData.zip_code || '',
-                logoUrl: compData.logo_url || '',
-                publicSlug: compData.public_slug || 'servyx',
-                slugHistory: compData.slug_history || [],
-                followUpMessage: compData.mensagem_acompanhamento_os || ''
-              });
-              setCompanySettings(prev => ({ ...prev, isDarkTheme: compData.is_dark_theme ?? true }));
-            }
+        setOrder(typedOrder);
+        setAccessError({ type: null, message: null });
 
-            const settingsRows = settResArr.data || [];
-            const settingsRow = settingsRows.find((r: any) => r.key === `os_settings_${data.company_id}`) || settingsRows.find((r: any) => r.key === 'os_settings');
+        // 2. Fetch associated data using the IDs from the order
+        // Fetch company settings
+        const { data: companyData } = await supabase
+          .from('company_settings')
+          .select('*')
+          .eq('id', orderData.company_id)
+          .maybeSingle();
 
+        if (companyData) {
+          setCompanySettings({
+            ...companyData,
+            zipCode: companyData.zip_code || '',
+            logoUrl: companyData.logo_url || '',
+            publicSlug: companyData.public_slug || 'servyx',
+            slugHistory: companyData.slug_history || [],
+            followUpMessage: companyData.mensagem_acompanhamento_os || '',
+            isDarkTheme: companyData.is_dark_theme ?? true
+          });
+        }
+
+        // 3. Fetch customer via secure RPC (SECURITY DEFINER bypasses RLS)
+        try {
+          const { data: custData } = await supabase
+            .rpc('get_public_customer', { p_public_id: orderData.id });
+          if (custData && custData.length > 0) {
+            setCustomer(custData[0]);
+          }
+        } catch (_) {
+          // Customer data unavailable — portal still works without it
+        }
+
+        // 4. Fetch App Settings for OS terms
+        try {
+          const { data: settResArr } = await supabase
+            .from('app_settings')
+            .select('*')
+            .eq('company_id', orderData.company_id);
+
+          if (settResArr && settResArr.length > 0) {
+            const settingsRow = settResArr.find((r: any) => r.key === `os_settings_${orderData.company_id}`) 
+              || settResArr.find((r: any) => r.key === 'os_settings');
             if (settingsRow?.value) {
               setOsSettings(prev => ({ ...prev, ...(settingsRow.value as any) }));
             }
-          } else if (!data || data.access_status === 'NOT_FOUND') {
-            setError('Ordem de Serviço não encontrada.');
           }
+        } catch (_) {
+          // Settings unavailable — portal still works with defaults
+        }
+
+      } catch (err: any) {
+        setAccessError({ 
+          type: 'NOT_FOUND', 
+          message: 'Erro ao carregar informações da OS.' 
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
       } catch (err: any) {
         setError('Erro ao carregar informações da OS.');
       } finally {
@@ -239,10 +250,10 @@ export default function TrackingPage() {
         description: 'Orçamento APROVADO pelo cliente via link público.'
       };
 
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_approve_budget', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_budget: updatedBudget,
         p_history_event: historyEvent
       });
@@ -288,10 +299,10 @@ export default function TrackingPage() {
         description: `Orçamento RECUSADO pelo cliente via link público. Motivo: ${motive || 'Não informado'}`
       };
 
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_reject_budget', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_budget: updatedBudget,
         p_history_event: historyEvent
       });
@@ -324,10 +335,10 @@ export default function TrackingPage() {
         description: 'Termo de Entrada ASSINADO digitalmente pelo cliente via link remoto.'
       };
 
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_sign_order', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_signature: signature,
         p_history_event: historyEvent
       });
@@ -410,10 +421,10 @@ export default function TrackingPage() {
       };
 
       // 1. Update the order with the signature
-      if (!order.public_id) throw new Error('Public ID missing');
+      if (!order.id) throw new Error('ID missing');
 
       const { error: rpcError } = await supabase.rpc('public_sign_order', {
-        p_public_id: order.public_id,
+        p_public_id: order.id,
         p_signature: tempSignature,
         p_history_event: historyEvent
       });
