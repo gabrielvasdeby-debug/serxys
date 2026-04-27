@@ -52,12 +52,31 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
 
   return (
-    <div className={`bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block overflow-x-auto custom-scrollbar' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+    <div className={`bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      <div className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border">
-        {/* CABEÇALHO */}
-        <header className="flex flex-col mb-1.5">
-          <div className="flex justify-between items-center mb-2 pl-2">
+      {/* Mobile-friendly wrapper that scales A4 to fit screen */}
+      <div className={`${isPreview ? 'flex flex-col items-center overflow-hidden w-full' : ''}`}>
+        <div 
+          className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border bg-white origin-top sm:scale-100 sm:m-0"
+          style={isPreview ? { 
+            transform: 'scale(var(--doc-scale, 1))',
+            marginBottom: 'calc(260mm * (var(--doc-scale, 1) - 1))',
+            width: '210mm'
+          } : {}}
+        >
+          {/* Script inline to handle dynamic scaling for mobile view */}
+          {isPreview && (
+            <style dangerouslySetInnerHTML={{ __html: `
+              :root { --doc-scale: 1; }
+              @media (max-width: 794px) {
+                :root { --doc-scale: calc((100vw - 40px) / 794); }
+              }
+            `}} />
+          )}
+
+          {/* CABEÇALHO */}
+          <header className="flex flex-col mb-1.5">
+            <div className="flex justify-between items-center mb-2 pl-2">
             <div className="flex items-center gap-3">
               <div className="w-auto max-w-[240px] h-16 flex items-center justify-start shrink-0 pr-4 overflow-hidden">
                 {companySettings?.logoUrl ? (
