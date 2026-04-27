@@ -30,8 +30,24 @@ const WhatsappIcon = ({ size = 12, className = '' }) => (
   </svg>
 );
 
-export default function OrderPrintTemplate({ order, customer, companySettings, osSettings, isPreview, isSigning, onClientSignatureClick, clientSignatureOverride }: OrderPrintTemplateProps) {
-  if (!order || !customer) return null;
+export default function OrderPrintTemplate({ order, customer: rawCustomer, companySettings, osSettings, isPreview, isSigning, onClientSignatureClick, clientSignatureOverride }: OrderPrintTemplateProps) {
+  if (!order) return null;
+
+  // Ensure customer data exists, fallback to placeholders if null/undefined
+  const customer = rawCustomer || {
+    name: 'Cliente',
+    whatsapp: '---',
+    phone: '---',
+    email: '---',
+    document: '---',
+    address: {
+      street: 'Consulte a Assistência',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: ''
+    }
+  };
 
   const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
 
