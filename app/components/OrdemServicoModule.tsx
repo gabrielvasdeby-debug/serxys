@@ -1423,8 +1423,10 @@ export default function OrdemServicoModule({
       setShowSuccessModal(true);
       
       if (signatureMode === 'remote' && selectedCustomer.whatsapp) {
-        // Use the secure UUID link for privacy (prevents guessing links)
-        const portalUrl = `${window.location.origin}/os/${osData.id}`;
+        // Use slug + secure UUID link (branding + privacy)
+        const portalUrl = companySettings.publicSlug 
+          ? `${window.location.origin}/${companySettings.publicSlug}/${osData.id}`
+          : `${window.location.origin}/os/${osData.id}`;
         
         const template = osSettings.whatsappMessages?.['Assinatura Remota'] || 
           `Olá [nome_cliente]! 👋\nSeu atendimento já está em fase final (OS [numero_os]).\n\nFalta só sua confirmação para concluirmos:\n👉 [link_assinatura]\n\nAssim que confirmar, já damos continuidade 👍\n\nAguardamos você\n\n[nome_assistencia]`;
