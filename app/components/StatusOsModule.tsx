@@ -1099,6 +1099,7 @@ export default function StatusOsModule({
       const customer = customers.find(c => c.id === order.customerId);
       if (!customer?.whatsapp) {
         onShowToast('Cliente sem número de WhatsApp cadastrado');
+      } else {
         const portalUrl = companySettings.publicSlug
           ? `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber}`
           : `${window.location.origin}/os/${order.id}`;
