@@ -41,9 +41,10 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   useEffect(() => {
     if (!isPreview) return;
     const updateScale = () => {
-      const container = wrapperRef.current;
-      if (!container) return;
-      const availableWidth = container.parentElement?.clientWidth ?? window.innerWidth;
+      // Use window.innerWidth to ensure we get the actual device screen width,
+      // avoiding layout-expansion bugs caused by the unscaled 794px child.
+      const padding = window.innerWidth < 768 ? 32 : 0; // 16px padding on each side for mobile
+      const availableWidth = window.innerWidth - padding;
       const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
       setScale(newScale);
     };
