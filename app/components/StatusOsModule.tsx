@@ -8,7 +8,7 @@ import {
   ArrowLeft, Search, Plus, User, Smartphone, 
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
-  Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, Loader2, Pencil,
+  Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
   Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon
 } from 'lucide-react';
 import { Customer } from './ClientesModule';
@@ -1492,7 +1492,7 @@ export default function StatusOsModule({
                 onClick={onBack}
                 className="p-1.5 hover:bg-zinc-800 rounded-sm transition-colors bg-zinc-900 border border-zinc-800"
               >
-                <ArrowLeft size={18} className="text-zinc-400" />
+                <ChevronLeft size={22} className="text-zinc-400" />
               </button>
               <h1 className="text-base font-bold leading-none">Status OS</h1>
             </div>
@@ -1535,7 +1535,7 @@ export default function StatusOsModule({
                 onClick={onBack}
                 className="p-2.5 hover:bg-zinc-800 rounded-sm transition-colors bg-zinc-900 border border-zinc-800"
               >
-                <ArrowLeft size={20} className="text-zinc-400" />
+                <ChevronLeft size={24} className="text-zinc-400" />
               </button>
               <div>
                 <h1 className="text-lg sm:text-xl font-bold leading-none sm:leading-tight">Status OS</h1>
@@ -1984,10 +1984,10 @@ export default function StatusOsModule({
                           {/* Top row: OS number + date */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black font-mono text-zinc-200 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded-sm uppercase tracking-widest">
+                              <span className="text-[11px] font-black font-mono text-zinc-200 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded-sm uppercase tracking-widest">
                                 #{order.osNumber.toString().padStart(4, '0')}
                               </span>
-                              <span className={`inline-flex items-center gap-1.5 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/10`}>
+                              <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/10`}>
                                 {order.status}
                               </span>
                             </div>
