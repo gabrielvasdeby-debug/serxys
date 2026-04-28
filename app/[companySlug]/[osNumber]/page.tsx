@@ -229,15 +229,40 @@ export default function CustomerPortal() {
         setOrder(typedOrder);
 
         // 4. Fetch customer via secure RPC (SECURITY DEFINER bypasses RLS)
-        // Uses order.id as p_public_id — the RPC accepts both public_id and id
         try {
-          const { data: custData } = await supabase
+          const { data: custData, error: custErr } = await supabase
             .rpc('get_public_customer', { p_public_id: orderId });
-          if (custData && custData.length > 0) {
+          
+          if (custErr) {
+            console.error('RPC Error fetching customer:', custErr);
+            // Fallback: try direct fetch if RLS allows (unlikely but safe to try)
+            if (orderData.customer_id) {
+              const { data: directCust } = await supabase
+                .from('customers')
+                .select('name, whatsapp, phone, email, address, document')
+                .eq('id', orderData.customer_id)
+                .maybeSingle();
+              if (directCust) {
+                setCustomer(directCust);
+              }
+            }
+          } else if (custData && custData.length > 0) {
             setCustomer(custData[0]);
+          } else {
+             // No data from RPC, try direct fallback
+             if (orderData.customer_id) {
+              const { data: directCust } = await supabase
+                .from('customers')
+                .select('name, whatsapp, phone, email, address, document')
+                .eq('id', orderData.customer_id)
+                .maybeSingle();
+              if (directCust) {
+                setCustomer(directCust);
+              }
+            }
           }
-        } catch (_) {
-          // Customer data unavailable — portal still works without it
+        } catch (err) {
+          console.error('Catch error fetching customer:', err);
         }
 
         // 5. Re-use company data already fetched in step 1 (avoids RLS issue on company_settings)
