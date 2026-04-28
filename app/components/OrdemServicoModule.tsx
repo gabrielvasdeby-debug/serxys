@@ -92,6 +92,8 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
       if (sigCanvas.current) {
         const canvas = sigCanvas.current.getCanvas();
         if (canvas) {
+          if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
+
           // Salva assinatura atual (pontos) antes de redimensionar para poder escalar
           const data = sigCanvas.current.toData();
           
@@ -115,7 +117,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
             const newHeight = canvas.offsetHeight;
             
             // Se as dimensões mudaram, escalamos os pontos
-            if (oldWidth !== newWidth || oldHeight !== newHeight) {
+            if (oldWidth > 0 && oldHeight > 0 && (oldWidth !== newWidth || oldHeight !== newHeight)) {
               const scaleX = newWidth / oldWidth;
               const scaleY = newHeight / oldHeight;
 
@@ -233,12 +235,17 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
               </div>
 
               <div className="flex-1 p-4 sm:p-8 flex flex-col gap-4 sm:gap-6 overflow-hidden">
-                <div className="flex-1 bg-white rounded-sm overflow-hidden shadow-inner relative ring-1 ring-zinc-200">
+                <div className="flex-1 bg-white rounded-sm overflow-hidden shadow-inner relative ring-1 ring-zinc-200 h-64 sm:h-80 landscape:h-[50vh]">
                   <SignatureCanvas 
                     ref={sigCanvas}
                     penColor="black"
                     onBegin={() => setHasDrawing(true)}
-                    onEnd={() => sigCanvas.current && setHasDrawing(!sigCanvas.current.isEmpty())}
+                    onEnd={() => {
+                      if (sigCanvas.current) {
+                        const empty = sigCanvas.current.isEmpty();
+                        setHasDrawing(!empty);
+                      }
+                    }}
                     canvasProps={{
                       className: "w-full h-full cursor-crosshair",
                       style: { width: '100%', height: '100%' }
