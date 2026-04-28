@@ -81,7 +81,7 @@ $$ LANGUAGE plpgsql;
 -- B. BUSCAR CLIENTE
 CREATE OR REPLACE FUNCTION get_public_customer(p_public_id uuid)
 RETURNS TABLE (
-    name text, whatsapp text, phone text, email text, address text
+    name text, whatsapp text, phone text, email text, address jsonb, document text
 ) 
 SET search_path = public
 SECURITY DEFINER AS $$
@@ -90,7 +90,7 @@ BEGIN
   IF check_rpc_spam(p_public_id) THEN RETURN; END IF;
 
   RETURN QUERY 
-  SELECT c.name, c.whatsapp, c.phone, c.email, c.address 
+  SELECT c.name, c.whatsapp, c.phone, c.email, c.address, c.document 
   FROM public.customers c
   JOIN public.orders o ON o.customer_id = c.id
   WHERE o.public_id = p_public_id;
