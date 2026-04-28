@@ -1628,6 +1628,7 @@ export default function StatusOsModule({
             </div>
           </div>
         </div>
+      </div>
       </header>
 
       {/* Compact Metrics Dashboard */}
