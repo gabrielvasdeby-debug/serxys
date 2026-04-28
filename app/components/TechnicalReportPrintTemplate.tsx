@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Order } from '../types';
 
@@ -34,19 +34,6 @@ export default function TechnicalReportPrintTemplate({
   companySettings,
   isPreview 
 }: TechnicalReportPrintTemplateProps) {
-  const [zoom, setZoom] = useState(1);
-
-  useEffect(() => {
-    if (!isPreview) return;
-    const updateZoom = () => {
-      const screenWidth = window.innerWidth;
-      setZoom(screenWidth < A4_WIDTH_PX ? screenWidth / A4_WIDTH_PX : 1);
-    };
-    updateZoom();
-    window.addEventListener('resize', updateZoom);
-    return () => window.removeEventListener('resize', updateZoom);
-  }, [isPreview]);
-
   if (!order || !customer || !order.technicalReport) return null;
 
   const report = order.technicalReport;
@@ -56,13 +43,10 @@ export default function TechnicalReportPrintTemplate({
   return (
     <div className="bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible">
 
-      {/* Wrapper */}
-      <div>
-        {/* A4 document - uses CSS zoom to fit mobile screens naturally */}
-        <div
-          className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm print:shadow-none"
-          style={isPreview && zoom < 1 ? { zoom } : {}}
-        >
+      {/* Outer wrapper: standard layout */}
+      <div className={`${isPreview ? 'mx-auto overflow-x-auto custom-scrollbar' : ''}`}>
+        {/* Inner A4 document */}
+        <div className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm print:shadow-none">
         
         {/* 1. CABEÇALHO */}
         <header className="flex justify-between items-start mb-6 border-b border-zinc-200 pb-4">

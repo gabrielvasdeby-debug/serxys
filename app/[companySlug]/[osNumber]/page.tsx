@@ -499,7 +499,7 @@ export default function CustomerPortal() {
           <div className="bg-white rounded-md shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden relative border border-white/5 group">
              {/* A4 Scale Wrapper for Mobile */}
              <div className="w-full flex justify-center bg-zinc-100 shadow-inner">
-               <div className="w-full max-w-[210mm] p-0 md:p-8">
+               <div className="w-full max-w-[210mm] p-0 md:p-8 overflow-x-auto custom-scrollbar">
                  <div className="bg-white shadow-2xl border border-slate-200">
                     <OrderPrintTemplate 
                       order={order}
@@ -513,14 +513,6 @@ export default function CustomerPortal() {
                     />
                  </div>
                </div>
-             </div>
-
-             {/* Mobile instruction overlay */}
-             <div className="md:hidden absolute inset-x-0 bottom-6 flex justify-center pointer-events-none">
-                <div className="bg-black/90 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-2xl flex items-center gap-3">
-                   <Smartphone size={16} className="text-emerald-500" />
-                   Deslize para ver o documento completo
-                </div>
              </div>
           </div>
           
@@ -587,7 +579,7 @@ export default function CustomerPortal() {
                 </div>
 
                 <div className="p-8 bg-black/30">
-                   <div className="bg-white rounded-md overflow-hidden shadow-inner relative group">
+                    <div className="bg-white rounded-md overflow-hidden shadow-inner relative group border-4 border-zinc-800">
                       <SignatureCanvas 
                         ref={sigPad}
                         penColor="#000000"
@@ -596,6 +588,30 @@ export default function CustomerPortal() {
                         }}
                       />
                       
+                      {/* Orientation Warning Overlay for Portrait */}
+                      <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center sm:hidden portrait:flex pointer-events-auto">
+                        <motion.div 
+                          animate={{ rotate: 90 }}
+                          transition={{ repeat: Infinity, duration: 2, repeatDelay: 1 }}
+                          className="text-[#00E676] mb-4"
+                        >
+                          <Smartphone size={48} />
+                        </motion.div>
+                        <h3 className="text-white font-black uppercase tracking-tighter italic text-lg mb-2">Gire o celular</h3>
+                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                          A assinatura fica muito melhor na horizontal. Gire seu dispositivo agora!
+                        </p>
+                        <button 
+                          onClick={(e) => {
+                             const parent = e.currentTarget.parentElement;
+                             if (parent) parent.style.display = 'none';
+                          }}
+                          className="mt-6 px-6 py-2 border border-zinc-700 rounded-sm text-zinc-500 text-[9px] font-black uppercase tracking-widest"
+                        >
+                          Continuar em Vertical
+                        </button>
+                      </div>
+
                       <button 
                         onClick={() => sigPad.current?.clear()}
                         className="absolute bottom-4 right-4 w-12 h-12 bg-white/80 hover:bg-white text-zinc-400 hover:text-red-500 rounded-full flex items-center justify-center transition-all shadow-lg border border-zinc-100"
