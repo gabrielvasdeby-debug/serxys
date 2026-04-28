@@ -81,28 +81,22 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
 
   return (
-    <div className={`bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+    <div className="bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      {/* Outer wrapper: clips to the scaled width/height so no overflow */}
+      {/* Outer wrapper: clips horizontal overflow from scaled A4 */}
       <div
         ref={wrapperRef}
-        style={isPreview ? {
-          width: '100%',
-          height: docHeight != null ? `${docHeight * scale}px` : 'auto',
-          overflow: 'hidden',
-          position: 'relative',
-        } : {}}
+        style={{ overflow: 'hidden', width: '100%' }}
       >
-        {/* Inner A4 document, scaled down to fit */}
+        {/* Inner A4 document, scaled to fit the screen width */}
         <div
           ref={docRef}
           className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm"
-          style={isPreview ? {
+          style={isPreview && scale < 1 ? {
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
-            position: 'absolute',
-            top: 0,
-            left: 0,
+            // Compensate for the vertical space left after scaling
+            marginBottom: docHeight ? `${-(docHeight * (1 - scale))}px` : 0,
           } : {}}
         >
 

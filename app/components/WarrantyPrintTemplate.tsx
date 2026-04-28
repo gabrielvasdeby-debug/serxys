@@ -97,26 +97,19 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
 
   return (
     <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-      {/* Outer wrapper clips to scaled size */}
+      {/* Outer wrapper clips horizontal overflow from scaled A4 */}
       <div
         ref={wrapperRef}
-        style={isPreview ? {
-          width: '100%',
-          height: docHeight != null ? `${docHeight * scale}px` : 'auto',
-          overflow: 'hidden',
-          position: 'relative',
-        } : {}}
+        style={{ overflow: 'hidden', width: '100%' }}
       >
         {/* Inner A4 document scaled to fit */}
         <div
           ref={docRef}
           className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border shadow-sm"
-          style={isPreview ? {
+          style={isPreview && scale < 1 ? {
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
-            position: 'absolute',
-            top: 0,
-            left: 0,
+            marginBottom: docHeight ? `${-(docHeight * (1 - scale))}px` : 0,
           } : {}}>
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">

@@ -67,26 +67,19 @@ export default function TechnicalReportPrintTemplate({
   return (
     <div className="bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible">
 
-      {/* Outer wrapper clips to scaled size */}
+      {/* Outer wrapper clips horizontal overflow from scaled A4 */}
       <div
         ref={wrapperRef}
-        style={isPreview ? {
-          width: '100%',
-          height: docHeight != null ? `${docHeight * scale}px` : 'auto',
-          overflow: 'hidden',
-          position: 'relative',
-        } : {}}
+        style={{ overflow: 'hidden', width: '100%' }}
       >
         {/* Inner A4 document scaled to fit */}
         <div
           ref={docRef}
           className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm"
-          style={isPreview ? {
+          style={isPreview && scale < 1 ? {
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
-            position: 'absolute',
-            top: 0,
-            left: 0,
+            marginBottom: docHeight ? `${-(docHeight * (1 - scale))}px` : 0,
           } : {}}>
         
         {/* 1. CABEÇALHO */}
