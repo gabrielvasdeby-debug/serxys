@@ -1,7 +1,6 @@
 'use client';
-// Refined scaling and layout logic for mobile responsiveness 2026-04-27
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Check, X, User, Smartphone, AlertTriangle, Wrench, ListChecks, DollarSign, Info, Phone, Mail, Pencil } from 'lucide-react';
 import { Order, CompanySettings, OsSettings } from '../types';
@@ -31,7 +30,36 @@ const WhatsappIcon = ({ size = 12, className = '' }) => (
   </svg>
 );
 
+// A4 width in pixels at 96dpi
+const A4_WIDTH_PX = 794;
+
 export default function OrderPrintTemplate({ order, customer: rawCustomer, companySettings, osSettings, isPreview, isSigning, onClientSignatureClick, clientSignatureOverride }: OrderPrintTemplateProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [docHeight, setDocHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isPreview) return;
+    const updateScale = () => {
+      const container = wrapperRef.current;
+      if (!container) return;
+      const availableWidth = container.parentElement?.clientWidth ?? window.innerWidth;
+      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
+      setScale(newScale);
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [isPreview]);
+
+  // After scale is set, measure the document's natural height and shrink the wrapper
+  const docRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isPreview || !docRef.current) return;
+    const h = docRef.current.scrollHeight;
+    setDocHeight(h);
+  }, [isPreview, scale]);
+
   if (!order) return null;
 
   // Ensure customer data exists, fallback to placeholders if null/undefined
@@ -53,38 +81,30 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
 
   return (
-    <div className={`bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+    <div className={`bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      {/* Mobile-friendly wrapper that scales A4 to fit screen */}
-      <div 
-        className={`${isPreview ? 'mx-auto' : ''}`}
-        style={isPreview ? { 
-          width: 'calc(210mm * var(--doc-scale, 1))',
-          height: 'calc(var(--doc-height, 260mm) * var(--doc-scale, 1))',
-          overflow: 'visible'
+      {/* Outer wrapper: clips to the scaled width/height so no overflow */}
+      <div
+        ref={wrapperRef}
+        style={isPreview ? {
+          width: '100%',
+          height: docHeight != null ? `${docHeight * scale}px` : 'auto',
+          overflow: 'hidden',
+          position: 'relative',
         } : {}}
       >
-        <div 
-          className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white origin-top sm:m-0 shadow-sm"
-          style={isPreview ? { 
-            transform: 'scale(var(--doc-scale, 1))',
+        {/* Inner A4 document, scaled down to fit */}
+        <div
+          ref={docRef}
+          className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm"
+          style={isPreview ? {
+            transform: `scale(${scale})`,
             transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
           } : {}}
         >
-          {/* Script inline to handle dynamic scaling for mobile view */}
-          {isPreview && (
-            <style dangerouslySetInnerHTML={{ __html: `
-              :root { 
-                --doc-scale: 1; 
-                --doc-height: 260mm;
-              }
-              @media (max-width: 794px) {
-                :root { 
-                  --doc-scale: calc((100vw - 16px) / 794); 
-                }
-              }
-            `}} />
-          )}
 
           {/* CABEÇALHO */}
           <header className="flex flex-col mb-1.5">
@@ -303,7 +323,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
         <div className="mt-4 pt-3 border-t text-center text-[8px] text-slate-500 font-medium">
           {osSettings.printFooter || `${companySettings.name} - SERVYX | CNPJ: ${companySettings.cnpj || '---'} | ${companySettings.city} - ${companySettings.state}`}
         </div>
-      </div>
+        </div>
       </div>
     </div>
   );

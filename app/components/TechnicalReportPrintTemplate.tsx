@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Order } from '../types';
 
@@ -26,12 +26,38 @@ interface TechnicalReportPrintTemplateProps {
   isPreview?: boolean;
 }
 
+const A4_WIDTH_PX = 794;
+
 export default function TechnicalReportPrintTemplate({ 
   order, 
   customer, 
   companySettings,
   isPreview 
 }: TechnicalReportPrintTemplateProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const docRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [docHeight, setDocHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isPreview) return;
+    const updateScale = () => {
+      const container = wrapperRef.current;
+      if (!container) return;
+      const availableWidth = container.parentElement?.clientWidth ?? window.innerWidth;
+      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
+      setScale(newScale);
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [isPreview]);
+
+  useEffect(() => {
+    if (!isPreview || !docRef.current) return;
+    setDocHeight(docRef.current.scrollHeight);
+  }, [isPreview, scale]);
+
   if (!order || !customer || !order.technicalReport) return null;
 
   const report = order.technicalReport;
@@ -39,38 +65,29 @@ export default function TechnicalReportPrintTemplate({
   const emissionDate = report.createdAt ? new Date(report.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
 
   return (
-    <div className={`bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible ${isPreview ? 'block' : 'block'}`}>
+    <div className="bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible">
 
-      {/* Mobile-friendly wrapper that scales A4 to fit screen */}
-      <div 
-        className={`${isPreview ? 'mx-auto' : ''}`}
-        style={isPreview ? { 
-          width: 'calc(210mm * var(--report-scale, 1))',
-          height: 'calc(var(--report-height, 260mm) * var(--report-scale, 1))',
-          overflow: 'visible'
+      {/* Outer wrapper clips to scaled size */}
+      <div
+        ref={wrapperRef}
+        style={isPreview ? {
+          width: '100%',
+          height: docHeight != null ? `${docHeight * scale}px` : 'auto',
+          overflow: 'hidden',
+          position: 'relative',
         } : {}}
       >
-        <div 
-          className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col origin-top shadow-sm"
-          style={isPreview ? { 
-            transform: 'scale(var(--report-scale, 1))',
+        {/* Inner A4 document scaled to fit */}
+        <div
+          ref={docRef}
+          className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm"
+          style={isPreview ? {
+            transform: `scale(${scale})`,
             transformOrigin: 'top left',
-          } : {}}
-        >
-          {/* Script inline to handle dynamic scaling for mobile view */}
-          {isPreview && (
-            <style dangerouslySetInnerHTML={{ __html: `
-              :root { 
-                --report-scale: 1; 
-                --report-height: 260mm;
-              }
-              @media (max-width: 794px) {
-                :root { 
-                  --report-scale: calc((100vw - 16px) / 794); 
-                }
-              }
-            `}} />
-          )}
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          } : {}}>
         
         {/* 1. CABEÇALHO */}
         <header className="flex justify-between items-start mb-6 border-b border-zinc-200 pb-4">
