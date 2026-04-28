@@ -1507,6 +1507,9 @@ export default function StatusOsModule({
               }`}
             >
               <LayoutDashboard size={16} />
+              {showMetrics ? 'Ocultar Painel' : 'Métricas do Mês'}
+            </button>
+
             {/* Mobile-only Header Buttons (Removed from here, moved to sticky ribbon) */}
             
             <div className="hidden lg:block relative flex-1 lg:w-96 order-2 lg:order-none">
