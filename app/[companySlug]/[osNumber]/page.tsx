@@ -653,8 +653,8 @@ export default function CustomerPortal() {
                    </button>
                 </div>
 
-                <div className="p-8 bg-black/30">
-                    <div className="bg-white rounded-md overflow-hidden shadow-inner relative group border-4 border-zinc-800">
+                 <div className="p-4 sm:p-8 bg-black/30">
+                    <div className="bg-white rounded-md overflow-hidden shadow-inner relative group border-4 border-zinc-800 h-64 sm:h-80 landscape:h-[50vh]">
                       <SignatureCanvas 
                         ref={sigPad}
                         penColor="#000000"
@@ -666,7 +666,7 @@ export default function CustomerPortal() {
                           }
                         }}
                         canvasProps={{
-                          className: 'w-full h-64 md:h-80 cursor-crosshair',
+                          className: 'w-full h-full cursor-crosshair',
                           style: { width: '100%', height: '100%' }
                         }}
                       />
