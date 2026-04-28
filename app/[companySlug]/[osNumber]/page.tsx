@@ -1020,7 +1020,7 @@ export default function CustomerPortal() {
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 items-center">
                {order.entryPhotos?.map((photo, i) => (
                  <div key={i} className="relative w-full max-w-md aspect-square bg-zinc-900 rounded-md border border-white/10 overflow-hidden shadow-2xl">
-                    <Image src={photo} alt="Foto da OS" fill className="object-cover" />
+                    <Image src={photo} alt="Foto da OS" fill className="object-contain" />
                  </div>
                ))}
             </div>

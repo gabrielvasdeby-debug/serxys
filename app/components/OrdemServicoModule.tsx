@@ -2564,7 +2564,7 @@ export default function OrdemServicoModule({
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {entryPhotos.map((url, index) => (
                           <div key={index} className="relative group aspect-square rounded-sm overflow-hidden border border-zinc-800 bg-black">
-                            <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-cover" />
+                            <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-contain" />
                             <button
                               onClick={() => setEntryPhotos(entryPhotos.filter((_, i) => i !== index))}
                               className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
