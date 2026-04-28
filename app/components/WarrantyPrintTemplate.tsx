@@ -53,9 +53,8 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   useEffect(() => {
     if (!isPreview) return;
     const updateScale = () => {
-      const padding = window.innerWidth < 768 ? 32 : 0;
-      const availableWidth = window.innerWidth - padding;
-      setScale(availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1);
+      const newScale = window.innerWidth < A4_WIDTH_PX ? window.innerWidth / A4_WIDTH_PX : 1;
+      setScale(newScale);
     };
     updateScale();
     window.addEventListener('resize', updateScale);
@@ -64,13 +63,11 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
 
   useEffect(() => {
     if (!isPreview || !docRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setDocHeight(entry.target.scrollHeight);
-      }
+    const observer = new ResizeObserver(() => {
+      if (docRef.current) setDocHeight(docRef.current.getBoundingClientRect().height);
     });
     observer.observe(docRef.current);
-    setDocHeight(docRef.current.scrollHeight);
+    setDocHeight(docRef.current.getBoundingClientRect().height);
     return () => observer.disconnect();
   }, [isPreview]);
 
@@ -101,16 +98,20 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
 
   return (
     <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-      {/* Outer wrapper: dynamically sets height to match scaled document */}
-      <div 
-        className={`${isPreview ? 'mx-auto overflow-hidden' : ''}`}
-        style={isPreview && scale < 1 && docHeight ? { height: docHeight * scale } : {}}
+      {/* Viewer: clips overflow, sets height to post-scale height */}
+      <div
+        className={`${isPreview ? 'w-full overflow-hidden' : ''}`}
+        style={isPreview && scale < 1 && docHeight ? { height: `${docHeight * scale}px` } : {}}
       >
-        {/* Inner A4 document */}
-        <div 
+        {/* A4 document scaled to fit screen width, centered */}
+        <div
           ref={docRef}
-          className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border shadow-sm print:shadow-none origin-top-left"
-          style={isPreview && scale < 1 ? { transform: `scale(${scale})` } : {}}
+          className="w-[794px] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white print:shadow-none"
+          style={isPreview && scale < 1 ? {
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            marginLeft: `calc(50% - 397px)`,
+          } : { margin: '0 auto' }}
         >
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">

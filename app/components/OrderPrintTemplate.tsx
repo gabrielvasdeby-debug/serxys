@@ -40,9 +40,9 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   useEffect(() => {
     if (!isPreview) return;
     const updateScale = () => {
-      const padding = window.innerWidth < 768 ? 32 : 0;
-      const availableWidth = window.innerWidth - padding;
-      setScale(availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1);
+      // Use full innerWidth — no padding needed since transform-origin is centered
+      const newScale = window.innerWidth < A4_WIDTH_PX ? window.innerWidth / A4_WIDTH_PX : 1;
+      setScale(newScale);
     };
     updateScale();
     window.addEventListener('resize', updateScale);
@@ -51,14 +51,12 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
 
   useEffect(() => {
     if (!isPreview || !docRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setDocHeight(entry.target.scrollHeight);
-      }
+    // Use ResizeObserver to always get the accurate natural height of the A4 doc
+    const observer = new ResizeObserver(() => {
+      if (docRef.current) setDocHeight(docRef.current.getBoundingClientRect().height);
     });
     observer.observe(docRef.current);
-    // Initial measurement
-    setDocHeight(docRef.current.scrollHeight);
+    setDocHeight(docRef.current.getBoundingClientRect().height);
     return () => observer.disconnect();
   }, [isPreview]);
 
@@ -85,16 +83,20 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   return (
     <div className="bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      {/* Outer wrapper: dynamically sets height to match scaled document */}
-      <div 
-        className={`${isPreview ? 'mx-auto overflow-hidden' : ''}`}
-        style={isPreview && scale < 1 && docHeight ? { height: docHeight * scale } : {}}
+      {/* Viewer: clips overflow, sets height to the post-scale height */}
+      <div
+        className={`${isPreview ? 'w-full overflow-hidden' : ''}`}
+        style={isPreview && scale < 1 && docHeight ? { height: `${docHeight * scale}px` } : {}}
       >
-        {/* Inner A4 document */}
-        <div 
+        {/* A4 document scaled to fit screen width, centered */}
+        <div
           ref={docRef}
-          className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm sm:mx-auto print:shadow-none origin-top-left"
-          style={isPreview && scale < 1 ? { transform: `scale(${scale})` } : {}}
+          className="w-[794px] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white print:shadow-none"
+          style={isPreview && scale < 1 ? {
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            marginLeft: `calc(50% - 397px)`,
+          } : { margin: '0 auto' }}
         >
 
           {/* CABEÇALHO */}

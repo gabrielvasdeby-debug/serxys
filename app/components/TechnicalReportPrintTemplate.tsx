@@ -41,9 +41,8 @@ export default function TechnicalReportPrintTemplate({
   useEffect(() => {
     if (!isPreview) return;
     const updateScale = () => {
-      const padding = window.innerWidth < 768 ? 32 : 0;
-      const availableWidth = window.innerWidth - padding;
-      setScale(availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1);
+      const newScale = window.innerWidth < A4_WIDTH_PX ? window.innerWidth / A4_WIDTH_PX : 1;
+      setScale(newScale);
     };
     updateScale();
     window.addEventListener('resize', updateScale);
@@ -52,13 +51,11 @@ export default function TechnicalReportPrintTemplate({
 
   useEffect(() => {
     if (!isPreview || !docRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setDocHeight(entry.target.scrollHeight);
-      }
+    const observer = new ResizeObserver(() => {
+      if (docRef.current) setDocHeight(docRef.current.getBoundingClientRect().height);
     });
     observer.observe(docRef.current);
-    setDocHeight(docRef.current.scrollHeight);
+    setDocHeight(docRef.current.getBoundingClientRect().height);
     return () => observer.disconnect();
   }, [isPreview]);
 
@@ -71,16 +68,20 @@ export default function TechnicalReportPrintTemplate({
   return (
     <div className="bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible">
 
-      {/* Outer wrapper: dynamically sets height to match scaled document */}
-      <div 
-        className={`${isPreview ? 'mx-auto overflow-hidden' : ''}`}
-        style={isPreview && scale < 1 && docHeight ? { height: docHeight * scale } : {}}
+      {/* Viewer: clips overflow, sets height to post-scale height */}
+      <div
+        className={`${isPreview ? 'w-full overflow-hidden' : ''}`}
+        style={isPreview && scale < 1 && docHeight ? { height: `${docHeight * scale}px` } : {}}
       >
-        {/* Inner A4 document */}
-        <div 
+        {/* A4 document scaled to fit screen width, centered */}
+        <div
           ref={docRef}
-          className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm print:shadow-none origin-top-left"
-          style={isPreview && scale < 1 ? { transform: `scale(${scale})` } : {}}
+          className="w-[794px] bg-white p-[5mm] print:p-0 flex flex-col print:shadow-none"
+          style={isPreview && scale < 1 ? {
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            marginLeft: `calc(50% - 397px)`,
+          } : { margin: '0 auto' }}
         >
         
         {/* 1. CABEÇALHO */}
