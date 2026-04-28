@@ -1930,7 +1930,112 @@ export default function StatusOsModule({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {/* ===== MOBILE CARDS (hidden on sm+) ===== */}
+                <div className="flex flex-col gap-3 sm:hidden">
+                  {isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={`m-skeleton-${i}`} className="bg-zinc-900/60 border border-zinc-800/50 rounded-lg p-4 space-y-3 animate-pulse">
+                        <div className="flex items-center justify-between">
+                          <div className="h-3 w-20 bg-zinc-800 rounded-full" />
+                          <div className="h-3 w-16 bg-zinc-800 rounded-full" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 w-3/4 bg-zinc-800 rounded-sm" />
+                          <div className="h-3 w-1/2 bg-zinc-800 rounded-md" />
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="h-10 flex-1 bg-zinc-900 rounded-md border border-zinc-800/50" />
+                          <div className="h-10 flex-1 bg-zinc-900 rounded-md border border-zinc-800/50" />
+                        </div>
+                      </div>
+                    ))
+                  ) : group.orders.map(order => {
+                    const customer = customers.find(c => c.id === order.customerId);
+                    const cfg = STATUS_CONFIG[order.status];
+                    const isLate = order.deliveryForecast && new Date(order.deliveryForecast) < new Date() && !['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status);
+                    return (
+                      <div key={`m-${order.id}`} className="bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden shadow-lg active:scale-[0.99] transition-all">
+                        {/* Status color bar */}
+                        <div className={`h-1 w-full ${cfg.bg.replace('/10', '/80')}`} />
+
+                        <div className="p-4 space-y-3">
+                          {/* Top row: OS number + date */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black font-mono text-zinc-200 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded-md uppercase tracking-widest">
+                              OS {order.osNumber.toString().padStart(4, '0')}
+                            </span>
+                            <span className="text-[10px] text-zinc-500 font-bold">
+                              {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+
+                          {/* Status badge */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/20`}>
+                              {React.createElement(cfg.icon, { size: 11 })}
+                              {order.status}
+                            </span>
+                            {isLate && (
+                              <span className="flex items-center gap-1 text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full font-black animate-pulse uppercase">
+                                <AlertTriangle size={9} /> Atrasado
+                              </span>
+                            )}
+                            <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]} ml-auto`} title={`Prioridade: ${order.priority}`} />
+                          </div>
+
+                          {/* Customer + equipment */}
+                          <div>
+                            <p className="font-bold text-sm text-white leading-tight">{customer?.name || 'Cliente não encontrado'}</p>
+                            <p className="text-[11px] text-zinc-500 uppercase tracking-tight mt-0.5">{order.equipment.brand} {order.equipment.model}</p>
+                          </div>
+
+                          {/* Defect preview */}
+                          {order.defect && (
+                            <p className="text-[11px] text-zinc-500 italic line-clamp-2 pl-2 border-l-2 border-zinc-700">
+                              {order.defect}
+                            </p>
+                          )}
+
+                          {/* Financial value */}
+                          {(order.financials?.totalValue || 0) > 0 && (
+                            <div className="flex items-center justify-between py-2 border-t border-zinc-800/50">
+                              <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Valor</span>
+                              <span className="text-sm font-black text-[#00E676]">{formatToBRL(order.financials.totalValue)}</span>
+                            </div>
+                          )}
+
+                          {/* Action buttons */}
+                          <div className="grid grid-cols-3 gap-2 pt-1">
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 active:bg-zinc-800 transition-colors"
+                            >
+                              <Eye size={16} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Detalhes</span>
+                            </button>
+                            <button
+                              onClick={() => { onEdit?.(order); }}
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-blue-400 active:bg-zinc-800 transition-colors"
+                            >
+                              <Pencil size={16} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Editar</span>
+                            </button>
+                            <button
+                              onClick={() => { setSelectedOrder(order); }}
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors"
+                            >
+                              <CheckCircle2 size={16} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Status</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* ===== DESKTOP GRID (hidden on mobile) ===== */}
+                <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {isLoading ? (
                     Array.from({ length: 4 }).map((_, i) => (
                       <div key={`skeleton-${i}`} className="bg-zinc-900/60 border border-zinc-800/50 rounded-sm p-4 sm:p-6 space-y-4 animate-pulse">
@@ -2034,6 +2139,7 @@ export default function StatusOsModule({
                     );
                   })}
                 </div>
+
               </div>
             ))}
 
