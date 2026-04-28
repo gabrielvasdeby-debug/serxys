@@ -127,6 +127,7 @@ export default function CustomerPortal() {
   const [osSettings, setOsSettings] = useState<any>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [isSavingSignature, setIsSavingSignature] = useState(false);
+  const [hasDrawing, setHasDrawing] = useState(false);
   const [tempSignature, setTempSignature] = useState<string | null>(null);
   const sigPad = React.useRef<SignatureCanvas>(null);
 
@@ -427,7 +428,7 @@ export default function CustomerPortal() {
 
 
   const handleConfirmModalSignature = () => {
-    if (!sigPad.current || sigPad.current.isEmpty()) return;
+    if (!sigPad.current || (!hasDrawing && sigPad.current.isEmpty())) return;
     try {
       // Use the built-in toDataURL which is more stable across different Next.js/Webpack setups
       const dataUrl = sigPad.current.toDataURL('image/png');
@@ -443,6 +444,78 @@ export default function CustomerPortal() {
       }
     }
   };
+
+  // Re-size signature pad on orientation change
+  useEffect(() => {
+    const doResize = () => {
+      if (sigPad.current) {
+        const canvas = sigPad.current.getCanvas();
+        if (canvas) {
+          const data = sigPad.current.toData();
+          const ratio = Math.max(window.devicePixelRatio || 1, 1);
+          const oldWidth = canvas.width / ratio;
+          const oldHeight = canvas.height / ratio;
+
+          canvas.width = canvas.offsetWidth * ratio;
+          canvas.height = canvas.offsetHeight * ratio;
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.scale(ratio, ratio);
+
+          sigPad.current.clear();
+
+          if (data && data.length > 0) {
+            const newWidth = canvas.offsetWidth;
+            const newHeight = canvas.offsetHeight;
+            
+            if (oldWidth !== newWidth || oldHeight !== newHeight) {
+              const scaleX = newWidth / oldWidth;
+              const scaleY = newHeight / oldHeight;
+
+              const scaledData = data.map((group: any) => {
+                if (group.points) {
+                  return {
+                    ...group,
+                    points: group.points.map((point: any) => ({
+                      ...point,
+                      x: point.x * scaleX,
+                      y: point.y * scaleY
+                    }))
+                  };
+                }
+                return group.map((point: any) => ({
+                  ...point,
+                  x: point.x * scaleX,
+                  y: point.y * scaleY
+                }));
+              });
+              sigPad.current.fromData(scaledData as any);
+            } else {
+              sigPad.current.fromData(data as any);
+            }
+            setHasDrawing(true);
+          }
+        }
+      }
+    };
+
+    const handleOrientationChange = () => {
+      setTimeout(doResize, 300);
+    };
+
+    const handleResize = () => {
+      setTimeout(doResize, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    if (isSignatureModalOpen) {
+      setTimeout(doResize, 150);
+    }
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, [isSignatureModalOpen]);
 
   if (loading) {
     return (
@@ -583,6 +656,8 @@ export default function CustomerPortal() {
                       <SignatureCanvas 
                         ref={sigPad}
                         penColor="#000000"
+                        onBegin={() => setHasDrawing(true)}
+                        onEnd={() => sigPad.current && setHasDrawing(!sigPad.current.isEmpty())}
                         canvasProps={{
                           className: 'w-full h-64 md:h-80 cursor-crosshair'
                         }}
@@ -613,7 +688,10 @@ export default function CustomerPortal() {
                       </div>
 
                       <button 
-                        onClick={() => sigPad.current?.clear()}
+                        onClick={() => {
+                          sigPad.current?.clear();
+                          setHasDrawing(false);
+                        }}
                         className="absolute bottom-4 right-4 w-12 h-12 bg-white/80 hover:bg-white text-zinc-400 hover:text-red-500 rounded-full flex items-center justify-center transition-all shadow-lg border border-zinc-100"
                         title="Limpar"
                       >
