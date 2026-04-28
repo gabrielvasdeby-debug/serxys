@@ -1990,54 +1990,58 @@ export default function StatusOsModule({
                         <div className="p-4 space-y-3">
                           {/* Top row: OS number + date */}
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-black font-mono text-zinc-200 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded-md uppercase tracking-widest">
-                              OS {order.osNumber.toString().padStart(4, '0')}
-                            </span>
-                            <span className="text-[10px] text-zinc-500 font-bold">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-black font-mono text-zinc-200 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded-sm uppercase tracking-widest">
+                                #{order.osNumber.toString().padStart(4, '0')}
+                              </span>
+                              <span className={`inline-flex items-center gap-1.5 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/10`}>
+                                {order.status}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-zinc-600 font-bold">
                               {new Date(order.createdAt).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
 
-                          {/* Status badge */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/20`}>
-                              {React.createElement(cfg.icon, { size: 11 })}
-                              {order.status}
-                            </span>
-                            {isLate && (
-                              <span className="flex items-center gap-1 text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full font-black animate-pulse uppercase">
-                                <AlertTriangle size={9} /> Atrasado
-                              </span>
-                            )}
-                            <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]} ml-auto`} title={`Prioridade: ${order.priority}`} />
+                          {/* Customer + Equipment */}
+                          <div className="pt-1">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-black text-sm text-white truncate leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5 truncate">{order.equipment.brand} {order.equipment.model}</p>
+                              </div>
+                              <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]} shrink-0 mt-1.5 shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
+                            </div>
                           </div>
 
-                          {/* Customer + equipment */}
-                          <div>
-                            <p className="font-bold text-sm text-white leading-tight">{customer?.name || 'Cliente não encontrado'}</p>
-                            <p className="text-[11px] text-zinc-500 uppercase tracking-tight mt-0.5">{order.equipment.brand} {order.equipment.model}</p>
+                          {/* Info Grid (Defect & Service) */}
+                          <div className="grid grid-cols-2 gap-4 py-2 border-y border-zinc-800/40">
+                            <div>
+                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-[0.1em] mb-1">Defeito</p>
+                              <p className="text-[10px] text-zinc-400 line-clamp-1 italic">{order.defect || '—'}</p>
+                            </div>
+                            <div className="border-l border-zinc-800/40 pl-4">
+                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-[0.1em] mb-1">Serviço</p>
+                              <p className="text-[10px] text-zinc-400 line-clamp-1">{order.service || '—'}</p>
+                            </div>
                           </div>
 
-                          {/* Customer Name */}
-                          <div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Cliente</p>
-                            <p className="font-bold text-sm text-white leading-tight">{customer?.name || 'Cliente não encontrado'}</p>
-                          </div>
-
-                          {/* Defect */}
-                          <div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Defeito</p>
-                            <p className="text-[11px] text-zinc-400 italic line-clamp-2">
-                              {order.defect || 'Nenhum defeito relatado'}
-                            </p>
-                          </div>
-
-                          {/* Service */}
-                          <div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Serviço Contratado</p>
-                            <p className="text-[11px] text-zinc-400 line-clamp-1">
-                              {order.service || 'Nenhum serviço especificado'}
-                            </p>
+                          {/* Highlights (Late status, value) */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {isLate && (
+                                <span className="flex items-center gap-1 text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full font-black animate-pulse uppercase tracking-tighter">
+                                  <AlertTriangle size={8} /> Atrasado
+                                </span>
+                              )}
+                              {order.budget?.status === 'Aprovado' && (
+                                <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">Aprovado</span>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-0.5">Valor Total</p>
+                              <p className="text-sm font-black text-[#00E676]">{formatToBRL(order.financials?.totalValue || 0)}</p>
+                            </div>
                           </div>
 
                           {/* Financial value */}
