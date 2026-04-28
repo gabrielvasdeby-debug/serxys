@@ -1492,8 +1492,8 @@ export default function StatusOsModule({
               <ArrowLeft size={18} className="text-zinc-400 sm:w-5 sm:h-5" />
             </button>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold">Status OS</h1>
-              <p className="text-[10px] sm:text-sm text-zinc-500 font-medium uppercase tracking-wider">Gestão de Ordens</p>
+              <h1 className="text-lg sm:text-xl font-bold leading-none sm:leading-tight">Status OS</h1>
+              <p className="hidden sm:block text-[10px] sm:text-sm text-zinc-500 font-medium uppercase tracking-wider">Gestão de Ordens</p>
             </div>
           </div>
 
@@ -1671,7 +1671,7 @@ export default function StatusOsModule({
       </AnimatePresence>
 
       {/* Ribbon Timeline - FIXADA NO TOPO DA MAINKANBAN */}
-      <div className="bg-[#141414] border-b border-zinc-800/50 sticky top-[60px] sm:top-[85px] z-20 no-print">
+      <div className="bg-[#141414] border-b border-zinc-800/50 sticky top-[53px] sm:top-[85px] z-20 no-print">
         <div className="max-w-[1600px] mx-auto p-2 sm:p-4">
           
           {/* Mobile Status Picker */}
@@ -2044,13 +2044,7 @@ export default function StatusOsModule({
                             </div>
                           </div>
 
-                          {/* Financial value */}
-                          <div className="flex items-center justify-between py-2 border-t border-zinc-800/50">
-                            <span className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Valor Total</span>
-                            <span className="text-sm font-black text-[#00E676]">
-                              {formatToBRL(order.financials?.totalValue || 0)}
-                            </span>
-                          </div>
+
 
                           {/* Action buttons */}
                           <div className="grid grid-cols-3 gap-2 pt-1">
