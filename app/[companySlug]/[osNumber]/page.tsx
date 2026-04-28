@@ -451,6 +451,8 @@ export default function CustomerPortal() {
       if (sigPad.current) {
         const canvas = sigPad.current.getCanvas();
         if (canvas) {
+          if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
+
           const data = sigPad.current.toData();
           const ratio = Math.max(window.devicePixelRatio || 1, 1);
           const oldWidth = canvas.width / ratio;
@@ -467,7 +469,7 @@ export default function CustomerPortal() {
             const newWidth = canvas.offsetWidth;
             const newHeight = canvas.offsetHeight;
             
-            if (oldWidth !== newWidth || oldHeight !== newHeight) {
+            if (oldWidth > 0 && oldHeight > 0 && (oldWidth !== newWidth || oldHeight !== newHeight)) {
               const scaleX = newWidth / oldWidth;
               const scaleY = newHeight / oldHeight;
 
@@ -657,9 +659,15 @@ export default function CustomerPortal() {
                         ref={sigPad}
                         penColor="#000000"
                         onBegin={() => setHasDrawing(true)}
-                        onEnd={() => sigPad.current && setHasDrawing(!sigPad.current.isEmpty())}
+                        onEnd={() => {
+                          if (sigPad.current) {
+                            const empty = sigPad.current.isEmpty();
+                            setHasDrawing(!empty);
+                          }
+                        }}
                         canvasProps={{
-                          className: 'w-full h-64 md:h-80 cursor-crosshair'
+                          className: 'w-full h-64 md:h-80 cursor-crosshair',
+                          style: { width: '100%', height: '100%' }
                         }}
                       />
                       
