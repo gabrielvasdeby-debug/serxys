@@ -64,10 +64,10 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   useEffect(() => {
     if (!isPreview || !docRef.current) return;
     const observer = new ResizeObserver(() => {
-      if (docRef.current) setDocHeight(docRef.current.getBoundingClientRect().height);
+      if (docRef.current) setDocHeight(docRef.current.scrollHeight);
     });
     observer.observe(docRef.current);
-    setDocHeight(docRef.current.getBoundingClientRect().height);
+    setDocHeight(docRef.current.scrollHeight);
     return () => observer.disconnect();
   }, [isPreview]);
 

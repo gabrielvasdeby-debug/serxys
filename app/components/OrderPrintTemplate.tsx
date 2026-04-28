@@ -53,10 +53,10 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
     if (!isPreview || !docRef.current) return;
     // Use ResizeObserver to always get the accurate natural height of the A4 doc
     const observer = new ResizeObserver(() => {
-      if (docRef.current) setDocHeight(docRef.current.getBoundingClientRect().height);
+      if (docRef.current) setDocHeight(docRef.current.scrollHeight);
     });
     observer.observe(docRef.current);
-    setDocHeight(docRef.current.getBoundingClientRect().height);
+    setDocHeight(docRef.current.scrollHeight);
     return () => observer.disconnect();
   }, [isPreview]);
 
