@@ -1,4 +1,5 @@
 'use client';
+// Refined scaling and layout logic for mobile responsiveness 2026-04-27
 
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
