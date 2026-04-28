@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { User, Smartphone, AlertTriangle, Wrench, ShieldCheck, Calendar, FileText, Phone, Mail } from 'lucide-react';
 import { Order } from '../types';
@@ -46,6 +46,34 @@ const WhatsappIcon = ({ size = 12, className = '' }) => (
 const A4_WIDTH_PX = 794;
 
 export default function WarrantyPrintTemplate({ order, customer, companySettings, osSettings, isPreview }: WarrantyPrintTemplateProps) {
+  const [scale, setScale] = useState(1);
+  const [docHeight, setDocHeight] = useState<number | null>(null);
+  const docRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isPreview) return;
+    const updateScale = () => {
+      const padding = window.innerWidth < 768 ? 32 : 0;
+      const availableWidth = window.innerWidth - padding;
+      setScale(availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1);
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [isPreview]);
+
+  useEffect(() => {
+    if (!isPreview || !docRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setDocHeight(entry.target.scrollHeight);
+      }
+    });
+    observer.observe(docRef.current);
+    setDocHeight(docRef.current.scrollHeight);
+    return () => observer.disconnect();
+  }, [isPreview]);
+
   if (!order || !customer) return null;
 
   const compData = order.completionData;
@@ -73,10 +101,17 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
 
   return (
     <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-      {/* Outer wrapper: standard layout */}
-      <div className={`${isPreview ? 'mx-auto overflow-x-auto custom-scrollbar' : ''}`}>
+      {/* Outer wrapper: dynamically sets height to match scaled document */}
+      <div 
+        className={`${isPreview ? 'mx-auto overflow-hidden' : ''}`}
+        style={isPreview && scale < 1 && docHeight ? { height: docHeight * scale } : {}}
+      >
         {/* Inner A4 document */}
-        <div className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border shadow-sm print:shadow-none">
+        <div 
+          ref={docRef}
+          className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border shadow-sm print:shadow-none origin-top-left"
+          style={isPreview && scale < 1 ? { transform: `scale(${scale})` } : {}}
+        >
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
           <div className="flex justify-between items-center mb-2 pl-2">
