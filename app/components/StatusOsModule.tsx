@@ -1481,9 +1481,10 @@ export default function StatusOsModule({
   }, [filteredOrders, groupBy, activeStatus]);
 
   return (
+    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 flex flex-col font-sans selection:bg-[#00E676]/30">
       <header className="bg-[#141414] border-b border-zinc-800 p-2.5 sm:p-4 sticky top-0 z-30 no-print">
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
-          {/* Mobile Header: 2 Rows */}
+          {/* Mobile Header: Title Row -> Search Row -> Actions Row */}
           <div className="flex lg:hidden flex-col gap-2.5">
             {/* Row 1: Back + Title */}
             <div className="flex items-center gap-3">
@@ -1504,7 +1505,7 @@ export default function StatusOsModule({
                 placeholder="Buscar OS, cliente ou aparelho..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
               />
             </div>
 
@@ -1512,14 +1513,14 @@ export default function StatusOsModule({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsStatusPickerOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
               >
                 <Grid size={14} />
                 Filtro
               </button>
               <button
                 onClick={() => setIsGroupDropdownOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
               >
                 <AlertCircle size={14} />
                 Prioridade
