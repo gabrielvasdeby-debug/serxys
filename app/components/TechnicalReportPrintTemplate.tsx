@@ -23,6 +23,9 @@ interface TechnicalReportPrintTemplateProps {
     publicSlug: string;
     complement?: string;
   };
+  isPreview?: boolean;
+}
+
 export default function TechnicalReportPrintTemplate({ 
   order, 
   customer, 
