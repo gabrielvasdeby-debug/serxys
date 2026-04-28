@@ -1481,30 +1481,49 @@ export default function StatusOsModule({
   }, [filteredOrders, groupBy, activeStatus]);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 flex flex-col font-sans selection:bg-[#00E676]/30">
-      <header className="bg-[#141414] border-b border-zinc-800 p-2 sm:p-4 sticky top-0 z-30 no-print">
-        <div className="max-w-[1600px] mx-auto flex flex-col gap-2">
-          {/* Mobile Top Row: Back + Title + Search */}
-          <div className="flex lg:hidden items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+      <header className="bg-[#141414] border-b border-zinc-800 p-2.5 sm:p-4 sticky top-0 z-30 no-print">
+        <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
+          {/* Mobile Header: 2 Rows */}
+          <div className="flex lg:hidden flex-col gap-2.5">
+            {/* Row 1: Back + Title */}
+            <div className="flex items-center gap-3">
               <button
                 onClick={onBack}
                 className="p-1.5 hover:bg-zinc-800 rounded-sm transition-colors bg-zinc-900 border border-zinc-800"
               >
-                <ArrowLeft size={16} className="text-zinc-400" />
+                <ArrowLeft size={18} className="text-zinc-400" />
               </button>
-              <h1 className="text-sm font-bold leading-none">Status OS</h1>
+              <h1 className="text-base font-bold leading-none">Status OS</h1>
             </div>
             
-            <div className="relative flex-1 max-w-[200px]">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" size={14} />
+            {/* Row 2: Search Bar */}
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
               <input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Buscar OS, cliente ou aparelho..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-8 pr-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
               />
+            </div>
+
+            {/* Row 3: Filter & Priority Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsStatusPickerOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
+              >
+                <Grid size={14} />
+                Filtro
+              </button>
+              <button
+                onClick={() => setIsGroupDropdownOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
+              >
+                <AlertCircle size={14} />
+                Prioridade
+              </button>
             </div>
           </div>
 
@@ -1698,34 +1717,9 @@ export default function StatusOsModule({
       </AnimatePresence>
 
       {/* Ribbon Timeline - FIXADA NO TOPO DA MAINKANBAN */}
-      <div className="bg-[#141414] border-b border-zinc-800/50 sticky top-[75px] lg:top-[85px] z-20 no-print">
+      <div className="hidden sm:block bg-[#141414] border-b border-zinc-800/50 sticky top-[85px] z-20 no-print">
         <div className="max-w-[1600px] mx-auto p-2 sm:p-4">
           
-          {/* Mobile Actions Bar */}
-          <div className="sm:hidden flex items-center gap-2">
-            <button
-              onClick={() => setIsStatusPickerOpen(true)}
-              className="flex-1 h-9 bg-[#0A0A0A] rounded-sm px-3 border border-zinc-800 flex items-center justify-between group active:scale-[0.98] transition-all"
-            >
-              <div className="flex items-center gap-2">
-                <Grid size={14} className="text-zinc-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Filtro</span>
-              </div>
-              <ChevronDown size={12} className="text-zinc-600" />
-            </button>
-            
-            <button
-              onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
-              className="flex-1 h-9 bg-[#0A0A0A] rounded-sm px-3 border border-zinc-800 flex items-center justify-between group active:scale-[0.98] transition-all"
-            >
-              <div className="flex items-center gap-2">
-                <AlertCircle size={14} className="text-zinc-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Prioridade</span>
-              </div>
-              <ChevronDown size={12} className="text-zinc-600" />
-            </button>
-          </div>
-
           {/* Desktop Ribbon Timeline */}
           <div className="hidden sm:flex w-full h-12 bg-[#0A0A0A] rounded-sm p-1 border border-zinc-900/80 gap-1 overflow-x-auto custom-scrollbar-horizontal">
 
