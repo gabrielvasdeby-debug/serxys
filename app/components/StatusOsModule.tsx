@@ -1500,17 +1500,16 @@ export default function StatusOsModule({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             <button
               onClick={() => setShowMetrics(!showMetrics)}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+              className={`hidden lg:flex items-center justify-center gap-2 px-4 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
                 showMetrics 
                 ? 'bg-[#00E676]/10 text-[#00E676] border-[#00E676]/30 shadow-[0_0_15px_rgba(0,230,118,0.1)]' 
                 : 'bg-[#0A0A0A] text-zinc-500 border-zinc-800 hover:border-zinc-700 hover:text-white'
               }`}
             >
               <LayoutDashboard size={16} />
-              {showMetrics ? 'Ocultar Painel' : 'Métricas do Mês'}
-            </button>
-
-            <div className="relative flex-1 lg:w-96 order-2 lg:order-none">
+            {/* Mobile-only Header Buttons (Removed from here, moved to sticky ribbon) */}
+            
+            <div className="hidden lg:block relative flex-1 lg:w-96 order-2 lg:order-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input
                 type="text"
@@ -1524,7 +1523,7 @@ export default function StatusOsModule({
             <div className="relative no-print shrink-0 order-3 lg:order-none w-full sm:w-auto">
                 <button
                   onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
-                  className={`w-full sm:px-4 py-2.5 rounded-sm text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 border bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700 sm:min-w-[200px] shadow-sm relative z-10`}
+                  className={`hidden sm:flex w-full sm:px-4 py-2.5 rounded-sm text-sm font-black uppercase tracking-widest transition-all items-center justify-center gap-4 border bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700 sm:min-w-[200px] shadow-sm relative z-10`}
                 >
                   <div className={`p-1.5 rounded-sm transition-colors ${groupBy !== 'nenhum' ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800 text-zinc-500'}`}>
                      {groupBy === 'nenhum' && <Grid size={16} />}
@@ -1673,30 +1672,57 @@ export default function StatusOsModule({
         <div className="max-w-[1600px] mx-auto p-2 sm:p-4">
           
           {/* Mobile Status Picker */}
-          <div className="sm:hidden">
-            <button
-              onClick={() => setIsStatusPickerOpen(true)}
-              className="w-full h-12 bg-[#0A0A0A] rounded-sm px-4 border border-zinc-800 flex items-center justify-between group active:scale-[0.98] transition-all"
-            >
-              <div className="flex items-center gap-3">
-                {activeStatus === 'ALL' ? (
-                  <>
-                    <div className="p-1.5 bg-zinc-800 rounded-sm text-zinc-400">
-                      <Grid size={18} />
-                    </div>
-                    <span className="text-sm font-bold text-white">Todos os Status</span>
-                  </>
-                ) : (
-                  <>
-                    <div className={`p-1.5 ${STATUS_CONFIG[activeStatus as OrderStatus].bg} ${STATUS_CONFIG[activeStatus as OrderStatus].color} rounded-sm`}>
-                      {React.createElement(STATUS_CONFIG[activeStatus as OrderStatus].icon, { size: 18 })}
-                    </div>
-                    <span className="text-sm font-bold text-white">{activeStatus}</span>
-                  </>
-                )}
-              </div>
-              <ChevronDown size={18} className="text-zinc-600 group-hover:text-[#00E676] transition-colors" />
-            </button>
+          {/* Mobile Actions Bar */}
+          <div className="sm:hidden flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsStatusPickerOpen(true)}
+                className="flex-1 h-12 bg-[#0A0A0A] rounded-sm px-4 border border-zinc-800 flex items-center justify-between group active:scale-[0.98] transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <Grid size={18} className="text-zinc-500" />
+                  <span className="text-xs font-black uppercase tracking-widest text-zinc-300">Filtro</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {activeStatus !== 'ALL' && (
+                    <span className="text-[9px] font-black bg-[#00E676]/20 text-[#00E676] px-2 py-0.5 rounded-full uppercase">
+                      {activeStatus}
+                    </span>
+                  )}
+                  <ChevronDown size={16} className="text-zinc-600" />
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
+                className="flex-1 h-12 bg-[#0A0A0A] rounded-sm px-4 border border-zinc-800 flex items-center justify-between group active:scale-[0.98] transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <AlertCircle size={18} className="text-zinc-500" />
+                  <span className="text-xs font-black uppercase tracking-widest text-zinc-300">Prioridade</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {groupBy !== 'nenhum' && (
+                    <span className="text-[9px] font-black bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full uppercase">
+                      {groupBy}
+                    </span>
+                  )}
+                  <ChevronDown size={16} className="text-zinc-600" />
+                </div>
+              </button>
+            </div>
+
+            {/* Mobile Search Bar */}
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+              <input
+                type="text"
+                placeholder="Buscar OS, cliente..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
+              />
+            </div>
           </div>
 
           {/* Desktop Ribbon Timeline */}
@@ -1989,42 +2015,57 @@ export default function StatusOsModule({
                             <p className="text-[11px] text-zinc-500 uppercase tracking-tight mt-0.5">{order.equipment.brand} {order.equipment.model}</p>
                           </div>
 
-                          {/* Defect preview */}
-                          {order.defect && (
-                            <p className="text-[11px] text-zinc-500 italic line-clamp-2 pl-2 border-l-2 border-zinc-700">
-                              {order.defect}
+                          {/* Customer Name */}
+                          <div>
+                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Cliente</p>
+                            <p className="font-bold text-sm text-white leading-tight">{customer?.name || 'Cliente não encontrado'}</p>
+                          </div>
+
+                          {/* Defect */}
+                          <div>
+                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Defeito</p>
+                            <p className="text-[11px] text-zinc-400 italic line-clamp-2">
+                              {order.defect || 'Nenhum defeito relatado'}
                             </p>
-                          )}
+                          </div>
+
+                          {/* Service */}
+                          <div>
+                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Serviço Contratado</p>
+                            <p className="text-[11px] text-zinc-400 line-clamp-1">
+                              {order.service || 'Nenhum serviço especificado'}
+                            </p>
+                          </div>
 
                           {/* Financial value */}
-                          {(order.financials?.totalValue || 0) > 0 && (
-                            <div className="flex items-center justify-between py-2 border-t border-zinc-800/50">
-                              <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Valor</span>
-                              <span className="text-sm font-black text-[#00E676]">{formatToBRL(order.financials.totalValue)}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center justify-between py-2 border-t border-zinc-800/50">
+                            <span className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Valor Total</span>
+                            <span className="text-sm font-black text-[#00E676]">
+                              {formatToBRL(order.financials?.totalValue || 0)}
+                            </span>
+                          </div>
 
                           {/* Action buttons */}
                           <div className="grid grid-cols-3 gap-2 pt-1">
                             <button
                               onClick={() => setSelectedOrder(order)}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 active:bg-zinc-800 transition-colors"
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 active:bg-zinc-800 transition-colors shadow-sm"
                             >
-                              <Eye size={16} />
+                              <Eye size={18} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Detalhes</span>
                             </button>
                             <button
                               onClick={() => { onEdit?.(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-blue-400 active:bg-zinc-800 transition-colors"
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-blue-400 active:bg-zinc-800 transition-colors shadow-sm"
                             >
-                              <Pencil size={16} />
+                              <Pencil size={18} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Editar</span>
                             </button>
                             <button
                               onClick={() => { setSelectedOrder(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors"
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shadow-sm"
                             >
-                              <CheckCircle2 size={16} />
+                              <CheckCircle2 size={18} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Status</span>
                             </button>
                           </div>
