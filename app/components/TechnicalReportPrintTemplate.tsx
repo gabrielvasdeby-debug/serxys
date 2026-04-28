@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Order } from '../types';
 
@@ -23,40 +23,12 @@ interface TechnicalReportPrintTemplateProps {
     publicSlug: string;
     complement?: string;
   };
-  isPreview?: boolean;
-}
-
-const A4_WIDTH_PX = 794;
-
 export default function TechnicalReportPrintTemplate({ 
   order, 
   customer, 
   companySettings,
   isPreview 
 }: TechnicalReportPrintTemplateProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const docRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [docHeight, setDocHeight] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!isPreview) return;
-    const updateScale = () => {
-      const padding = window.innerWidth < 768 ? 32 : 0;
-      const availableWidth = window.innerWidth - padding;
-      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
-      setScale(newScale);
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [isPreview]);
-
-  useEffect(() => {
-    if (!isPreview || !docRef.current) return;
-    setDocHeight(docRef.current.scrollHeight);
-  }, [isPreview, scale]);
-
   if (!order || !customer || !order.technicalReport) return null;
 
   const report = order.technicalReport;
@@ -66,20 +38,10 @@ export default function TechnicalReportPrintTemplate({
   return (
     <div className="bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible">
 
-      {/* Outer wrapper clips horizontal overflow from scaled A4 */}
-      <div
-        ref={wrapperRef}
-        style={{ overflow: 'hidden', width: '100%' }}
-      >
-        {/* Inner A4 document scaled to fit */}
-        <div
-          ref={docRef}
-          className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm"
-          style={isPreview && scale < 1 ? {
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            marginBottom: docHeight ? `${-(docHeight * (1 - scale))}px` : 0,
-          } : {}}>
+      {/* Outer wrapper: standard layout */}
+      <div className={`${isPreview ? 'mx-auto overflow-x-auto custom-scrollbar' : ''}`}>
+        {/* Inner A4 document */}
+        <div className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col shadow-sm">
         
         {/* 1. CABEÇALHO */}
         <header className="flex justify-between items-start mb-6 border-b border-zinc-200 pb-4">

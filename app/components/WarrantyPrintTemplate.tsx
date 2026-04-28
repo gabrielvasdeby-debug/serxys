@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { User, Smartphone, AlertTriangle, Wrench, ShieldCheck, Calendar, FileText, Phone, Mail } from 'lucide-react';
 import { Order } from '../types';
@@ -43,32 +43,7 @@ const WhatsappIcon = ({ size = 12, className = '' }) => (
   </svg>
 );
 
-const A4_WIDTH_PX = 794;
-
 export default function WarrantyPrintTemplate({ order, customer, companySettings, osSettings, isPreview }: WarrantyPrintTemplateProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const docRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [docHeight, setDocHeight] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!isPreview) return;
-    const updateScale = () => {
-      const padding = window.innerWidth < 768 ? 32 : 0;
-      const availableWidth = window.innerWidth - padding;
-      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
-      setScale(newScale);
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [isPreview]);
-
-  useEffect(() => {
-    if (!isPreview || !docRef.current) return;
-    setDocHeight(docRef.current.scrollHeight);
-  }, [isPreview, scale]);
-
   if (!order || !customer) return null;
 
   const compData = order.completionData;
@@ -96,20 +71,10 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
 
   return (
     <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-      {/* Outer wrapper clips horizontal overflow from scaled A4 */}
-      <div
-        ref={wrapperRef}
-        style={{ overflow: 'hidden', width: '100%' }}
-      >
-        {/* Inner A4 document scaled to fit */}
-        <div
-          ref={docRef}
-          className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border shadow-sm"
-          style={isPreview && scale < 1 ? {
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            marginBottom: docHeight ? `${-(docHeight * (1 - scale))}px` : 0,
-          } : {}}>
+      {/* Outer wrapper: standard layout */}
+      <div className={`${isPreview ? 'mx-auto overflow-x-auto custom-scrollbar' : ''}`}>
+        {/* Inner A4 document */}
+        <div className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border shadow-sm">
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
           <div className="flex justify-between items-center mb-2 pl-2">

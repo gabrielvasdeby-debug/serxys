@@ -498,8 +498,8 @@ export default function CustomerPortal() {
 
           <div className="bg-white rounded-md shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden relative border border-white/5 group">
              {/* A4 Scale Wrapper for Mobile */}
-             <div className="w-full overflow-x-hidden flex justify-center bg-zinc-100 shadow-inner">
-               <div className="w-full max-w-[210mm] p-0 md:p-8">
+             <div className="w-full flex justify-center bg-zinc-100 shadow-inner">
+               <div className="w-full max-w-[210mm] p-0 md:p-8 overflow-x-auto custom-scrollbar">
                  <div className="bg-white shadow-2xl border border-slate-200">
                     <OrderPrintTemplate 
                       order={order}

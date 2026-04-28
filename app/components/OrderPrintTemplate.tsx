@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Check, X, User, Smartphone, AlertTriangle, Wrench, ListChecks, DollarSign, Info, Phone, Mail, Pencil } from 'lucide-react';
 import { Order, CompanySettings, OsSettings } from '../types';
@@ -30,37 +30,7 @@ const WhatsappIcon = ({ size = 12, className = '' }) => (
   </svg>
 );
 
-// A4 width in pixels at 96dpi
-const A4_WIDTH_PX = 794;
-
 export default function OrderPrintTemplate({ order, customer: rawCustomer, companySettings, osSettings, isPreview, isSigning, onClientSignatureClick, clientSignatureOverride }: OrderPrintTemplateProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [docHeight, setDocHeight] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!isPreview) return;
-    const updateScale = () => {
-      // Use window.innerWidth to ensure we get the actual device screen width,
-      // avoiding layout-expansion bugs caused by the unscaled 794px child.
-      const padding = window.innerWidth < 768 ? 32 : 0; // 16px padding on each side for mobile
-      const availableWidth = window.innerWidth - padding;
-      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
-      setScale(newScale);
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [isPreview]);
-
-  // After scale is set, measure the document's natural height and shrink the wrapper
-  const docRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!isPreview || !docRef.current) return;
-    const h = docRef.current.scrollHeight;
-    setDocHeight(h);
-  }, [isPreview, scale]);
-
   if (!order) return null;
 
   // Ensure customer data exists, fallback to placeholders if null/undefined
@@ -84,22 +54,10 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   return (
     <div className="bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      {/* Outer wrapper: clips horizontal overflow from scaled A4 */}
-      <div
-        ref={wrapperRef}
-        style={{ overflow: 'hidden', width: '100%' }}
-      >
-        {/* Inner A4 document, scaled to fit the screen width */}
-        <div
-          ref={docRef}
-          className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm"
-          style={isPreview && scale < 1 ? {
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            // Compensate for the vertical space left after scaling
-            marginBottom: docHeight ? `${-(docHeight * (1 - scale))}px` : 0,
-          } : {}}
-        >
+      {/* Outer wrapper: standard layout without artificial scaling hacks */}
+      <div className={`${isPreview ? 'mx-auto overflow-x-auto custom-scrollbar' : ''}`}>
+        {/* Inner A4 document */}
+        <div className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm sm:mx-auto">
 
           {/* CABEÇALHO */}
           <header className="flex flex-col mb-1.5">
