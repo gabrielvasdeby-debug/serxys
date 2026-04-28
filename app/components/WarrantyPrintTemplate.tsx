@@ -70,9 +70,37 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}/${companySettings?.publicSlug}/${order.id || order.osNumber}` : '';
 
   return (
-    <div className={`print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block overflow-x-auto custom-scrollbar' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-      
-      <div className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border">
+    <div className={`print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+      {/* Mobile-friendly wrapper that scales A4 to fit screen */}
+      <div 
+        className={`${isPreview ? 'mx-auto' : ''}`}
+        style={isPreview ? { 
+          width: 'calc(210mm * var(--war-scale, 1))',
+          height: 'calc(var(--war-height, 260mm) * var(--war-scale, 1))',
+          overflow: 'visible'
+        } : {}}
+      >
+        <div 
+          className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border origin-top shadow-sm"
+          style={isPreview ? { 
+            transform: 'scale(var(--war-scale, 1))',
+            transformOrigin: 'top left',
+          } : {}}
+        >
+          {/* Script inline to handle dynamic scaling for mobile view */}
+          {isPreview && (
+            <style dangerouslySetInnerHTML={{ __html: `
+              :root { 
+                --war-scale: 1; 
+                --war-height: 260mm;
+              }
+              @media (max-width: 794px) {
+                :root { 
+                  --war-scale: calc((100vw - 16px) / 794); 
+                }
+              }
+            `}} />
+          )}
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
           <div className="flex justify-between items-center mb-2 pl-2">
@@ -245,6 +273,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
              </div>
         </div>
 
+        </div>
       </div>
     </div>
   );

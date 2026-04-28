@@ -23,12 +23,14 @@ interface TechnicalReportPrintTemplateProps {
     publicSlug: string;
     complement?: string;
   };
+  isPreview?: boolean;
 }
 
 export default function TechnicalReportPrintTemplate({ 
   order, 
   customer, 
-  companySettings 
+  companySettings,
+  isPreview 
 }: TechnicalReportPrintTemplateProps) {
   if (!order || !customer || !order.technicalReport) return null;
 
@@ -37,10 +39,38 @@ export default function TechnicalReportPrintTemplate({
   const emissionDate = report.createdAt ? new Date(report.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
 
   return (
-    <div className="hidden print:block bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full">
+    <div className={`bg-white text-black p-0 m-0 font-sans text-[10px] leading-tight w-full print:block print:overflow-visible ${isPreview ? 'block' : 'block'}`}>
 
-      {/* A4 WRAPPER */}
-      <div className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0">
+      {/* Mobile-friendly wrapper that scales A4 to fit screen */}
+      <div 
+        className={`${isPreview ? 'mx-auto' : ''}`}
+        style={isPreview ? { 
+          width: 'calc(210mm * var(--report-scale, 1))',
+          height: 'calc(var(--report-height, 260mm) * var(--report-scale, 1))',
+          overflow: 'visible'
+        } : {}}
+      >
+        <div 
+          className="w-[210mm] min-w-[210mm] mx-auto bg-white p-[5mm] print:p-0 flex flex-col origin-top shadow-sm"
+          style={isPreview ? { 
+            transform: 'scale(var(--report-scale, 1))',
+            transformOrigin: 'top left',
+          } : {}}
+        >
+          {/* Script inline to handle dynamic scaling for mobile view */}
+          {isPreview && (
+            <style dangerouslySetInnerHTML={{ __html: `
+              :root { 
+                --report-scale: 1; 
+                --report-height: 260mm;
+              }
+              @media (max-width: 794px) {
+                :root { 
+                  --report-scale: calc((100vw - 16px) / 794); 
+                }
+              }
+            `}} />
+          )}
         
         {/* 1. CABEÇALHO */}
         <header className="flex justify-between items-start mb-6 border-b border-zinc-200 pb-4">
@@ -189,6 +219,7 @@ export default function TechnicalReportPrintTemplate({
             SERVYX OS SYSTEM - LAUDO OFICIAL
           </div>
         </footer>
+        </div>
       </div>
     </div>
   );

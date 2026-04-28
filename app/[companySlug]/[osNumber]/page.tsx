@@ -312,7 +312,7 @@ export default function CustomerPortal() {
       }, 2000);
     } catch (err: any) {
       console.error('Error saving remote signature:', err);
-      alert('Erro ao salvar assinatura. Tente novamente.');
+      alert(`Erro ao salvar assinatura: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsSavingSignature(false);
     }
@@ -365,9 +365,9 @@ export default function CustomerPortal() {
       setTimeout(() => {
         window.location.reload();
       }, 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error approving budget:', err);
-      alert('Erro ao aprovar orçamento. Tente novamente.');
+      alert(`Erro ao aprovar orçamento: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsSubmittingApproval(false);
     }
@@ -417,9 +417,9 @@ export default function CustomerPortal() {
       }
 
       window.location.reload();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error rejecting budget:', err);
-      alert('Erro ao recusar orçamento.');
+      alert(`Erro ao recusar orçamento: ${err.message || 'Não foi possível completar a ação.'}`);
     } finally {
       setIsSubmittingApproval(false);
     }
@@ -498,8 +498,8 @@ export default function CustomerPortal() {
 
           <div className="bg-white rounded-md shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden relative border border-white/5 group">
              {/* A4 Scale Wrapper for Mobile */}
-             <div className="overflow-x-auto custom-scrollbar-hide flex justify-center bg-zinc-100 shadow-inner">
-               <div className="min-w-[210mm] p-4 md:p-8">
+             <div className="w-full overflow-x-hidden flex justify-center bg-zinc-100 shadow-inner">
+               <div className="w-full max-w-[210mm] p-0 md:p-8">
                  <div className="bg-white shadow-2xl border border-slate-200">
                     <OrderPrintTemplate 
                       order={order}
@@ -571,7 +571,7 @@ export default function CustomerPortal() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-md shadow-2xl overflow-hidden flex flex-col"
+                className="relative w-[94%] mx-auto sm:w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-md shadow-2xl overflow-hidden flex flex-col"
               >
                 <div className="p-8 border-b border-zinc-800 flex justify-between items-center">
                    <div>
@@ -871,12 +871,13 @@ export default function CustomerPortal() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 flex justify-center bg-zinc-200">
-              <div className="bg-white shadow-2xl origin-top sm:scale-100 scale-90 mb-20 w-[210mm] max-w-full">
+            <div className="flex-1 overflow-y-auto p-0 sm:p-4 flex justify-center bg-zinc-200">
+              <div className="bg-white shadow-2xl origin-top w-full max-w-[210mm] mb-20">
                 <TechnicalReportPrintTemplate 
                   order={order}
                   customer={customer}
                   companySettings={company as any}
+                  isPreview={true}
                 />
               </div>
             </div>
@@ -891,8 +892,8 @@ export default function CustomerPortal() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 flex justify-center bg-zinc-200">
-              <div className="bg-white shadow-2xl origin-top sm:scale-100 scale-90 mb-20 w-[210mm] max-w-full">
+            <div className="flex-1 overflow-y-auto p-0 sm:p-4 flex justify-center bg-zinc-200">
+              <div className="bg-white shadow-2xl origin-top w-full max-w-[210mm] mb-20">
                 <OrderPrintTemplate 
                   order={order}
                   customer={customer}
@@ -932,8 +933,8 @@ export default function CustomerPortal() {
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 flex justify-center bg-zinc-200">
-              <div className="bg-white shadow-2xl origin-top sm:scale-100 scale-90 mb-20 w-[210mm] max-w-full">
+            <div className="flex-1 overflow-y-auto p-0 sm:p-4 flex justify-center bg-zinc-200">
+              <div className="bg-white shadow-2xl origin-top w-full max-w-[210mm] mb-20">
                 <WarrantyPrintTemplate 
                   order={order}
                   customer={customer}

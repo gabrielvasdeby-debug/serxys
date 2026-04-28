@@ -55,21 +55,32 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
     <div className={`bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible ${isPreview ? 'block' : 'block'}`} style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
       {/* Mobile-friendly wrapper that scales A4 to fit screen */}
-      <div className={`${isPreview ? 'flex flex-col items-center overflow-hidden w-full' : ''}`}>
+      <div 
+        className={`${isPreview ? 'mx-auto' : ''}`}
+        style={isPreview ? { 
+          width: 'calc(210mm * var(--doc-scale, 1))',
+          height: 'calc(var(--doc-height, 260mm) * var(--doc-scale, 1))',
+          overflow: 'visible'
+        } : {}}
+      >
         <div 
-          className="w-[210mm] min-w-[210mm] mx-auto p-[5mm] min-h-[260mm] flex flex-col box-border bg-white origin-top sm:scale-100 sm:m-0"
+          className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white origin-top sm:m-0 shadow-sm"
           style={isPreview ? { 
             transform: 'scale(var(--doc-scale, 1))',
-            marginBottom: 'calc(260mm * (var(--doc-scale, 1) - 1))',
-            width: '210mm'
+            transformOrigin: 'top left',
           } : {}}
         >
           {/* Script inline to handle dynamic scaling for mobile view */}
           {isPreview && (
             <style dangerouslySetInnerHTML={{ __html: `
-              :root { --doc-scale: 1; }
+              :root { 
+                --doc-scale: 1; 
+                --doc-height: 260mm;
+              }
               @media (max-width: 794px) {
-                :root { --doc-scale: calc((100vw - 40px) / 794); }
+                :root { 
+                  --doc-scale: calc((100vw - 16px) / 794); 
+                }
               }
             `}} />
           )}
@@ -291,6 +302,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
         <div className="mt-4 pt-3 border-t text-center text-[8px] text-slate-500 font-medium">
           {osSettings.printFooter || `${companySettings.name} - SERVYX | CNPJ: ${companySettings.cnpj || '---'} | ${companySettings.city} - ${companySettings.state}`}
         </div>
+      </div>
       </div>
     </div>
   );
