@@ -1482,14 +1482,14 @@ export default function StatusOsModule({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 flex flex-col font-sans selection:bg-[#00E676]/30">
-      <header className="bg-[#141414] border-b border-zinc-800 p-4 sticky top-0 z-30">
-        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <header className="bg-[#141414] border-b border-zinc-800 p-2.5 sm:p-4 sticky top-0 z-30">
+        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={onBack}
-              className="p-2.5 hover:bg-zinc-800 rounded-sm transition-colors bg-zinc-900 border border-zinc-800"
+              className="p-2 sm:p-2.5 hover:bg-zinc-800 rounded-sm transition-colors bg-zinc-900 border border-zinc-800"
             >
-              <ArrowLeft size={20} className="text-zinc-400" />
+              <ArrowLeft size={18} className="text-zinc-400 sm:w-5 sm:h-5" />
             </button>
             <div>
               <h1 className="text-lg sm:text-xl font-bold">Status OS</h1>
@@ -1671,7 +1671,7 @@ export default function StatusOsModule({
       </AnimatePresence>
 
       {/* Ribbon Timeline - FIXADA NO TOPO DA MAINKANBAN */}
-      <div className="bg-[#141414] border-b border-zinc-800/50 sticky top-[73px] sm:top-[85px] z-20 no-print">
+      <div className="bg-[#141414] border-b border-zinc-800/50 sticky top-[60px] sm:top-[85px] z-20 no-print">
         <div className="max-w-[1600px] mx-auto p-2 sm:p-4">
           
           {/* Mobile Status Picker */}
