@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Check, X, User, Smartphone, AlertTriangle, Wrench, ListChecks, DollarSign, Info, Phone, Mail, Pencil } from 'lucide-react';
 import { Order, CompanySettings, OsSettings } from '../types';
@@ -30,7 +30,22 @@ const WhatsappIcon = ({ size = 12, className = '' }) => (
   </svg>
 );
 
+const A4_WIDTH_PX = 794;
+
 export default function OrderPrintTemplate({ order, customer: rawCustomer, companySettings, osSettings, isPreview, isSigning, onClientSignatureClick, clientSignatureOverride }: OrderPrintTemplateProps) {
+  const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    if (!isPreview) return;
+    const updateZoom = () => {
+      const screenWidth = window.innerWidth;
+      setZoom(screenWidth < A4_WIDTH_PX ? screenWidth / A4_WIDTH_PX : 1);
+    };
+    updateZoom();
+    window.addEventListener('resize', updateZoom);
+    return () => window.removeEventListener('resize', updateZoom);
+  }, [isPreview]);
+
   if (!order) return null;
 
   // Ensure customer data exists, fallback to placeholders if null/undefined
@@ -54,10 +69,13 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   return (
     <div className="bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
       
-      {/* Outer wrapper: standard layout without artificial scaling hacks */}
-      <div className={`${isPreview ? 'mx-auto overflow-x-auto custom-scrollbar' : ''}`}>
-        {/* Inner A4 document */}
-        <div className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm sm:mx-auto">
+      {/* Wrapper */}
+      <div>
+        {/* A4 document - uses CSS zoom to fit mobile screens naturally */}
+        <div
+          className="w-[210mm] min-w-[210mm] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white shadow-sm print:shadow-none"
+          style={isPreview && zoom < 1 ? { zoom } : {}}
+        >
 
           {/* CABEÇALHO */}
           <header className="flex flex-col mb-1.5">
