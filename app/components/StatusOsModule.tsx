@@ -2830,28 +2830,30 @@ export default function StatusOsModule({
                 )}
 
                 {activeTab === 'seguranca' && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <SecurityPortalManager 
-                      order={selectedOrder}
-                      companySettings={companySettings}
-                      onUpdate={(updates) => {
-                        setSelectedOrder(prev => prev ? { ...prev, ...updates } : null);
-                        if (setOrders) setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...updates } : o));
-                      }}
-                    />
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-sm">
+                      <SecurityPortalManager 
+                        order={selectedOrder}
+                        companySettings={companySettings}
+                        onUpdate={(updates) => {
+                          setSelectedOrder(prev => prev ? { ...prev, ...updates } : null);
+                          if (setOrders) setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...updates } : o));
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
 
                 {activeTab === 'laudo' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="flex items-center justify-between bg-[#0A0A0A] border border-zinc-800 p-6 rounded-sm relative">
-                      <div className="relative z-10">
-                        <h3 className="text-xl font-black text-[#00E676] flex items-center gap-2">
-                          <FileText size={24} /> Laudo Técnico
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm gap-4">
+                      <div>
+                        <h3 className="text-lg sm:text-xl font-black text-[#00E676] flex items-center gap-2 uppercase tracking-tight">
+                          <FileText size={20} className="sm:w-6 sm:h-6" /> Laudo Técnico
                         </h3>
-                        <p className="text-sm text-zinc-500 mt-1">Registre formalmente seu diagnóstico técnico.</p>
+                        <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5 uppercase font-bold tracking-widest">Diagnóstico formal para o cliente</p>
                       </div>
-                      <div className="flex gap-2 relative z-10">
+                      <div className="flex gap-2 w-full sm:w-auto">
                         {selectedOrder.technicalReport && (
                            <button
                              onClick={() => {
@@ -2864,28 +2866,28 @@ export default function StatusOsModule({
                                window.print();
                                setTimeout(() => { document.title = originalTitle; }, 100);
                              }}
-                             className="bg-[#141414] text-white border border-zinc-700 font-black px-5 py-3 rounded-sm text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-2"
+                             className="flex-1 sm:flex-none bg-[#141414] text-white border border-zinc-700 font-black px-4 py-2.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                              translate="no"
                            >
-                             <Printer size={16} />
-                             <span>Gerar PDF</span>
+                             <Printer size={14} />
+                             <span>PDF</span>
                            </button>
                         )}
                         <button
                           onClick={handleSaveTechnicalReport}
                           disabled={isSavingReport}
-                          className="bg-[#00E676] text-black font-black px-5 py-3 rounded-sm text-xs uppercase tracking-widest hover:bg-[#00C853] transition-all disabled:opacity-50 flex items-center gap-2"
+                          className="flex-1 sm:flex-none bg-[#00E676] text-black font-black px-4 py-2.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-[#00C853] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                           translate="no"
                         >
                           {isSavingReport ? (
                             <>
-                              <Loader2 size={16} className="animate-spin" />
-                              <span>Salvando...</span>
+                              <Loader2 size={14} className="animate-spin" />
+                              <span>Salvando</span>
                             </>
                           ) : (
                             <>
-                              <Save size={16} />
-                              <span>Salvar Laudo</span>
+                              <Save size={14} />
+                              <span>Salvar</span>
                             </>
                           )}
                         </button>
@@ -2894,97 +2896,97 @@ export default function StatusOsModule({
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="space-y-6">
-                        <section className="bg-[#141414] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
-                          <label className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <Search size={14} className="text-[#00E676]" /> Diagnóstico Técnico
                           </label>
                           <textarea
                             value={diagnosis}
                             onChange={e => setDiagnosis(e.target.value)}
-                            placeholder="Descreva detalhadamente o problema identificado..."
-                            className="w-full h-32 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-700 font-medium"
+                            placeholder="Descreva o problema identificado..."
+                            className="w-full h-32 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800 font-medium"
                           />
                         </section>
 
-                        <section className="bg-[#141414] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
-                          <label className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <Check size={14} className="text-[#00E676]" /> Testes Realizados
                           </label>
                           <textarea
                             value={tests}
                             onChange={e => setTests(e.target.value)}
-                            placeholder="Quais testes foram feitos para validar o erro?"
-                            className="w-full h-32 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-700 font-medium"
+                            placeholder="Quais testes foram feitos?"
+                            className="w-full h-32 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800 font-medium"
                           />
                         </section>
 
-                        <section className="bg-[#141414] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
-                          <label className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <Package size={14} className="text-[#00E676]" /> Peças Necessárias
                           </label>
                           <textarea
                             value={partsNeeded}
                             onChange={e => setPartsNeeded(e.target.value)}
-                            placeholder="Liste as peças que precisam ser trocadas ou compradas..."
-                            className="w-full h-24 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-700 font-medium"
+                            placeholder="Liste as peças necessárias..."
+                            className="w-full h-24 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800 font-medium"
                           />
                         </section>
                       </div>
 
                       <div className="space-y-6">
-                        <section className="bg-[#141414] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
-                          <label className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <MessageCircle size={14} className="text-[#00E676]" /> Observações Técnicas
                           </label>
                           <textarea
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
-                            placeholder="Notas internas do técnico sobre a complexidade ou riscos..."
-                            className="w-full h-24 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-700 font-medium"
+                            placeholder="Notas internas do técnico..."
+                            className="w-full h-24 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800 font-medium"
                           />
                         </section>
 
                         <section className="bg-[#0A0A0A] border-y sm:border border-[#00E676]/30 p-8 sm:p-8 rounded-none sm:rounded-sm space-y-4 shadow-2xl shadow-[#00E676]/5">
-                          <label className="text-xs font-black text-[#00E676] uppercase tracking-[0.3em] flex items-center gap-2 justify-center">
+                          <label className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.3em] flex items-center gap-2 justify-center">
                             Conclusão Final
                           </label>
                           <textarea
                             value={conclusion}
                             onChange={e => setConclusion(e.target.value)}
-                            placeholder="Em uma frase: Qual o veredito técnico?"
-                            className="w-full h-28 bg-[#141414] border border-zinc-800 rounded-sm p-6 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-700 text-center italic font-bold"
+                            placeholder="Qual o veredito técnico?"
+                            className="w-full h-28 bg-[#141414] border border-zinc-800 rounded-sm p-6 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800 text-center italic font-bold"
                           />
                         </section>
 
-                        <section className="bg-black/40 border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
+                        <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm space-y-4">
                           <div className="flex items-center justify-between">
-                             <label className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                               <CameraIcon size={14} className="text-[#00E676]" /> Evidências Visuais (Status)
+                             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                               <CameraIcon size={14} className="text-[#00E676]" /> Evidências
                              </label>
                              <button
                                onClick={handleCaptureReportPhoto}
-                               className="px-3 py-1.5 bg-[#141414] border border-zinc-700 rounded text-[10px] font-black uppercase text-zinc-300 hover:text-[#00E676] hover:border-[#00E676] transition-all"
+                               className="px-3 py-1.5 bg-[#141414] border border-zinc-700 rounded text-[9px] font-black uppercase text-zinc-300 hover:text-[#00E676] hover:border-[#00E676] transition-all"
                              >
-                               Adicionar Foto
+                               Adicionar
                              </button>
                           </div>
                           
                           <div className="grid grid-cols-3 gap-2">
                              {reportPhotos.map((photo, idx) => (
                                <div key={idx} className="aspect-square bg-zinc-900 rounded-sm border border-zinc-800 overflow-hidden relative group">
-                                 <img src={photo} alt="Evidência Report" className="w-full h-full object-cover" />
+                                 <img src={photo} alt="Evidência" className="w-full h-full object-cover" />
                                  <button onClick={() => setReportPhotos(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 p-1 bg-red-500 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
-                               </div>
+                                </div>
                              ))}
                              {reportPhotos.length === 0 && (
-                               <div className="col-span-3 h-20 border-2 border-dashed border-zinc-800 rounded-sm flex items-center justify-center text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
-                                 Nenhuma evidência capturada
+                               <div className="col-span-3 h-20 border-2 border-dashed border-zinc-800 rounded-sm flex items-center justify-center text-[8px] text-zinc-700 font-black uppercase tracking-widest">
+                                 Nenhuma evidência
                                </div>
                              )}
                           </div>
                         </section>
 
-                        <section className="bg-black/40 border border-zinc-800 p-6 rounded-sm">
+                        <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-6 rounded-none sm:rounded-sm">
                           <SignaturePad 
                              title="Assinatura do Técnico"
                              initialSignature={technicianSignature}
@@ -3004,100 +3006,110 @@ export default function StatusOsModule({
                       {/* Coluna Principal: Conteúdo do Orçamento */}
                       <div className="flex-1 space-y-6 w-full">
                         {/* Seção 1: Diagnóstico e Plano */}
-                        <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-md p-5 sm:p-8 space-y-8">
+                        <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-sm p-5 sm:p-8 space-y-8">
                           <div className="flex items-center gap-3 border-b border-zinc-800/50 pb-6">
                             <div className="p-2.5 bg-red-400/10 rounded-sm text-red-400">
-                              <AlertCircle size={20} />
+                              <AlertCircle size={18} />
                             </div>
                             <div>
-                              <h3 className="text-lg font-black text-white">Análise Técnica</h3>
-                              <p className="text-xs text-zinc-500">Documente o defeito e o plano de ação.</p>
+                              <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight">Análise Técnica</h3>
+                              <p className="text-[10px] sm:text-xs text-zinc-500 uppercase font-bold tracking-widest">Defeito e plano de ação</p>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
-                              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Defeito Detalhado</label>
+                              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Search size={12} className="text-red-400" /> Defeito Detalhado
+                              </label>
                               <textarea
                                 value={budgetDetailedDefect}
                                 onChange={e => setBudgetDetailedDefect(e.target.value)}
-                                placeholder="O que exatamente está falhando?"
-                                className="w-full h-32 bg-black border border-zinc-800 rounded-sm p-5 text-sm text-white focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800"
+                                placeholder="O que falhou?"
+                                className="w-full h-32 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800"
                               />
                             </div>
                             <div className="space-y-3">
-                              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Serviço Necessário</label>
+                              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Wrench size={12} className="text-[#00E676]" /> Serviço Necessário
+                              </label>
                               <textarea
                                 value={budgetRequiredService}
                                 onChange={e => setBudgetRequiredService(e.target.value)}
-                                placeholder="Qual o procedimento técnico?"
-                                className="w-full h-32 bg-black border border-zinc-800 rounded-sm p-5 text-sm text-white focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800"
+                                placeholder="Qual o procedimento?"
+                                className="w-full h-32 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:border-[#00E676] transition-all resize-none placeholder:text-zinc-800"
                               />
                             </div>
                           </div>
                         </div>
 
                         {/* Seção 2: Itens de Custos */}
-                        <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-md p-5 sm:p-8 space-y-6">
-                           <div className="flex items-center justify-between border-b border-zinc-800/50 pb-6">
+                        <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-sm p-5 sm:p-8 space-y-6">
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800/50 pb-6 gap-4">
                              <div className="flex items-center gap-3">
                                <div className="p-2.5 bg-blue-400/10 rounded-sm text-blue-400">
-                                 <Plus size={20} />
+                                 <Plus size={18} />
                                </div>
                                <div>
-                                 <h3 className="text-lg font-black text-white">Peças e Serviços</h3>
-                                 <p className="text-xs text-zinc-500">Detalhamento financeiro para o cliente.</p>
+                                 <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight">Peças e Serviços</h3>
+                                 <p className="text-[10px] sm:text-xs text-zinc-500 uppercase font-bold tracking-widest">Detalhamento financeiro</p>
                                </div>
                              </div>
                              <div className="flex gap-2">
-                               <button onClick={() => handleAddBudgetItem('service')} className="bg-zinc-900 border border-zinc-800 text-[#00E676] px-4 py-2 rounded-sm text-[10px] font-black hover:bg-zinc-800 transition-all">+ SERVIÇO</button>
-                               <button onClick={() => handleAddBudgetItem('part')} className="bg-zinc-900 border border-zinc-800 text-blue-400 px-4 py-2 rounded-sm text-[10px] font-black hover:bg-zinc-800 transition-all">+ PEÇA</button>
+                               <button onClick={() => handleAddBudgetItem('service')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 text-[#00E676] px-4 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all">+ SERVIÇO</button>
+                               <button onClick={() => handleAddBudgetItem('part')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 text-blue-400 px-4 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all">+ PEÇA</button>
                              </div>
                            </div>
 
                            <div className="space-y-3">
                              {budgetItems.map(item => (
-                               <div key={item.id} className="flex items-center gap-4 bg-black border border-zinc-900 p-4 rounded-sm hover:border-zinc-800 transition-all">
-                                 <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${item.type === 'service' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-blue-400/10 text-blue-400'}`}>
-                                   {item.type === 'service' ? <Wrench size={18} /> : <Package size={18} />}
-                                 </div>
-                                 <input
-                                   value={item.description}
-                                   onChange={e => handleUpdateBudgetItem(item.id, 'description', e.target.value)}
-                                   placeholder="Nome do item..."
-                                   className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:ring-0"
-                                 />
-                                 <div className="flex items-center gap-2 bg-[#0F0F0F] px-4 py-2 rounded-sm border border-zinc-800 focus-within:border-[#00E676] transition-colors group/input">
-                                   <span className="text-[10px] font-black text-zinc-600 group-focus-within/input:text-[#00E676] transition-colors">R$</span>
+                               <div key={item.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-[#141414] border border-zinc-800/50 p-3.5 rounded-sm hover:border-zinc-700 transition-all">
+                                 <div className="flex items-center gap-3 flex-1">
+                                   <div className={`w-10 h-10 shrink-0 rounded-sm flex items-center justify-center ${item.type === 'service' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-blue-400/10 text-blue-400'}`}>
+                                     {item.type === 'service' ? <Wrench size={16} /> : <Package size={16} />}
+                                   </div>
                                    <input
-                                     type="text"
-                                     value={Number(item.price) > 0 ? formatInputOnChange(Math.round(Number(item.price) * 100).toString()) : ''}
-                                     onChange={e => handleUpdateBudgetItem(item.id, 'price', parseCurrencyToNumber(e.target.value))}
-                                     placeholder="0,00"
-                                     className="w-24 bg-transparent border-none text-sm font-black text-white focus:ring-0 text-right p-0 placeholder:text-zinc-800"
+                                     value={item.description}
+                                     onChange={e => handleUpdateBudgetItem(item.id, 'description', e.target.value)}
+                                     placeholder="Nome do item..."
+                                     className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:ring-0 p-0"
                                    />
                                  </div>
-                                 <button onClick={() => handleRemoveBudgetItem(item.id)} className="p-2 text-zinc-700 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                                 <div className="flex items-center gap-3">
+                                   <div className="flex items-center gap-2 bg-[#0A0A0A] px-3 py-2 rounded-sm border border-zinc-800 focus-within:border-[#00E676] transition-colors group/input flex-1 sm:flex-none">
+                                     <span className="text-[10px] font-black text-zinc-600 group-focus-within/input:text-[#00E676] transition-colors">R$</span>
+                                     <input
+                                       type="text"
+                                       value={Number(item.price) > 0 ? formatInputOnChange(Math.round(Number(item.price) * 100).toString()) : ''}
+                                       onChange={e => handleUpdateBudgetItem(item.id, 'price', parseCurrencyToNumber(e.target.value))}
+                                       placeholder="0,00"
+                                       className="w-24 bg-transparent border-none text-sm font-black text-white focus:ring-0 text-right p-0 placeholder:text-zinc-900"
+                                     />
+                                   </div>
+                                   <button onClick={() => handleRemoveBudgetItem(item.id)} className="p-2 text-zinc-700 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                                 </div>
                                </div>
                              ))}
                              
                              {budgetItems.length === 0 && (
-                               <div className="text-center py-12 border-2 border-dashed border-zinc-900 rounded-md">
-                                  <Calculator size={32} className="text-zinc-800 mx-auto mb-2" />
-                                  <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">Nenhum item adicionado</p>
+                               <div className="text-center py-12 border-2 border-dashed border-zinc-900 rounded-sm">
+                                  <Calculator size={32} className="text-zinc-800 mx-auto mb-2 opacity-50" />
+                                  <p className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">Nenhum item adicionado</p>
                                </div>
                              )}
                            </div>
                         </div>
 
                         {/* Seção 3: Observações */}
-                        <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-md p-5 sm:p-8 space-y-4">
-                           <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Informações Adicionais (Garantia/Prazos)</label>
+                        <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-sm p-5 sm:p-8 space-y-4">
+                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                             <FileText size={12} className="text-zinc-600" /> Notas e Prazos
+                           </label>
                            <textarea
                              value={budgetServiceNotes}
                              onChange={e => setBudgetServiceNotes(e.target.value)}
-                             placeholder="Ex: Garantia de 90 dias, Prazo de 3 dias úteis..."
-                             className="w-full h-24 bg-black border border-zinc-800 rounded-sm p-5 text-sm text-white focus:border-[#00E676] transition-all resize-none italic"
+                             placeholder="Ex: Garantia de 90 dias..."
+                             className="w-full h-24 bg-[#141414] border border-zinc-800 rounded-sm p-4 text-sm text-white focus:border-[#00E676] transition-all resize-none italic placeholder:text-zinc-800"
                            />
                         </div>
                       </div>
@@ -3105,11 +3117,11 @@ export default function StatusOsModule({
                       {/* Coluna Lateral: Resumo e Ações */}
                       <div className="w-full lg:w-80 space-y-6 shrink-0">
                         {/* Card de Valor Total */}
-                        <div className="bg-[#00E676] p-8 rounded-md shadow-xl shadow-[#00E676]/10 relative overflow-hidden group">
+                        <div className="bg-[#00E676] p-6 sm:p-8 rounded-sm shadow-xl shadow-[#00E676]/10 relative overflow-hidden group">
                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
                            <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1 relative z-10">Total do Orçamento</p>
                            {budgetItems.length > 0 ? (
-                             <p className="text-4xl font-black text-black relative z-10 tracking-tighter">
+                             <p className="text-3xl sm:text-4xl font-black text-black relative z-10 tracking-tighter">
                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculateBudgetTotal())}
                              </p>
                            ) : (
@@ -3120,29 +3132,29 @@ export default function StatusOsModule({
                                  value={budgetPrice !== '0' ? formatInputOnChange(Math.round(parseFloat(budgetPrice) * 100).toString()) : ''}
                                  onChange={e => setBudgetPrice(parseCurrencyToNumber(e.target.value).toString())}
                                  placeholder="0,00"
-                                 className="w-full bg-transparent border-none text-3xl font-black text-black tracking-tighter focus:ring-0 p-0 placeholder:text-black/20"
+                                 className="w-full bg-transparent border-none text-2xl sm:text-3xl font-black text-black tracking-tighter focus:ring-0 p-0 placeholder:text-black/20"
                                />
                              </div>
                            )}
                         </div>
 
                         {/* Card de Status */}
-                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-6 space-y-4">
-                           <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Status da Aprovação</label>
+                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-sm p-5 sm:p-6 space-y-4">
+                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aprovação</label>
                            <div className="grid grid-cols-1 gap-2">
                              {(['Em Elaboração', 'Aguardando Aprovação', 'Aprovado', 'Recusado'] as BudgetData['status'][]).map(status => (
                                <button
                                  key={status}
                                  onClick={() => setBudgetStatus(status)}
-                                 className={`w-full text-left px-5 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${
+                                 className={`w-full text-left px-4 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
                                    budgetStatus === status 
-                                     ? 'bg-zinc-800 border-[#00E676] text-[#00E676] shadow-lg shadow-[#00E676]/10' 
-                                     : 'bg-black/40 border-zinc-900 text-zinc-600 hover:border-zinc-800'
+                                     ? 'bg-[#141414] border-[#00E676] text-[#00E676] shadow-lg shadow-[#00E676]/5' 
+                                     : 'bg-black/40 border-zinc-800 text-zinc-600 hover:border-zinc-700'
                                  }`}
                                >
                                  <div className="flex items-center justify-between">
                                    {status}
-                                   {budgetStatus === status && <CheckIcon size={14} strokeWidth={4} />}
+                                   {budgetStatus === status && <CheckIcon size={12} strokeWidth={4} />}
                                  </div>
                                </button>
                              ))}
@@ -3150,51 +3162,51 @@ export default function StatusOsModule({
                         </div>
 
                         {/* Card de Fotos */}
-                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-sm p-6 space-y-4">
+                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-sm p-5 sm:p-6 space-y-4">
                            <div className="flex items-center justify-between">
-                             <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Fotos (Evidências)</label>
+                             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Evidências</label>
                              <button onClick={handleCaptureBudgetPhoto} className="p-2 bg-zinc-900 rounded-sm text-[#00E676] hover:bg-zinc-800 transition-all"><Plus size={16} /></button>
                            </div>
                            <div className="grid grid-cols-2 gap-2">
                              {budgetPhotos.map((photo, idx) => (
-                               <div key={idx} className="relative aspect-square rounded-sm overflow-hidden border border-zinc-900 group">
+                               <div key={idx} className="relative aspect-square rounded-sm overflow-hidden border border-zinc-800 group">
                                  <img src={photo} alt="Foto" className="w-full h-full object-cover" />
                                  <button onClick={() => setBudgetPhotos(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 p-1 bg-red-500 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
                                </div>
                              ))}
                              {budgetPhotos.length === 0 && (
-                               <button onClick={handleCaptureBudgetPhoto} className="aspect-square rounded-sm border-2 border-dashed border-zinc-900 flex flex-col items-center justify-center gap-2 text-zinc-800 hover:text-zinc-700 transition-all">
-                                 <Smartphone size={20} />
-                                 <span className="text-[8px] font-black uppercase">Câmera</span>
+                               <button onClick={handleCaptureBudgetPhoto} className="aspect-square rounded-sm border-2 border-dashed border-zinc-900 flex flex-col items-center justify-center gap-1.5 text-zinc-800 hover:text-zinc-700 transition-all">
+                                 <Smartphone size={16} />
+                                 <span className="text-[7px] font-black uppercase">Câmera</span>
                                </button>
                              )}
                            </div>
                         </div>
 
                         {/* Botões de Ação */}
-                        <div className="space-y-3 pt-4">
+                        <div className="space-y-3">
                           <button
                             onClick={handleSaveBudget}
                             disabled={isSavingBudget}
-                            className="w-full bg-[#00E676] text-black font-black py-4 rounded-md text-xs uppercase tracking-widest hover:bg-[#00C853] transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-[#00E676]/10"
+                            className="w-full bg-[#00E676] text-black font-black py-3.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-[#00C853] transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-[#00E676]/10"
                           >
                             {isSavingBudget ? (
                               <>
-                                <Loader2 size={16} className="animate-spin" />
-                                <span>Salvando...</span>
+                                <Loader2 size={14} className="animate-spin" />
+                                <span>Salvando</span>
                               </>
                             ) : (
                               <>
-                                <Save size={18} />
+                                <Save size={16} />
                                 <span>Salvar Orçamento</span>
                               </>
                             )}
                           </button>
                           <button
                             onClick={() => handleSendBudgetWhatsApp(true)}
-                            className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] font-black py-4 rounded-md text-xs uppercase tracking-widest hover:bg-[#25D366] hover:text-white transition-all flex items-center justify-center gap-3"
+                            className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] font-black py-3.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-[#25D366] hover:text-white transition-all flex items-center justify-center gap-3"
                           >
-                            <MessageSquare size={18} />
+                            <MessageSquare size={16} />
                             <span>Enviar p/ Cliente</span>
                           </button>
                         </div>
@@ -3204,22 +3216,25 @@ export default function StatusOsModule({
                   </div>
                 )}
 
+
                 {activeTab === 'historico' && (
-                  <section className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="flex items-center justify-between mb-2">
-                       <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                         <Clock size={16} /> Histórico de Alterações
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex items-center justify-between px-5 sm:px-0">
+                       <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                         <Clock size={14} className="text-[#00E676]" /> Linha do Tempo
                        </h3>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-[#0A0A0A] p-2 pl-4 border border-zinc-800 rounded-sm">
-                      <MessageSquare size={16} className="text-zinc-500" />
+                    <div className="flex items-center gap-3 bg-[#0A0A0A] p-3 sm:p-4 border-y sm:border border-zinc-800 rounded-none sm:rounded-sm">
+                      <div className="p-2 bg-[#141414] rounded-sm text-zinc-500 border border-zinc-800/50">
+                        <MessageSquare size={14} />
+                      </div>
                       <input
                         type="text"
                         value={newHistoryNote}
                         onChange={(e) => setNewHistoryNote(e.target.value)}
-                        placeholder="Adicionar observação (ex: Abri o aparelho e falta um parafuso)..."
-                        className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-600 focus:outline-none"
+                        placeholder="Adicionar nota técnica..."
+                        className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-800 focus:outline-none font-medium"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') handleAddNote();
                         }}
@@ -3227,15 +3242,15 @@ export default function StatusOsModule({
                       <button
                         onClick={handleAddNote}
                         disabled={isAddingNote || !newHistoryNote.trim()}
-                        className="bg-zinc-800 hover:bg-zinc-700 text-white disabled:opacity-50 px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors"
+                        className="bg-[#00E676] hover:bg-[#00C853] text-black disabled:opacity-30 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all"
                       >
-                        {isAddingNote ? 'Salvando...' : 'Adicionar'}
+                        {isAddingNote ? '...' : 'Add'}
                       </button>
                     </div>
 
-                    <div className="bg-[#0A0A0A] rounded-[16px] p-6 sm:p-8 border border-zinc-800 space-y-6 relative overflow-hidden">
+                    <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-8 rounded-none sm:rounded-sm space-y-6 relative overflow-hidden">
                        {/* Linha vertical mestra da Timeline */}
-                       <div className="absolute left-[39px] sm:left-[47px] top-10 bottom-10 w-[2px] bg-gradient-to-b from-transparent via-zinc-800 to-transparent" />
+                       <div className="absolute left-[39px] sm:left-[51px] top-10 bottom-10 w-[1px] bg-gradient-to-b from-transparent via-zinc-800 to-transparent" />
                        
                        {/* Mapeamento reverso dos eventos */}
                        {[...selectedOrder.history].reverse().map((event, i) => {
@@ -3254,36 +3269,36 @@ export default function StatusOsModule({
                              initial={{ opacity: 0, x: -10 }}
                              animate={{ opacity: 1, x: 0 }}
                              transition={{ delay: i * 0.05 }}
-                             className="flex gap-4 sm:gap-6 relative z-10 transition-all hover:bg-zinc-900/50 p-3 -mx-3 rounded-[12px] group/item"
+                             className="flex gap-4 sm:gap-6 relative z-10 transition-all group/item"
                            >
-                             <div className="flex flex-col items-center shrink-0 w-10 sm:w-14 pt-1">
-                               <div className={`w-10 h-10 rounded-sm flex items-center justify-center border ${config.bg} ${config.border} shadow-[0_0_15px_rgba(0,0,0,0.5)] group-hover/item:scale-110 transition-transform relative z-10`}>
-                                  <EventIcon size={18} className={config.color} />
+                             <div className="flex flex-col items-center shrink-0 w-10 sm:w-12 pt-1">
+                               <div className={`w-10 h-10 rounded-sm flex items-center justify-center border ${config.bg} ${config.border} shadow-[0_0_15px_rgba(0,0,0,0.3)] group-hover/item:scale-110 transition-transform relative z-10`}>
+                                  <EventIcon size={16} className={config.color} />
                                </div>
                              </div>
                              
-                             <div className="flex-1 min-w-0 pt-1">
-                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-1">
-                                  <h4 className="text-sm font-bold text-white leading-snug">{event.description}</h4>
-                                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap hidden sm:block">
+                             <div className="flex-1 min-w-0 bg-[#141414] border border-zinc-800/50 p-3.5 sm:p-4 rounded-sm hover:border-zinc-700 transition-colors">
+                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                                  <h4 className="text-sm font-bold text-white leading-tight">{event.description}</h4>
+                                  <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest whitespace-nowrap hidden sm:block">
                                     {relativeTime}
                                   </span>
                                </div>
                                
-                               <div className="flex items-center flex-wrap gap-x-4 gap-y-2 mt-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-                                 <span className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-md border border-zinc-800">
-                                   <Calendar size={12} className={config.color} /> 
-                                   <span className="text-zinc-400">{new Date(event.date).toLocaleDateString('pt-BR')}</span>
-                                   <span className="text-zinc-600 px-1">•</span>
-                                   <span className="text-zinc-400">{new Date(event.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                               <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+                                 <span className="flex items-center gap-1.5 text-zinc-400">
+                                   <Calendar size={10} className={config.color} /> 
+                                   <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
+                                   <span className="text-zinc-800">•</span>
+                                   <span>{new Date(event.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                                  </span>
                                  
-                                 <span className="flex items-center gap-1.5 text-zinc-400">
-                                   <User size={12} className="text-zinc-600" /> 
-                                   por <span className="text-white">{event.user}</span>
+                                 <span className="flex items-center gap-1.5 text-zinc-500">
+                                   <User size={10} className="text-zinc-700" /> 
+                                   <span className="text-zinc-300">{event.user}</span>
                                  </span>
 
-                                 <span className="block sm:hidden text-[9px] text-[#00E676]/60">
+                                 <span className="block sm:hidden text-[9px] text-[#00E676]/40 lowercase italic font-medium">
                                    {relativeTime}
                                  </span>
                                </div>
@@ -3292,7 +3307,7 @@ export default function StatusOsModule({
                          );
                        })}
                     </div>
-                  </section>
+                  </div>
                 )}
               </div>
               </div>

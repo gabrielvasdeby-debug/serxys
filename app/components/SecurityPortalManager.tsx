@@ -87,68 +87,73 @@ export default function SecurityPortalManager({ order, companySettings, onUpdate
     setTimeout(() => setCopied(false), 2000);
   };
 
+
   return (
-    <div className="bg-[#0A0A0A] border border-zinc-900 rounded-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="p-4 border-b border-zinc-900 flex items-center justify-between bg-zinc-950/50">
+    <div className="bg-[#0A0A0A] border-y sm:border border-zinc-800 rounded-none sm:rounded-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="p-5 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0A]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-            <Shield size={16} className="text-emerald-500" />
+          <div className="w-10 h-10 rounded-sm bg-[#141414] border border-zinc-800 flex items-center justify-center text-[#00E676]">
+            <Shield size={18} />
           </div>
           <div>
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white">Portal de Segurança</h3>
-            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-tight">Gestão de acesso público à OS</p>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Portal de Segurança</h3>
+            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">Gestão de acesso público</p>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
           {isExpired ? (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 border border-red-500/20 rounded-full">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-sm">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">Expirado</span>
+              <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Expirado</span>
             </span>
           ) : isCloseToExpire ? (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-sm">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Expira em breve</span>
+              <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Expira Breve</span>
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Link Ativo</span>
+            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#00E676]/10 border border-[#00E676]/20 rounded-sm">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
+              <span className="text-[9px] font-black text-[#00E676] uppercase tracking-widest">Link Ativo</span>
             </span>
           ) }
         </div>
       </div>
 
-      <div className="p-5 space-y-6">
+      <div className="p-5 sm:p-6 space-y-6">
         {/* Link Display */}
-        <div className="space-y-2">
-          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 ml-1">Link de Rastreio Público</label>
-          <div className="flex gap-2">
-            <div className="flex-1 h-12 bg-black border border-white/5 rounded-md px-4 flex items-center overflow-hidden">
-              <p className="text-[10px] font-mono text-zinc-400 truncate">{directPublicUrl}</p>
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-0.5">Link de Rastreio Público</label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 h-12 bg-[#141414] border border-zinc-800 rounded-sm px-4 flex items-center overflow-hidden">
+              <p className="text-[11px] font-mono text-zinc-400 truncate">{directPublicUrl}</p>
             </div>
-            <button 
-              onClick={copyToClipboard}
-              className="w-12 h-12 bg-zinc-900 hover:bg-zinc-800 border border-white/5 rounded-md flex items-center justify-center transition-all active:scale-95 group"
-            >
-              {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-zinc-500 group-hover:text-white" />}
-            </button>
-            <a 
-              href={directPublicUrl} 
-              target="_blank" 
-              className="w-12 h-12 bg-zinc-900 hover:bg-emerald-500/20 border border-white/5 rounded-md flex items-center justify-center transition-all active:scale-95 group"
-            >
-              <ExternalLink size={18} className="text-zinc-500 group-hover:text-emerald-500" />
-            </a>
+            <div className="flex gap-2">
+              <button 
+                onClick={copyToClipboard}
+                className="flex-1 sm:w-12 h-12 bg-[#141414] hover:bg-zinc-800 border border-zinc-800 rounded-sm flex items-center justify-center transition-all active:scale-95 group gap-2 sm:gap-0"
+              >
+                {copied ? <Check size={18} className="text-[#00E676]" /> : <Copy size={18} className="text-zinc-500 group-hover:text-white" />}
+                <span className="sm:hidden text-[10px] font-black uppercase text-zinc-400">Copiar</span>
+              </button>
+              <a 
+                href={directPublicUrl} 
+                target="_blank" 
+                className="flex-1 sm:w-12 h-12 bg-[#141414] hover:bg-[#00E676]/10 border border-zinc-800 rounded-sm flex items-center justify-center transition-all active:scale-95 group gap-2 sm:gap-0"
+              >
+                <ExternalLink size={18} className="text-zinc-500 group-hover:text-[#00E676]" />
+                <span className="sm:hidden text-[10px] font-black uppercase text-zinc-400">Abrir</span>
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Expiry Date */}
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 ml-1 flex items-center gap-1.5">
-              <Clock size={10} /> Expiração do Link
+          <div className="space-y-3">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-0.5 flex items-center gap-1.5">
+              <Clock size={12} className="text-blue-400" /> Expiração do Link
             </label>
             <div className="relative">
               <input 
@@ -158,11 +163,11 @@ export default function SecurityPortalManager({ order, companySettings, onUpdate
                   setExpiryDate(e.target.value);
                   handleUpdateExpiry(e.target.value);
                 }}
-                className="w-full h-12 bg-black border border-white/5 rounded-md px-4 text-[10px] font-bold text-white uppercase tracking-widest focus:outline-none focus:border-emerald-500/50 transition-colors"
+                className="w-full h-12 bg-[#141414] border border-zinc-800 rounded-sm px-4 text-[10px] font-bold text-white uppercase tracking-widest focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
               />
               {isUpdatingExpiry && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <Loader2 size={12} className="animate-spin text-emerald-500" />
+                  <Loader2 size={14} className="animate-spin text-[#00E676]" />
                 </div>
               )}
             </div>
@@ -171,39 +176,40 @@ export default function SecurityPortalManager({ order, companySettings, onUpdate
                 setExpiryDate('');
                 handleUpdateExpiry('');
               }}
-              className="text-[8px] font-black text-zinc-600 hover:text-red-500 uppercase tracking-widest transition-colors ml-1"
+              className="text-[9px] font-black text-zinc-600 hover:text-red-500 uppercase tracking-widest transition-colors ml-0.5 flex items-center gap-1.5"
             >
-              Remover prazo de expiração
+              <RefreshCw size={10} /> Remover prazo de expiração
             </button>
           </div>
 
           {/* Regenerate Action */}
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 ml-1 flex items-center gap-1.5">
-              <Lock size={10} /> Ação Crítica
+          <div className="space-y-3">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-0.5 flex items-center gap-1.5">
+              <Lock size={12} className="text-red-400" /> Ação Crítica
             </label>
             <button 
               onClick={handleRegenerate}
               disabled={isRegenerating}
-              className="w-full h-12 bg-zinc-900/50 hover:bg-red-500/10 border border-white/5 hover:border-red-500/30 rounded-md px-4 flex items-center justify-center gap-3 transition-all group disabled:opacity-50"
+              className="w-full h-12 bg-[#141414] hover:bg-red-500/10 border border-zinc-800 hover:border-red-500/30 rounded-sm px-4 flex items-center justify-center gap-3 transition-all group disabled:opacity-50"
             >
-              {isRegenerating ? <Loader2 size={16} className="animate-spin text-red-500" /> : <RefreshCw size={16} className="text-zinc-500 group-hover:text-red-500 transition-colors" />}
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-red-500 transition-colors">Regerar Token Público</span>
+              {isRegenerating ? <Loader2 size={16} className="animate-spin text-red-500" /> : <RefreshCw size={16} className="text-zinc-600 group-hover:text-red-500 transition-colors" />}
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-red-500 transition-colors">Regerar Token Público</span>
             </button>
-            <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest ml-1 leading-relaxed">
-              O link anterior será invalidado permanentemente.
+            <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-tight ml-0.5 leading-relaxed">
+              * O link anterior será invalidado imediatamente.
             </p>
           </div>
         </div>
 
         {/* Tip Section */}
-        <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-md flex items-start gap-3">
-          <AlertCircle size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-          <p className="text-[9px] text-emerald-500/80 font-bold uppercase leading-relaxed tracking-tight">
-            Links com expiração aumentam a segurança da sua assistência. Recomendamos definir um prazo de 7 a 15 dias para cada OS.
+        <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-sm flex items-start gap-3">
+          <AlertCircle size={16} className="text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-[10px] text-zinc-500 font-bold uppercase leading-relaxed tracking-tight">
+            Links com expiração aumentam a segurança da sua assistência. Recomendamos definir um prazo de <span className="text-blue-400">7 a 15 dias</span> para cada OS.
           </p>
         </div>
       </div>
     </div>
   );
+
 }
