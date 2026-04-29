@@ -53,7 +53,8 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   useEffect(() => {
     if (!isPreview) return;
     const updateScale = () => {
-      const newScale = window.innerWidth < A4_WIDTH_PX ? window.innerWidth / A4_WIDTH_PX : 1;
+      const availableWidth = window.innerWidth < 640 ? window.innerWidth - 32 : window.innerWidth - 80;
+      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
       setScale(newScale);
     };
     updateScale();

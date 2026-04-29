@@ -40,8 +40,9 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
   useEffect(() => {
     if (!isPreview) return;
     const updateScale = () => {
-      // Use full innerWidth — no padding needed since transform-origin is centered
-      const newScale = window.innerWidth < A4_WIDTH_PX ? window.innerWidth / A4_WIDTH_PX : 1;
+      // Subtract padding (32px total) to ensure the document doesn't hit the container edges
+      const availableWidth = window.innerWidth < 640 ? window.innerWidth - 32 : window.innerWidth - 80;
+      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
       setScale(newScale);
     };
     updateScale();
