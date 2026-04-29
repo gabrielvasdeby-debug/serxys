@@ -2001,8 +2001,23 @@ export default function StatusOsModule({
                           {/* Customer & Equipment */}
                           <div className="flex items-end justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-black text-xs text-white truncate uppercase tracking-wide leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
-                              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5 truncate">{order.equipment.brand} {order.equipment.model}</p>
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <h4 className="font-black text-xs text-white truncate uppercase tracking-wide leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
+                                {customer?.whatsapp && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      let phone = customer.whatsapp.replace(/\D/g, '');
+                                      if (!phone.startsWith('55')) phone = `55${phone}`;
+                                      window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
+                                    }}
+                                    className="p-1 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shrink-0"
+                                  >
+                                    <MessageCircle size={10} />
+                                  </button>
+                                )}
+                              </div>
+                              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest truncate">{order.equipment.brand} {order.equipment.model}</p>
                             </div>
                             <div className="text-right shrink-0">
                               <p className="text-[8px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-0.5">Total</p>
@@ -2123,8 +2138,24 @@ export default function StatusOsModule({
                           </div>
                         </div>
 
-                        <div>
-                          <h4 className="font-bold text-xs sm:text-[13px] text-zinc-200 line-clamp-1 group-hover:text-[#00E676] transition-colors">{customer?.name || 'Cliente não encontrado'}</h4>
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-xs sm:text-[13px] text-zinc-200 line-clamp-1 group-hover:text-[#00E676] transition-colors">{customer?.name || 'Cliente não encontrado'}</h4>
+                            {customer?.whatsapp && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  let phone = customer.whatsapp.replace(/\D/g, '');
+                                  if (!phone.startsWith('55')) phone = `55${phone}`;
+                                  window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
+                                }}
+                                className="p-1 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676] hover:text-black transition-all opacity-0 group-hover:opacity-100"
+                                title="Chamar no WhatsApp"
+                              >
+                                <MessageCircle size={12} />
+                              </button>
+                            )}
+                          </div>
                           <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
                         </div>
 
