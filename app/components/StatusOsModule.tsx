@@ -2313,7 +2313,7 @@ export default function StatusOsModule({
               {/* === CABEÇALHO DO MODAL (REESTRUTURADO MOBILE) === */}
               <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A] relative overflow-hidden">
                 {/* Linha 1: Navegação e ID */}
-                <div className="flex items-center justify-between px-4 pt-6 pb-2 sm:px-6 sm:pt-4 sm:pb-3 border-b border-zinc-800/30">
+                <div className="flex items-center justify-between px-3 pt-6 pb-2 sm:px-6 sm:pt-4 sm:pb-3 border-b border-zinc-800/30">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setSelectedOrder(null)}
@@ -2336,7 +2336,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Linha 2: Cliente e Equipamento (Principal Mobile) */}
-                <div className="px-5 py-4 sm:px-6">
+                <div className="px-3.5 py-4 sm:px-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1 pl-0.5">Cliente Titular</p>
@@ -2363,7 +2363,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Linha 3: Barra de Ações Rápidas - Mobile Optimized */}
-                <div className="bg-[#050505] border-t border-zinc-800/30 flex items-center gap-3 px-4 py-3 overflow-x-auto no-scrollbar scroll-smooth">
+                <div className="bg-[#050505] border-t border-zinc-800/30 flex items-center gap-3 px-3 py-3 overflow-x-auto no-scrollbar scroll-smooth">
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="relative group">
                       <select
@@ -2533,7 +2533,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto p-2.5 sm:p-8 pt-[180px] pb-24 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto px-1.5 sm:p-8 pt-[180px] pb-24 md:pt-8 bg-[#141414] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -2631,7 +2631,7 @@ export default function StatusOsModule({
                     {/* Checklist & Defect Grid - stacked vertically */}
                     <div className="grid grid-cols-1 gap-6">
                       
-                      <section className="bg-[#0A0A0A] border border-zinc-800 p-4 sm:p-6 rounded-sm flex flex-col group hover:border-zinc-700 transition-colors">
+                      <section className="bg-[#0A0A0A] border border-zinc-800 p-3 sm:p-6 rounded-sm flex flex-col group hover:border-zinc-700 transition-colors">
                         <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
                           <CheckCircle2 size={14} className="text-[#00E676]" /> Checklist de Entrada
                         </h3>
@@ -2648,7 +2648,7 @@ export default function StatusOsModule({
                           </div>
                         ) : (selectedOrder.isVisualChecklist || (selectedOrder as any).is_visual_checklist) ? (
                           <div className="flex-1 -mx-2 sm:mx-0 overflow-x-auto custom-scrollbar pb-2">
-                            <div className="w-full min-w-0 max-w-[320px] mx-auto overflow-hidden">
+                            <div className="w-full min-w-0 mx-auto overflow-hidden">
                               <ControllerChecklistPrint checklist={selectedOrder.checklist} theme="dark" />
                             </div>
                           </div>
@@ -2686,7 +2686,7 @@ export default function StatusOsModule({
                       </section>
 
                       <div className="flex flex-col gap-6">
-                        <section className="bg-[#0A0A0A] border border-zinc-800 p-4 sm:p-6 rounded-sm group hover:border-zinc-700 transition-colors">
+                        <section className="bg-[#0A0A0A] border border-zinc-800 p-3 sm:p-6 rounded-sm group hover:border-zinc-700 transition-colors">
                           <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
                             <AlertTriangle size={14} className="text-orange-400" /> Defeito Relatado
                           </h3>
@@ -2710,7 +2710,7 @@ export default function StatusOsModule({
 
                     {/* Financials & Closing */}
                     <div className="space-y-6">
-                      <section className="bg-[#0A0A0A] border border-zinc-800 p-4 sm:p-8 rounded-sm overflow-hidden relative group hover:border-zinc-700 transition-colors">
+                      <section className="bg-[#0A0A0A] border border-zinc-800 p-3 sm:p-8 rounded-sm overflow-hidden relative group hover:border-zinc-700 transition-colors">
 
                          
                          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -2797,7 +2797,7 @@ export default function StatusOsModule({
                       </section>
 
                       {selectedOrder.completionData && (
-                        <section className="bg-[#141414] border border-zinc-800/80 p-4 sm:p-8 rounded-sm overflow-hidden relative group hover:border-zinc-700 transition-colors">
+                        <section className="bg-[#141414] border border-zinc-800/80 p-3 sm:p-8 rounded-sm overflow-hidden relative group hover:border-zinc-700 transition-colors">
 
                            <h3 className="text-sm font-black text-[#00E676] uppercase tracking-[0.2em] flex items-center gap-2 mb-6 relative z-10">
                              <CheckCircle2 size={18} /> Dados de Finalização do Reparo
@@ -2949,7 +2949,7 @@ export default function StatusOsModule({
                       </div>
 
                       <div className="space-y-6">
-                        <section className="bg-[#141414] border border-zinc-800 p-6 rounded-sm space-y-4">
+                        <section className="bg-[#141414] border border-zinc-800 p-3 sm:p-6 rounded-sm space-y-4">
                           <label className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                             <MessageCircle size={14} className="text-[#00E676]" /> Observações Técnicas
                           </label>
@@ -3021,7 +3021,7 @@ export default function StatusOsModule({
                       {/* Coluna Principal: Conteúdo do Orçamento */}
                       <div className="flex-1 space-y-6 w-full">
                         {/* Seção 1: Diagnóstico e Plano */}
-                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-4 sm:p-8 space-y-8">
+                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-3 sm:p-8 space-y-8">
                           <div className="flex items-center gap-3 border-b border-zinc-800/50 pb-6">
                             <div className="p-2.5 bg-red-400/10 rounded-sm text-red-400">
                               <AlertCircle size={20} />
@@ -3055,7 +3055,7 @@ export default function StatusOsModule({
                         </div>
 
                         {/* Seção 2: Itens de Custos */}
-                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-4 sm:p-8 space-y-6">
+                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-3 sm:p-8 space-y-6">
                            <div className="flex items-center justify-between border-b border-zinc-800/50 pb-6">
                              <div className="flex items-center gap-3">
                                <div className="p-2.5 bg-blue-400/10 rounded-sm text-blue-400">
@@ -3108,7 +3108,7 @@ export default function StatusOsModule({
                         </div>
 
                         {/* Seção 3: Observações */}
-                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-4 sm:p-8 space-y-4">
+                        <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-3 sm:p-8 space-y-4">
                            <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Informações Adicionais (Garantia/Prazos)</label>
                            <textarea
                              value={budgetServiceNotes}
