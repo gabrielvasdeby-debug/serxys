@@ -501,6 +501,8 @@ export default function StatusOsModule({
   const [isDocHubOpen, setIsDocHubOpen] = useState(false);
   const [isBudgetPreviewOpen, setIsBudgetPreviewOpen] = useState(false);
   const [isReportPreviewOpen, setIsReportPreviewOpen] = useState(false);
+  const [showAllCustomerInfo, setShowAllCustomerInfo] = useState(false);
+  const [isEntryPhotosModalOpen, setIsEntryPhotosModalOpen] = useState(false);
 
   // New Detailed Budget States
   const [budgetDetailedDefect, setBudgetDetailedDefect] = useState('');
@@ -2552,9 +2554,17 @@ export default function StatusOsModule({
                     <div className="grid grid-cols-1 gap-6">
                       
                       <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
-                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4 relative z-10">
-                          <User size={14} className="text-[#00E676]" /> Dados do Cliente
-                        </h3>
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <User size={14} className="text-[#00E676]" /> Dados do Cliente
+                          </h3>
+                          <button 
+                            onClick={() => setShowAllCustomerInfo(!showAllCustomerInfo)}
+                            className="text-[9px] font-black uppercase tracking-widest text-[#00E676] bg-[#00E676]/10 px-2 py-1 rounded-sm border border-[#00E676]/20 hover:bg-[#00E676]/20 transition-all"
+                          >
+                            {showAllCustomerInfo ? 'Ocultar Detalhes' : 'Mostrar Mais'}
+                          </button>
+                        </div>
                         <div className="relative z-10 space-y-3">
                           {(() => {
                             const customer = customers.find(c => c.id === selectedOrder.customerId);
@@ -2574,17 +2584,60 @@ export default function StatusOsModule({
                                     <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{customer.document || '---'}</p>
                                   </div>
                                 </div>
+
+                                {showAllCustomerInfo && (
+                                  <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="space-y-3 pt-3 border-t border-zinc-800/50"
+                                  >
+                                    <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50">
+                                      <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">E-mail</p>
+                                      <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{customer.email || 'Não informado'}</p>
+                                    </div>
+                                    <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50">
+                                      <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Endereço</p>
+                                      <p className="text-[11px] sm:text-xs text-zinc-300 font-bold leading-relaxed">
+                                        {customer.street}, {customer.number}{customer.complement ? ` - ${customer.complement}` : ''}<br />
+                                        {customer.neighborhood} - {customer.city}/{customer.state}<br />
+                                        CEP: {customer.zipCode}
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
                               </>
                             ) : <p className="text-zinc-500 italic text-sm">Cliente não encontrado</p>;
                           })()}
                         </div>
                       </section>
 
+                      {/* Prominent Service Section */}
+                      <section className="bg-zinc-900/40 border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm">
+                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
+                          <Wrench size={14} className="text-[#00E676]" /> Serviço Contratado
+                        </h3>
+                        <div className="bg-[#141414] rounded-sm p-4 border border-[#00E676]/20 shadow-[0_0_15px_rgba(0,230,118,0.05)]">
+                          <p className="text-sm sm:text-base font-black text-white uppercase tracking-tight">
+                            {selectedOrder.service || 'Não especificado'}
+                          </p>
+                        </div>
+                      </section>
+
                       {/* Aparelho Card */}
                       <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
-                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4 relative z-10">
-                          <Smartphone size={14} className="text-blue-400" /> Detalhes do Equipamento
-                        </h3>
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <Smartphone size={14} className="text-blue-400" /> Detalhes do Equipamento
+                          </h3>
+                          {selectedOrder.entryPhotos && selectedOrder.entryPhotos.length > 0 && (
+                            <button 
+                              onClick={() => setIsEntryPhotosModalOpen(true)}
+                              className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-1 rounded-sm border border-blue-400/20 hover:bg-blue-400/20 transition-all flex items-center gap-1.5"
+                            >
+                              <CameraIcon size={12} /> Ver Fotos ({selectedOrder.entryPhotos.length})
+                            </button>
+                          )}
+                        </div>
                         <div className="relative z-10 space-y-3">
                           <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex items-center justify-between">
                             <div className="min-w-0 flex-1">
@@ -3381,7 +3434,6 @@ export default function StatusOsModule({
                     <CheckCircle2 size={14} className="pointer-events-none" />
                     <span className="text-[8px] font-black uppercase mt-0.5 pointer-events-none group-active:scale-95 transition-transform">Status</span>
                   </div>
-
                   {/* Botão Editar */}
                   {onEdit && (
                     <button
@@ -3422,6 +3474,71 @@ export default function StatusOsModule({
                 </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Entry Photos Viewer Modal */}
+      <AnimatePresence>
+        {isEntryPhotosModalOpen && selectedOrder && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEntryPhotosModalOpen(false)}
+              className="absolute inset-0 bg-black/95 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-5xl aspect-video sm:aspect-auto sm:h-[85vh] bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-black/20">
+                <div className="flex items-center gap-3">
+                  <CameraIcon size={18} className="text-blue-400" />
+                  <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Fotos de Entrada</h3>
+                  <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
+                    {selectedOrder.entryPhotos?.length || 0} fotos
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setIsEntryPhotosModalOpen(false)}
+                  className="w-10 h-10 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 rounded-full text-zinc-400 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedOrder.entryPhotos?.map((photo, idx) => (
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group relative aspect-square bg-zinc-900 rounded-md border border-zinc-800 overflow-hidden"
+                    >
+                      <img 
+                        src={photo} 
+                        alt={`Foto de Entrada ${idx + 1}`} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          onClick={() => window.open(photo, '_blank')}
+                          className="p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all"
+                        >
+                          <ExternalLink size={20} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
