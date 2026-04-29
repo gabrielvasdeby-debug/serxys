@@ -2306,210 +2306,127 @@ export default function StatusOsModule({
             >
               {/* === CABEÇALHO DO MODAL === */}
               <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A]">
-                {/* Linha 1: Identificação */}
-                <div className="flex items-center gap-3 px-5 pt-4 pb-3 border-b border-zinc-800/50">
+                {/* Linha 1: Identificação (Optimized for Mobile) */}
+                <div className="flex items-center gap-2 sm:gap-3 px-4 py-3 sm:px-5 sm:pt-4 sm:pb-3 border-b border-zinc-800/50">
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
+                    className="p-2 -ml-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
                   >
-                    <ArrowLeft size={18} />
+                    <ArrowLeft size={22} />
                   </button>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-[11px] font-black font-mono text-zinc-500 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-sm uppercase tracking-widest shrink-0">
-                      OS {selectedOrder.osNumber.toString().padStart(4, '0')}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate leading-tight">
-                        {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-medium truncate">
-                        {selectedOrder.equipment.brand} {selectedOrder.equipment.model}
-                      </p>
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2">
+                       <span className="text-[10px] sm:text-[11px] font-black font-mono text-[#00E676] bg-[#00E676]/5 border border-[#00E676]/20 px-2 py-0.5 rounded-sm uppercase tracking-wider shrink-0">
+                        OS {selectedOrder.osNumber.toString().padStart(4, '0')}
+                      </span>
+                      <span className={`text-[9px] sm:hidden px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color} border border-current/10`}>
+                        {selectedOrder.status}
+                      </span>
                     </div>
+                    <h2 className="text-sm sm:text-lg font-black text-white truncate leading-tight mt-1 uppercase tracking-wide">
+                      {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
+                    </h2>
                   </div>
-                  <div className="ml-auto flex items-center gap-2 shrink-0">
+                  <div className="ml-auto hidden sm:flex items-center gap-2 shrink-0">
                     <span className={`text-[9px] px-2.5 py-1 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
                       {selectedOrder.status}
                     </span>
-                    {!['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(selectedOrder.status) && (
-                      <span className="text-[9px] px-2.5 py-1 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 text-zinc-500 hidden sm:block">
-                        {selectedOrder.priority}
-                      </span>
-                    )}
                   </div>
-                </div>
-
-                {/* Linha 2: Ações */}
-                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-1.5 px-4 sm:px-5 py-3 sm:py-2.5 overflow-y-auto max-h-[30vh] sm:max-h-none sm:overflow-visible">
-                  <div className="flex items-center gap-2">
-                    <select
-                    value={selectedOrder.status}
-                    onChange={(e) => {
-                      const newStatus = e.target.value as OrderStatus;
-                      if (newStatus === 'Equipamento Retirado') {
-                        const balance = selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0);
-                        const hasWarrantyInOrder = selectedOrder.completionData?.warrantyDays || selectedOrder.completionData?.hasWarranty;
-                        if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
-                        if (balance > 0) {
-                          onShowToast(!hasWarrantyInOrder ? "⚠️ Atenção: Pendência financeira detectada." : "💰 Pagamento pendente.");
-                          setPaymentAmount(balance.toString());
-                          setDiscount('0');
-                          setOnSuccessStatus('Equipamento Retirado');
-                          setIsPaymentModalOpen(true);
-                          return;
-                        }
-                        updateOrderStatus(selectedOrder, 'Equipamento Retirado');
-                        return;
-                      }
-                      if (newStatus === 'Reparo Concluído') {
-                        setIsFinishing(true);
-                      } else {
-                        updateOrderStatus(selectedOrder, newStatus);
-                        setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
-                      }
-                    }}
-                    className="flex-1 sm:flex-none bg-[#1A1A1A] border border-zinc-800 hover:border-zinc-600 rounded-sm px-3 py-3 sm:py-2 text-[13px] sm:text-[11px] font-bold text-white focus:outline-none focus:border-[#00E676] shrink-0 transition-colors min-h-[44px] sm:min-h-0"
-                  >
-                    {Object.keys(STATUS_CONFIG).map(status => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-
-                  <button
-                    onClick={() => setSelectedOrder(null)}
-                    className="sm:hidden p-3 bg-[#1A1A1A] border border-zinc-800 text-zinc-400 hover:text-white rounded-sm min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors shrink-0"
-                    title="Fechar"
-                  >
+                  <button onClick={() => setSelectedOrder(null)} className="sm:hidden p-2 text-zinc-600">
                     <X size={20} />
                   </button>
+                </div>
+
+                {/* Linha 2: Ações (Horizontal Scroll on Mobile) */}
+                <div className="flex items-center gap-2 px-3 py-2 sm:px-5 sm:py-2.5 overflow-x-auto no-scrollbar bg-[#0A0A0A]">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select
+                      value={selectedOrder.status}
+                      onChange={(e) => {
+                        const newStatus = e.target.value as OrderStatus;
+                        if (newStatus === 'Equipamento Retirado') {
+                          const balance = selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0);
+                          const hasWarrantyInOrder = selectedOrder.completionData?.warrantyDays || selectedOrder.completionData?.hasWarranty;
+                          if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
+                          if (balance > 0) {
+                            onShowToast(!hasWarrantyInOrder ? "⚠️ Atenção: Pendência financeira detectada." : "💰 Pagamento pendente.");
+                            setPaymentAmount(balance.toString());
+                            setDiscount('0');
+                            setOnSuccessStatus('Equipamento Retirado');
+                            setIsPaymentModalOpen(true);
+                            return;
+                          }
+                          updateOrderStatus(selectedOrder, 'Equipamento Retirado');
+                          return;
+                        }
+                        if (newStatus === 'Reparo Concluído') {
+                          setIsFinishing(true);
+                        } else {
+                          updateOrderStatus(selectedOrder, newStatus);
+                          setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+                        }
+                      }}
+                      className="bg-[#1A1A1A] border border-zinc-800 hover:border-zinc-700 rounded-sm px-3 h-10 sm:h-8 text-[11px] font-black uppercase tracking-widest text-white focus:outline-none focus:border-[#00E676] transition-all appearance-none cursor-pointer"
+                    >
+                      {Object.keys(STATUS_CONFIG).map(status => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="hidden sm:block h-5 w-px bg-zinc-800 shrink-0 mx-1" />
+                  <div className="w-px h-6 bg-zinc-800 shrink-0 mx-1" />
 
-                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-1.5 mt-2 sm:mt-0 pb-2 sm:pb-0">
-                  {onEdit && (
-                    <button onClick={() => onEdit(selectedOrder)} className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider" title="Editar OS">
-                      <Pencil className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Editar
+                  <div className="flex items-center gap-2 shrink-0 pr-4">
+                    {onEdit && (
+                      <button onClick={() => onEdit(selectedOrder)} className="flex items-center gap-2 px-3 h-10 sm:h-8 bg-[#1A1A1A] hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                        <Pencil size={14} /> Editar
+                      </button>
+                    )}
+                    <button onClick={() => handleViewDocs(selectedOrder)} className="flex items-center gap-2 px-3 h-10 sm:h-8 bg-[#1A1A1A] hover:bg-zinc-800 text-zinc-400 hover:text-[#00E676] border border-zinc-800 rounded-sm transition-all text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                      <FileText size={14} /> Docs
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleViewDocs(selectedOrder)}
-                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-[#00E676] border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
-                    title="Ver Documentos"
-                  >
-                    <FileText className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Documentos
-                  </button>
-                  <button
-                    onClick={() => {
-                      const customer = customers.find(c => c.id === selectedOrder.customerId);
-                      if (!customer?.whatsapp) {
-                        onShowToast('Cliente sem número de WhatsApp cadastrado');
-                        return;
-                      }
-
-                      const portalUrl = companySettings.publicSlug
-                        ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}`
-                        : `${window.location.origin}/os/${selectedOrder.id}`;
-                      
-                      const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
-                        `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
-                      
-                      const message = template
-                        .replace(/\[nome_cliente\]/g, customer.name)
-                        .replace(/{cliente}/g, customer.name)
-                        .replace(/\[numero_os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
-                        .replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0'))
-                        .replace(/\[marca\]/g, selectedOrder.equipment.brand)
-                        .replace(/\[modelo\]/g, selectedOrder.equipment.model)
-                        .replace(/\[defeito\]/g, selectedOrder.defect)
-                        .replace(/\[status\]/g, selectedOrder.status)
-                        .replace(/\[data_entrada\]/g, new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR'))
-                        .replace(/\[link_os\]/g, portalUrl)
-                        .replace(/{link}/g, portalUrl)
-                        .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
-                        .replace(/{empresa}/g, companySettings.name || 'Servyx');
-
-                      let decodedPhone = customer.whatsapp.replace(/\D/g, '');
-                      if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
-                      const whatsappUrl = `https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`;
-                      const link = document.createElement('a');
-                      link.href = whatsappUrl;
-                      link.target = 'wa';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-[#25D366] border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
-                    title="Enviar WhatsApp"
-                  >
-                    <MessageCircle className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> WhatsApp
-                  </button>
-
-                  <div className="hidden sm:block h-5 w-px bg-zinc-800 shrink-0 mx-1" />
-
-                  <button
-                    onClick={() => {
-                      const originalTitle = document.title;
-                      const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
-                      const companyName = companySettings.name || 'Servyx';
-                      document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_OS_${osNumber}`;
-                      document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal');
-                      document.body.classList.add('print-a4');
-                      window.print();
-                      setTimeout(() => { document.title = originalTitle; }, 100);
-                    }}
-                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
-                    title="Imprimir A4"
-                  >
-                    <Printer className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Impr. A4
-                  </button>
-                  <button
-                    onClick={() => {
-                      const originalTitle = document.title;
-                      const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
-                      const companyName = companySettings.name || 'Servyx';
-                      document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_OS_${osNumber}`;
-                      document.body.classList.remove('print-a4', 'print-warranty', 'print-warranty-thermal');
-                      document.body.classList.add('print-thermal');
-                      window.print();
-                      setTimeout(() => { document.title = originalTitle; }, 100);
-                    }}
-                    className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-orange-400/70 hover:text-orange-400 border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
-                    title="Imprimir Cupom Térmico"
-                  >
-                    <Printer className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Cupom
-                  </button>
-                  {selectedOrder.completionData?.warrantyDays && (
                     <button
-                      onClick={() => setIsWarrantyPreviewOpen(true)}
-                      className="flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-2.5 py-3 sm:py-1.5 min-h-[44px] sm:min-h-0 bg-[#1A1A1A] hover:bg-zinc-700 text-purple-400/70 hover:text-purple-400 border border-zinc-800 rounded-sm transition-all shrink-0 text-[11px] sm:text-[10px] font-black uppercase tracking-wider"
-                      title="Ver Garantia"
+                      onClick={() => {
+                        const customer = customers.find(c => c.id === selectedOrder.customerId);
+                        if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
+                        const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}` : `${window.location.origin}/os/${selectedOrder.id}`;
+                        const template = osSettings.whatsappMessages?.['Entrada Registrada'] || `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\n{link}\n\n{empresa}`;
+                        const message = template.replace(/{cliente}/g, customer.name).replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0')).replace(/{link}/g, portalUrl).replace(/{empresa}/g, companySettings.name || 'Servyx');
+                        let decodedPhone = customer.whatsapp.replace(/\D/g, '');
+                        if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
+                        window.open(`https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`, 'wa');
+                      }}
+                      className="flex items-center gap-2 px-3 h-10 sm:h-8 bg-[#1A1A1A] hover:bg-zinc-800 text-zinc-400 hover:text-[#25D366] border border-zinc-800 rounded-sm transition-all text-[10px] font-black uppercase tracking-wider whitespace-nowrap"
                     >
-                      <ShieldCheck className="w-[14px] h-[14px] sm:w-[13px] sm:h-[13px]" /> Garantia
+                      <MessageCircle size={14} /> WhatsApp
                     </button>
-                  )}
-
-                  <button
-                    onClick={() => setSelectedOrder(null)}
-                    className="hidden sm:flex ml-auto p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors shrink-0"
-                    title="Fechar"
-                  >
-                    <X size={18} />
-                  </button>
+                    <button
+                      onClick={() => {
+                        const originalTitle = document.title;
+                        document.title = `${(companySettings.name || 'Servyx').toUpperCase()}_OS_${selectedOrder.osNumber}`;
+                        document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal');
+                        document.body.classList.add('print-a4');
+                        window.print();
+                        setTimeout(() => { document.title = originalTitle; }, 100);
+                      }}
+                      className="flex items-center gap-2 px-3 h-10 sm:h-8 bg-[#1A1A1A] hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-sm transition-all text-[10px] font-black uppercase tracking-wider whitespace-nowrap"
+                    >
+                      <Printer size={14} /> Impr. A4
+                    </button>
                   </div>
                 </div>
               </div>
               {/* === CORPO (SIDEBAR ESQUERDA + CONTEÚDO DIREITA) === */}
               <div className="flex flex-1 overflow-hidden relative">
                 
-                {/* Fallback Mobile Tabs */}
-                <div className="md:hidden absolute top-0 left-0 right-0 z-30 flex overflow-x-auto snap-x no-scrollbar items-center p-3 gap-2 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-zinc-800/50 shadow-lg">
+                {/* Mobile Tab Navigation (Sticky & Premium) */}
+                <div className="md:hidden absolute top-0 left-0 right-0 z-[60] flex overflow-x-auto snap-x no-scrollbar items-center px-4 py-2.5 gap-2.5 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-zinc-800/80 shadow-2xl">
                   {[
                     { id: 'geral', label: 'Geral', icon: FileText },
-                    { id: 'laudo', label: 'Laudo', icon: CheckCircle2 },
+                    { id: 'laudo', label: 'Diagnóstico', icon: CheckCircle2 },
                     { id: 'orcamento', label: 'Orçamento', icon: Calculator },
-                    { id: 'seguranca', label: 'Acesso', icon: ShieldCheck },
-                    { id: 'historico', label: 'Histórico', icon: Clock }
+                    { id: 'seguranca', label: 'Segurança', icon: ShieldCheck },
+                    { id: 'historico', label: 'Linha do Tempo', icon: Clock }
                   ].map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -2517,25 +2434,16 @@ export default function StatusOsModule({
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-[0.1em] transition-all whitespace-nowrap border ${
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border snap-start ${
                           isActive 
-                            ? 'bg-[#00E676]/10 text-[#00E676] border-[#00E676]/30 shadow-[0_0_15px_rgba(0,230,118,0.05)]' 
-                            : 'text-zinc-500 bg-zinc-900/50 border-zinc-800/50 hover:text-zinc-300'
+                            ? 'bg-[#00E676] text-black border-[#00E676] shadow-[0_0_20px_rgba(0,230,118,0.2)]' 
+                            : 'text-zinc-500 bg-zinc-900/50 border-zinc-800 hover:text-zinc-300'
                         }`}
                       >
-                        <Icon size={12} className={isActive ? 'text-[#00E676]' : 'text-zinc-600'} /> {tab.label}
+                        <Icon size={14} className={isActive ? 'text-black' : 'text-zinc-600'} /> {tab.label}
                       </button>
                     );
                   })}
-                  
-                  <div className="w-px h-6 bg-zinc-800/50 mx-1 shrink-0" />
-
-                  <button
-                    onClick={() => handleViewDocs(selectedOrder)}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-[0.1em] transition-all whitespace-nowrap bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 shadow-sm"
-                  >
-                    <FileText size={12} className="text-zinc-600" /> Docs
-                  </button>
                 </div>
 
                 {/* Sidebar Desktop */}
