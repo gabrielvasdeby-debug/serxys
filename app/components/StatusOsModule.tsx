@@ -2428,7 +2428,6 @@ export default function StatusOsModule({
                     </button>
                   </div>
                 </div>
-              </div>
               {/* === CORPO (SIDEBAR ESQUERDA + CONTEÚDO DIREITA) === */}
               <div className="flex flex-1 overflow-hidden relative">
                 
