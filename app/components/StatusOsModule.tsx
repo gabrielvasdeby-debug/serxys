@@ -4031,26 +4031,16 @@ export default function StatusOsModule({
                 </div>
               </div>
               
-              <div className="flex-1 overflow-hidden bg-zinc-900 flex items-center justify-center relative">
-                <TransformWrapper
-                  initialScale={typeof window !== 'undefined' && window.innerWidth < 768 ? (window.innerWidth - 32) / 794 : 1}
-                  minScale={0.3}
-                  maxScale={3}
-                  centerOnInit={true}
-                  wheel={{ step: 0.1 }}
-                >
-                  <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center p-4">
-                    <div className="w-[210mm] min-w-[210mm] bg-white shadow-2xl rounded-sm overflow-hidden">
-                       <OrderPrintTemplate
-                          order={previewOrder}
-                          customer={customers.find(c => c.id === previewOrder.customerId)}
-                          companySettings={companySettings}
-                          osSettings={osSettings}
-                          isPreview={true}
-                        />
-                    </div>
-                  </TransformComponent>
-                </TransformWrapper>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden bg-zinc-900 flex flex-col items-center relative custom-scrollbar p-0 sm:p-8">
+                 <div className="w-full max-w-[210mm] shadow-2xl rounded-sm overflow-hidden bg-white mb-10">
+                    <OrderPrintTemplate
+                       order={previewOrder}
+                       customer={customers.find(c => c.id === previewOrder.customerId)}
+                       companySettings={companySettings}
+                       osSettings={osSettings}
+                       isPreview={true}
+                     />
+                 </div>
               </div>
 
               <div className="p-4 bg-[#0A0A0A] border-t border-zinc-800 flex justify-center">
@@ -4261,26 +4251,16 @@ export default function StatusOsModule({
                 </button>
               </div>
               
-              <div className="flex-1 overflow-hidden bg-slate-100 relative">
-                <TransformWrapper
-                  initialScale={typeof window !== 'undefined' && window.innerWidth < 768 ? (window.innerWidth - 32) / 794 : 1}
-                  minScale={0.3}
-                  maxScale={3}
-                  centerOnInit={true}
-                  wheel={{ step: 0.1 }}
-                >
-                  <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center p-4">
-                    <div className="bg-white shadow-2xl min-h-[1122px] w-[210mm] min-w-[210mm]">
-                      <WarrantyPrintTemplate
-                        order={selectedOrder}
-                        customer={customers.find(c => c.id === selectedOrder.customerId)}
-                        companySettings={companySettings}
-                        osSettings={osSettings}
-                        isPreview={true}
-                      />
-                    </div>
-                  </TransformComponent>
-                </TransformWrapper>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100 flex flex-col items-center relative custom-scrollbar p-0 sm:p-8">
+                <div className="w-full max-w-[210mm] shadow-2xl rounded-sm overflow-hidden bg-white mb-10">
+                  <WarrantyPrintTemplate
+                    order={selectedOrder}
+                    customer={customers.find(c => c.id === selectedOrder.customerId)}
+                    companySettings={companySettings}
+                    osSettings={osSettings}
+                    isPreview={true}
+                  />
+                </div>
               </div>
 
               <div className="p-6 border-t border-zinc-200 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -4355,27 +4335,17 @@ export default function StatusOsModule({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-hidden bg-zinc-950/50 relative">
-                <TransformWrapper
-                  initialScale={typeof window !== 'undefined' && window.innerWidth < 768 ? (window.innerWidth - 32) / 794 : 1}
-                  minScale={0.3}
-                  maxScale={3}
-                  centerOnInit={true}
-                  wheel={{ step: 0.1 }}
-                >
-                  <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center p-4">
-                    <div className="w-[210mm] min-w-[210mm] shadow-2xl rounded-sm overflow-hidden bg-white">
-                      <BudgetDocumentView
-                        order={selectedOrder}
-                        customer={customers.find(c => c.id === selectedOrder.customerId)}
-                        companySettings={companySettings}
-                        onApprove={async () => {}}
-                        onReject={async () => {}}
-                        isSubmitting={false}
-                      />
-                    </div>
-                  </TransformComponent>
-                </TransformWrapper>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden bg-zinc-950/50 flex flex-col items-center relative custom-scrollbar p-0 sm:p-8">
+                <div className="w-[96%] sm:w-full max-w-3xl shadow-2xl rounded-sm overflow-hidden bg-white mb-10">
+                  <BudgetDocumentView
+                    order={selectedOrder}
+                    customer={customers.find(c => c.id === selectedOrder.customerId)}
+                    companySettings={companySettings}
+                    onApprove={async () => {}}
+                    onReject={async () => {}}
+                    isSubmitting={false}
+                  />
+                </div>
               </div>
               
               <div className="p-4 bg-[#0A0A0A] border-t border-zinc-800 flex justify-center">
@@ -4421,24 +4391,15 @@ export default function StatusOsModule({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-hidden bg-zinc-950/50 relative">
-                <TransformWrapper
-                  initialScale={typeof window !== 'undefined' && window.innerWidth < 768 ? (window.innerWidth - 32) / 794 : 1}
-                  minScale={0.3}
-                  maxScale={3}
-                  centerOnInit={true}
-                  wheel={{ step: 0.1 }}
-                >
-                  <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center p-4">
-                    <div className="w-[210mm] min-w-[210mm] shadow-2xl rounded-sm overflow-hidden bg-white">
-                      <TechnicalReportPrintTemplate
-                        order={selectedOrder}
-                        customer={customers.find(c => c.id === selectedOrder.customerId)}
-                        companySettings={companySettings}
-                      />
-                    </div>
-                  </TransformComponent>
-                </TransformWrapper>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden bg-zinc-950/50 flex flex-col items-center relative custom-scrollbar p-0 sm:p-8">
+                <div className="w-full max-w-[210mm] shadow-2xl rounded-sm overflow-hidden bg-white mb-10">
+                  <TechnicalReportPrintTemplate
+                    order={selectedOrder}
+                    customer={customers.find(c => c.id === selectedOrder.customerId)}
+                    companySettings={companySettings}
+                    isPreview={true}
+                  />
+                </div>
               </div>
               
               <div className="p-4 bg-[#0A0A0A] border-t border-zinc-800 flex justify-center">
