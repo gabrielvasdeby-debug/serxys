@@ -1981,100 +1981,86 @@ export default function StatusOsModule({
                         {/* Status color bar */}
                         <div className={`h-1 w-full ${cfg.bg.replace('/10', '/80')}`} />
 
-                        <div className="p-4 space-y-3">
-                          {/* Top row: OS number + date */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[11px] font-black font-mono text-zinc-200 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded-sm uppercase tracking-widest">
+                        <div className="p-3 space-y-2.5">
+                          {/* Header: OS #, Status and Priority */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-[12px] font-black font-mono text-white bg-zinc-950 border border-zinc-800 px-2 py-0.5 rounded-sm uppercase tracking-wider shrink-0">
                                 #{order.osNumber.toString().padStart(4, '0')}
                               </span>
-                              <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/10`}>
+                              <span className={`truncate text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/10 shadow-sm`}>
                                 {order.status}
                               </span>
                             </div>
-                            <span className="text-[10px] text-zinc-600 font-bold">
-                              {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                            </span>
-                          </div>
-
-                          {/* Customer + Equipment */}
-                          <div className="pt-1">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-black text-sm text-white truncate leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5 truncate">{order.equipment.brand} {order.equipment.model}</p>
-                              </div>
-                              <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]} shrink-0 mt-1.5 shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
+                            <div className="flex items-center gap-2 shrink-0">
+                               <span className="text-[9px] text-zinc-600 font-bold uppercase">{new Date(order.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                               <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]} shadow-[0_0_8px_rgba(0,0,0,0.4)]`} />
                             </div>
                           </div>
 
-                          {/* Info Grid (Defect & Service) */}
-                          <div className="grid grid-cols-2 gap-4 py-2 border-y border-zinc-800/40">
-                            <div>
-                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-[0.1em] mb-1">Defeito</p>
-                              <p className="text-[10px] text-zinc-400 line-clamp-1 italic">{order.defect || '—'}</p>
+                          {/* Customer & Equipment */}
+                          <div className="flex items-end justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-black text-xs text-white truncate uppercase tracking-wide leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
+                              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5 truncate">{order.equipment.brand} {order.equipment.model}</p>
                             </div>
-                            <div className="border-l border-zinc-800/40 pl-4">
-                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-[0.1em] mb-1">Serviço</p>
-                              <p className="text-[10px] text-zinc-400 line-clamp-1">{order.service || '—'}</p>
-                            </div>
-                          </div>
-
-                          {/* Highlights (Late status, value) */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {isLate && (
-                                <span className="flex items-center gap-1 text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full font-black animate-pulse uppercase tracking-tighter">
-                                  <AlertTriangle size={8} /> Atrasado
-                                </span>
-                              )}
-                              {order.budget?.status === 'Aprovado' && (
-                                <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">Aprovado</span>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-0.5">Valor Total</p>
+                            <div className="text-right shrink-0">
+                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-0.5">Total</p>
                               <p className="text-sm font-black text-[#00E676]">{formatToBRL(order.financials?.totalValue || 0)}</p>
                             </div>
                           </div>
 
+                          {/* Compact Info (Defect & Status Badges) */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-zinc-950/40 rounded-sm px-2 py-1.5 border border-zinc-800/30 min-w-0">
+                              <p className="text-[9px] text-zinc-400 line-clamp-1 italic leading-none truncate">
+                                <span className="text-[8px] text-zinc-600 font-black uppercase tracking-wider not-italic mr-1">Defeito:</span>
+                                {order.defect || '—'}
+                              </p>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              {isLate && (
+                                <div className="w-5 h-5 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center animate-pulse border border-red-500/20" title="Atrasado">
+                                  <AlertTriangle size={10} />
+                                </div>
+                              )}
+                              {order.budget?.status === 'Aprovado' && (
+                                <div className="w-5 h-5 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/20" title="Aprovado">
+                                  <Check size={10} />
+                                </div>
+                              )}
+                            </div>
+                          </div>
 
-
-                          {/* Action buttons */}
-                          <div className="grid grid-cols-2 gap-2 pt-1">
+                          {/* Action buttons - Ultra Compact 1x4 */}
+                          <div className="grid grid-cols-4 gap-1.5 pt-0.5">
                             <button
                               onClick={() => setSelectedOrder(order)}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 active:bg-zinc-800 transition-colors shadow-sm"
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-zinc-900 border border-zinc-800 text-zinc-400 active:bg-zinc-800 active:border-zinc-700 transition-all shadow-sm group"
                             >
-                              <Eye size={18} />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Detalhes</span>
+                              <Eye size={14} className="group-active:scale-90 transition-transform" />
+                              <span className="text-[7px] font-black uppercase tracking-tighter">Detalhes</span>
                             </button>
                             <button
                               onClick={() => { onEdit?.(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-blue-400 active:bg-zinc-800 transition-colors shadow-sm"
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-zinc-900 border border-zinc-800 text-blue-500/70 active:bg-zinc-800 active:border-blue-500/30 transition-all shadow-sm group"
                             >
-                              <Pencil size={18} />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Editar</span>
+                              <Pencil size={14} className="group-active:scale-90 transition-transform" />
+                              <span className="text-[7px] font-black uppercase tracking-tighter text-blue-500/50">Editar</span>
                             </button>
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOrderToQuickStatus(order);
-                              }}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shadow-sm"
+                              onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }}
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-[#00E676]/5 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/10 active:border-[#00E676]/40 transition-all shadow-sm group"
                             >
-                              <CheckCircle2 size={18} />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Status</span>
+                              <CheckCircle2 size={14} className="group-active:scale-90 transition-transform" />
+                              <span className="text-[7px] font-black uppercase tracking-tighter">Status</span>
                             </button>
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewDocs(order);
-                              }}
-                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-amber-500 active:bg-zinc-800 transition-colors shadow-sm"
+                              onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }}
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-zinc-900 border border-zinc-800 text-amber-500/70 active:bg-zinc-800 active:border-amber-500/30 transition-all shadow-sm group"
                             >
-                              <FileText size={18} />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Documentos</span>
+                              <FileText size={14} className="group-active:scale-90 transition-transform" />
+                              <span className="text-[7px] font-black uppercase tracking-tighter text-amber-500/50">Docs</span>
                             </button>
                           </div>
                         </div>
