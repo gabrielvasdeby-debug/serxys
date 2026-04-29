@@ -3292,9 +3292,9 @@ export default function StatusOsModule({
               </div>
               </div>
                 {/* Barra Inferior Fixa (Mobile Only) */}
-                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-xl border-t border-zinc-800 px-2 pt-2 pb-6 flex items-center gap-1.5 z-[70] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-xl border-t border-zinc-800 px-1.5 pt-1.5 pb-3 flex items-center gap-1.5 z-[70] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                   {/* Botão Status */}
-                  <div className="flex-1 relative flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-[#00E676] active:bg-zinc-800 transition-all overflow-hidden group">
+                  <div className="flex-1 relative flex flex-col items-center justify-center h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-[#00E676] active:bg-zinc-800 transition-all overflow-hidden group">
                     <select
                       value={selectedOrder.status}
                       onChange={(e) => {
@@ -3327,28 +3327,28 @@ export default function StatusOsModule({
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
-                    <CheckCircle2 size={16} className="pointer-events-none" />
-                    <span className="text-[8px] font-black uppercase mt-1 pointer-events-none group-active:scale-95 transition-transform">Status</span>
+                    <CheckCircle2 size={14} className="pointer-events-none" />
+                    <span className="text-[8px] font-black uppercase mt-0.5 pointer-events-none group-active:scale-95 transition-transform">Status</span>
                   </div>
 
                   {/* Botão Editar */}
                   {onEdit && (
                     <button
                       onClick={() => onEdit(selectedOrder)}
-                      className="flex-1 flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
+                      className="flex-1 flex flex-col items-center justify-center h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
                     >
-                      <Pencil size={16} />
-                      <span className="text-[8px] font-black uppercase mt-1">Editar</span>
+                      <Pencil size={14} />
+                      <span className="text-[8px] font-black uppercase mt-0.5">Editar</span>
                     </button>
                   )}
 
                   {/* Botão Docs */}
                   <button
                     onClick={() => handleViewDocs(selectedOrder)}
-                    className="flex-1 flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
+                    className="flex-1 flex flex-col items-center justify-center h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
                   >
-                    <FileText size={16} />
-                    <span className="text-[8px] font-black uppercase mt-1">Docs</span>
+                    <FileText size={14} />
+                    <span className="text-[8px] font-black uppercase mt-0.5">Docs</span>
                   </button>
 
                   {/* Botão WhatsApp */}
@@ -3363,10 +3363,10 @@ export default function StatusOsModule({
                       if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
                       window.open(`https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`, 'wa');
                     }}
-                    className="flex-1 flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-[#25D366]/80 active:text-[#25D366] active:bg-zinc-800 transition-all"
+                    className="flex-1 flex flex-col items-center justify-center h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-[#25D366]/80 active:text-[#25D366] active:bg-zinc-800 transition-all"
                   >
-                    <MessageCircle size={16} />
-                    <span className="text-[8px] font-black uppercase mt-1">Whats</span>
+                    <MessageCircle size={14} />
+                    <span className="text-[8px] font-black uppercase mt-0.5">Whats</span>
                   </button>
                 </div>
             </motion.div>
