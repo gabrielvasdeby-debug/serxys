@@ -396,6 +396,7 @@ export default function StatusOsModule({
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [orderToQuickStatus, setOrderToQuickStatus] = useState<Order | null>(null);
 
   // Elite Polish: Simulated loading on mount to show skeletons
   useEffect(() => {
@@ -2056,7 +2057,10 @@ export default function StatusOsModule({
                               <span className="text-[9px] font-black uppercase tracking-widest">Editar</span>
                             </button>
                             <button
-                              onClick={() => { setSelectedOrder(order); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOrderToQuickStatus(order);
+                              }}
                               className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shadow-sm"
                             >
                               <CheckCircle2 size={18} />
@@ -4459,6 +4463,88 @@ export default function StatusOsModule({
           </div>
         </>
       )}
+      {/* Quick Status Picker Modal (Mobile) */}
+      <AnimatePresence>
+        {orderToQuickStatus && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm no-print"
+            onClick={() => setOrderToQuickStatus(null)}
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-[#141414] border-t sm:border border-zinc-800 w-full max-w-lg rounded-t-xl sm:rounded-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
+                <div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Alterar Status</h3>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1">OS #{orderToQuickStatus.osNumber.toString().padStart(4, '0')} - {customers.find(c => c.id === orderToQuickStatus.customerId)?.name}</p>
+                </div>
+                <button onClick={() => setOrderToQuickStatus(null)} className="p-2 text-zinc-500 hover:text-white bg-zinc-800/50 rounded-sm">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-2 grid grid-cols-1 gap-1">
+                {Object.keys(STATUS_CONFIG).map(status => {
+                  const config = STATUS_CONFIG[status as OrderStatus];
+                  const Icon = config.icon;
+                  const isCurrent = orderToQuickStatus.status === status;
+                  
+                  return (
+                    <button
+                      key={`quick-status-${status}`}
+                      onClick={() => {
+                        const newStatus = status as OrderStatus;
+                        if (newStatus === 'Equipamento Retirado') {
+                          const balance = orderToQuickStatus.financials.totalValue - (orderToQuickStatus.financials.amountPaid || 0);
+                          const hasWarrantyInOrder = orderToQuickStatus.completionData?.warrantyDays || orderToQuickStatus.completionData?.hasWarranty;
+                          if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
+                          if (balance > 0) {
+                            onShowToast(!hasWarrantyInOrder ? "⚠️ Atenção: Pendência financeira detectada." : "💰 Pagamento pendente.");
+                            setPaymentAmount(balance.toString());
+                            setDiscount('0');
+                            setOnSuccessStatus('Equipamento Retirado');
+                            setSelectedOrder(orderToQuickStatus);
+                            setIsPaymentModalOpen(true);
+                            setOrderToQuickStatus(null);
+                            return;
+                          }
+                          updateOrderStatus(orderToQuickStatus, 'Equipamento Retirado');
+                        } else if (newStatus === 'Reparo Concluído') {
+                          setSelectedOrder(orderToQuickStatus);
+                          setIsFinishing(true);
+                        } else {
+                          updateOrderStatus(orderToQuickStatus, newStatus);
+                        }
+                        setOrderToQuickStatus(null);
+                      }}
+                      className={`flex items-center gap-4 p-4 rounded-sm transition-all border ${
+                        isCurrent 
+                        ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
+                        : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-sm ${config.bg} ${config.color}`}>
+                        <Icon size={20} />
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-widest">{status}</span>
+                      {isCurrent && <Check className="ml-auto" size={16} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
