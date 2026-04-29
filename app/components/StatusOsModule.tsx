@@ -1957,7 +1957,7 @@ export default function StatusOsModule({
                 <div className="flex flex-col gap-3 sm:hidden">
                   {isLoading ? (
                     Array.from({ length: 3 }).map((_, i) => (
-                      <div key={`m-skeleton-${i}`} className="bg-zinc-900/60 border border-zinc-800/50 rounded-lg p-4 space-y-3 animate-pulse">
+                      <div key={`m-skeleton-${i}`} className="bg-[#1C1C1C] border border-zinc-800/50 rounded-lg p-4 space-y-3 animate-pulse">
                         <div className="flex items-center justify-between">
                           <div className="h-3 w-20 bg-zinc-800 rounded-full" />
                           <div className="h-3 w-16 bg-zinc-800 rounded-full" />
@@ -1977,7 +1977,7 @@ export default function StatusOsModule({
                     const cfg = STATUS_CONFIG[order.status];
                     const isLate = order.deliveryForecast && new Date(order.deliveryForecast) < new Date() && !['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status);
                     return (
-                      <div key={`m-${order.id}`} className="bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden shadow-lg active:scale-[0.99] transition-all">
+                      <div key={`m-${order.id}`} className="bg-[#1C1C1C] border border-zinc-800 rounded-lg overflow-hidden shadow-lg active:scale-[0.99] transition-all">
                         {/* Status color bar */}
                         <div className={`h-1 w-full ${cfg.bg.replace('/10', '/80')}`} />
 
@@ -2094,7 +2094,7 @@ export default function StatusOsModule({
                 <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {isLoading ? (
                     Array.from({ length: 4 }).map((_, i) => (
-                      <div key={`skeleton-${i}`} className="bg-zinc-900/60 border border-zinc-800/50 rounded-sm p-4 sm:p-6 space-y-4 animate-pulse">
+                      <div key={`skeleton-${i}`} className="bg-[#1C1C1C] border border-zinc-800/50 rounded-sm p-4 sm:p-6 space-y-4 animate-pulse">
                         <div className="flex items-center justify-between">
                             <div className="h-3 w-16 bg-zinc-800 rounded-full" />
                             <div className="h-3 w-16 bg-zinc-800 rounded-full" />
@@ -2116,7 +2116,7 @@ export default function StatusOsModule({
                       <div
                         key={order.id}
                         onClick={() => setSelectedOrder(order)}
-                        className="bg-zinc-900/90 border border-zinc-800/80 hover:border-zinc-600 rounded-sm p-3 sm:p-5 cursor-pointer transition-all hover:bg-zinc-800/60 hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1.5 sm:gap-2 min-h-[120px] sm:min-h-[140px]"
+                        className="bg-[#1C1C1C]/90 border border-zinc-800/80 hover:border-zinc-600 rounded-sm p-3 sm:p-5 cursor-pointer transition-all hover:bg-[#222222]/90 hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1.5 sm:gap-2 min-h-[120px] sm:min-h-[140px]"
                       >
                         {/* Visual Status Indicator on Card Left */}
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/90')}`} />
