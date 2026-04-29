@@ -2002,7 +2002,7 @@ export default function StatusOsModule({
                           <div className="flex items-end justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
-                                <h4 className="font-black text-xs text-white truncate uppercase tracking-wide leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
+                                <h4 className="font-black text-sm text-white truncate uppercase tracking-wide leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
                                 {customer?.whatsapp && (
                                   <button
                                     onClick={(e) => {
@@ -2011,9 +2011,9 @@ export default function StatusOsModule({
                                       if (!phone.startsWith('55')) phone = `55${phone}`;
                                       window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
                                     }}
-                                    className="p-1 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shrink-0"
+                                    className="p-1.5 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shrink-0"
                                   >
-                                    <MessageCircle size={10} />
+                                    <MessageCircle size={14} />
                                   </button>
                                 )}
                               </div>
@@ -2027,14 +2027,14 @@ export default function StatusOsModule({
 
                           {/* Compact Info (Defect & Status Badges) */}
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-zinc-950/40 rounded-sm px-2 py-1.5 border border-zinc-800/30 min-w-0 space-y-1">
-                              <p className="text-[9px] text-zinc-400 line-clamp-1 italic leading-none truncate">
-                                <span className="text-[8px] text-zinc-600 font-black uppercase tracking-wider not-italic mr-1">Defeito:</span>
+                            <div className="flex-1 bg-zinc-950/40 rounded-sm px-2.5 py-2 border border-zinc-800/30 min-w-0 space-y-1.5">
+                              <p className="text-[11px] text-zinc-400 line-clamp-2 italic leading-tight truncate">
+                                <span className="text-[9px] text-zinc-600 font-black uppercase tracking-wider not-italic mr-1">Defeito:</span>
                                 {order.defect || '—'}
                               </p>
                               {order.service && (
-                                <p className="text-[9px] text-[#00E676]/70 line-clamp-1 leading-none truncate">
-                                  <span className="text-[8px] text-zinc-600 font-black uppercase tracking-wider mr-1">Serviço:</span>
+                                <p className="text-[11px] text-[#00E676]/70 line-clamp-1 leading-tight truncate">
+                                  <span className="text-[9px] text-zinc-600 font-black uppercase tracking-wider mr-1">Serviço:</span>
                                   {order.service}
                                 </p>
                               )}
@@ -2140,7 +2140,7 @@ export default function StatusOsModule({
 
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-xs sm:text-[13px] text-zinc-200 line-clamp-1 group-hover:text-[#00E676] transition-colors">{customer?.name || 'Cliente não encontrado'}</h4>
+                            <h4 className="font-bold text-sm sm:text-[15px] text-zinc-200 line-clamp-1 group-hover:text-[#00E676] transition-colors">{customer?.name || 'Cliente não encontrado'}</h4>
                             {customer?.whatsapp && (
                               <button
                                 onClick={(e) => {
@@ -2149,10 +2149,10 @@ export default function StatusOsModule({
                                   if (!phone.startsWith('55')) phone = `55${phone}`;
                                   window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
                                 }}
-                                className="p-1 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676] hover:text-black transition-all opacity-0 group-hover:opacity-100"
+                                className="p-1.5 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676] hover:text-black transition-all opacity-0 group-hover:opacity-100"
                                 title="Chamar no WhatsApp"
                               >
-                                <MessageCircle size={12} />
+                                <MessageCircle size={16} />
                               </button>
                             )}
                           </div>
@@ -2160,7 +2160,7 @@ export default function StatusOsModule({
                         </div>
 
                         <div className="pl-2 border-l-2 border-zinc-800 my-0.5">
-                          <p className="text-[9px] sm:text-[10px] text-zinc-500 line-clamp-2 italic leading-relaxed" title={order.defect}>{order.defect || 'Sem defeito relatado'}</p>
+                          <p className="text-[11px] sm:text-xs text-zinc-500 line-clamp-2 italic leading-relaxed" title={order.defect}>{order.defect || 'Sem defeito relatado'}</p>
                         </div>
 
                         <div className="flex items-end justify-between mt-auto pt-1">
