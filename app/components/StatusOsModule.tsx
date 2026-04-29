@@ -2520,88 +2520,92 @@ export default function StatusOsModule({
                     {/* Client & Equipment Info - stacked vertically */}
                     <div className="grid grid-cols-1 gap-6">
                       
-                      <section className="bg-[#0A0A0A] border border-zinc-800 p-6 rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
+                      <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
                         <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4 relative z-10">
                           <User size={14} className="text-[#00E676]" /> Dados do Cliente
                         </h3>
-                        <div className="relative z-10 space-y-4">
+                        <div className="relative z-10 space-y-3">
                           {(() => {
                             const customer = customers.find(c => c.id === selectedOrder.customerId);
                             return customer ? (
                               <>
-                                <div>
-                                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1 font-bold">Nome do Cliente</p>
-                                  <p className="text-lg font-bold text-white leading-tight">{customer.name}</p>
+                                <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
+                                  <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Nome do Cliente</p>
+                                  <p className="text-sm font-bold text-white truncate">{customer.name}</p>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                                  <div className="bg-[#141414] rounded-sm p-3 border border-zinc-800/50">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
                                     <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Contato</p>
-                                    <p className="text-sm text-zinc-300 font-medium">{customer.phone || customer.whatsapp || '---'}</p>
+                                    <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{customer.phone || customer.whatsapp || '---'}</p>
                                   </div>
-                                  <div className="bg-[#141414] rounded-sm p-3 border border-zinc-800/50">
-                                    <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Documento / CPF</p>
-                                    <p className="text-sm text-zinc-300 font-medium">{customer.document || '---'}</p>
+                                  <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
+                                    <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Documento</p>
+                                    <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{customer.document || '---'}</p>
                                   </div>
                                 </div>
                               </>
-                            ) : <p className="text-zinc-500 italic">Cliente não encontrado</p>;
+                            ) : <p className="text-zinc-500 italic text-sm">Cliente não encontrado</p>;
                           })()}
                         </div>
                       </section>
 
                       {/* Aparelho Card */}
-                      <section className="bg-[#0A0A0A] border border-zinc-800 p-6 rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
+                      <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
                         <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4 relative z-10">
                           <Smartphone size={14} className="text-blue-400" /> Detalhes do Equipamento
                         </h3>
-                        <div className="relative z-10 space-y-4">
-                          <div>
-                            <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1 font-bold">Aparelho</p>
-                            <p className="text-lg font-bold text-white leading-tight">
-                              {selectedOrder.equipment.brand} <span className="text-blue-400 font-black">{selectedOrder.equipment.model}</span>
-                            </p>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="bg-[#141414] rounded-sm p-3 border border-zinc-800/50">
-                              <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Tipo</p>
-                              <p className="text-sm text-zinc-300 font-medium truncate">{selectedOrder.equipment.type}</p>
+                        <div className="relative z-10 space-y-3">
+                          <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-0.5 font-bold">Aparelho</p>
+                              <p className="text-sm font-bold text-white truncate pr-2">
+                                {selectedOrder.equipment.brand} <span className="text-blue-400">{selectedOrder.equipment.model}</span>
+                              </p>
                             </div>
-                            <div className="bg-[#141414] rounded-sm p-3 border border-zinc-800/50">
-                              <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Cor</p>
-                              <p className="text-sm text-zinc-300 font-medium truncate">{selectedOrder.equipment.color}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-3">
                             {selectedOrder.equipment.serial && (
-                              <div className="flex items-center justify-between bg-[#141414] border border-zinc-800/50 rounded-sm px-4 py-2.5">
-                                <span className="text-[9px] uppercase font-black text-zinc-600 tracking-widest">S/N</span>
-                                <span className="text-xs font-mono text-zinc-300 font-bold">{selectedOrder.equipment.serial}</span>
+                              <div className="shrink-0 text-right pl-3 border-l border-zinc-800/50">
+                                <p className="text-[8px] uppercase font-black text-zinc-600 tracking-widest mb-0.5">S/N</p>
+                                <p className="text-[10px] font-mono text-zinc-300 font-bold">{selectedOrder.equipment.serial}</p>
                               </div>
                             )}
-                            
-                            {selectedOrder.equipment.passwordType !== 'none' && (
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#141414] border border-amber-500/10 rounded-sm px-4 py-3">
-                                <span className="text-[9px] uppercase font-black text-amber-500/40 tracking-widest flex items-center gap-1.5">
-                                  <Lock size={10} /> {selectedOrder.equipment.passwordType === 'pattern' ? 'Padrão' : 'Senha'}
-                                </span>
-                                <div className="flex items-center gap-3">
-                                  <span className="text-xs font-bold text-amber-500">
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
+                              <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Tipo</p>
+                              <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment.type}</p>
+                            </div>
+                            <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
+                              <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Cor</p>
+                              <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment.color}</p>
+                            </div>
+                          </div>
+                          
+                          {selectedOrder.equipment.passwordType !== 'none' && (
+                            <div className="flex items-center justify-between bg-amber-500/5 border border-amber-500/10 rounded-sm p-3.5">
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-amber-500/10 rounded-sm">
+                                  <Lock size={12} className="text-amber-500/60" /> 
+                                </div>
+                                <div>
+                                  <p className="text-[8px] uppercase font-black text-amber-500/60 tracking-widest leading-none mb-1">
+                                    {selectedOrder.equipment.passwordType === 'pattern' ? 'Padrão' : 'Senha'}
+                                  </p>
+                                  <p className="text-xs font-bold text-amber-500 leading-none">
                                     {selectedOrder.equipment.passwordType === 'pattern' ? 'Desenho' : selectedOrder.equipment.passwordValue}
-                                  </span>
-                                  {selectedOrder.equipment.passwordType === 'pattern' && selectedOrder.equipment.passwordValue && (
-                                    <button
-                                      onClick={() => setIsPatternModalOpen(true)}
-                                      className="p-1 px-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors border border-amber-500/20"
-                                    >
-                                      Ver Padrão
-                                    </button>
-                                  )}
+                                  </p>
                                 </div>
                               </div>
-                            )}
-                          </div>
+                              {selectedOrder.equipment.passwordType === 'pattern' && selectedOrder.equipment.passwordValue && (
+                                <button
+                                  onClick={() => setIsPatternModalOpen(true)}
+                                  className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors border border-amber-500/20"
+                                >
+                                  Ver Padrão
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </section>
                     </div>
@@ -2708,7 +2712,7 @@ export default function StatusOsModule({
 
                          {/* Seção de Valores em Formato Lista */}
                          <div className="relative z-10 space-y-3">
-                           <div className="flex items-center justify-between p-4 bg-[#0A0A0A] border border-zinc-800/50 rounded-md">
+                           <div className="flex items-center justify-between p-3.5 bg-[#141414] border border-zinc-800/50 rounded-sm">
                              <div className="flex items-center gap-3">
                                <div className="p-2 bg-zinc-800 rounded-sm text-zinc-500">
                                  <FileText size={16} />
@@ -2720,7 +2724,7 @@ export default function StatusOsModule({
                              </div>
                            </div>
 
-                           <div className="flex items-center justify-between p-4 bg-[#0A0A0A] border border-zinc-800/50 rounded-md">
+                           <div className="flex items-center justify-between p-3.5 bg-[#141414] border border-zinc-800/50 rounded-sm">
                              <div className="flex items-center gap-3">
                                <div className="p-2 bg-zinc-800 rounded-sm text-zinc-500">
                                  <Banknote size={16} />
@@ -2732,7 +2736,7 @@ export default function StatusOsModule({
                              </p>
                            </div>
 
-                           <div className="flex items-center justify-between p-4 bg-[#0A0A0A] border border-zinc-800/50 rounded-md">
+                           <div className="flex items-center justify-between p-3.5 bg-[#141414] border border-zinc-800/50 rounded-sm">
                              <div className="flex items-center gap-3">
                                <div className="p-2 bg-emerald-500/10 rounded-sm text-emerald-500">
                                  <Banknote size={16} />
