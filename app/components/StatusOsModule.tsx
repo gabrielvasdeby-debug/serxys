@@ -2311,54 +2311,52 @@ export default function StatusOsModule({
               className="bg-[#141414] border-none sm:border border-zinc-700 w-full max-w-6xl h-[100dvh] sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-md relative"
             >
               {/* === CABEÇALHO DO MODAL (REESTRUTURADO MOBILE) === */}
-              <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A] relative overflow-hidden">
-                {/* Linha 1: Navegação e ID */}
-                <div className="flex items-center justify-between px-3 pt-6 pb-2 sm:px-6 sm:pt-4 sm:pb-3 border-b border-zinc-800/30">
-                  <div className="flex items-center gap-3">
+              <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A] relative overflow-hidden px-3 pt-4 pb-3 sm:px-6 sm:pt-4 sm:pb-4">
+                {/* TOP ROW: Navigation & Status */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedOrder(null)}
-                      className="p-2 -ml-2 text-zinc-500 hover:text-white bg-zinc-900/50 rounded-full border border-zinc-800 transition-colors"
+                      className="p-1 -ml-1 text-zinc-500 hover:text-white transition-colors"
                     >
                       <ArrowLeft size={20} />
                     </button>
-                    <div className="flex items-center gap-2 bg-zinc-900/80 px-3 py-1.5 rounded-sm border border-zinc-800 shadow-inner">
-                      <span className="text-[11px] font-black font-mono text-[#00E676] tracking-wider uppercase">OS {selectedOrder.osNumber.toString().padStart(4, '0')}</span>
+                    <div className="flex items-center gap-2 bg-zinc-900/80 px-2 py-1 rounded-sm border border-zinc-800 shadow-inner">
+                      <span className="text-[10px] sm:text-[11px] font-black font-mono text-[#00E676] tracking-wider uppercase">
+                        OS {selectedOrder.osNumber.toString().padStart(4, '0')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 ml-1">
+                       <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[selectedOrder.priority]}`} />
+                       <span className="text-[8px] sm:text-[9px] font-black text-zinc-600 uppercase tracking-widest hidden sm:inline-block">{selectedOrder.priority}</span>
                     </div>
                   </div>
+                  
                   <div className="flex items-center gap-2">
-                    <span className={`text-[9px] px-3 py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <span className={`text-[8px] sm:text-[9px] px-2 py-1 sm:px-3 sm:py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
                       {selectedOrder.status}
                     </span>
-                    <button onClick={() => setSelectedOrder(null)} className="p-2 -mr-2 text-zinc-600 hover:text-white transition-colors">
+                    <button onClick={() => setSelectedOrder(null)} className="p-1 -mr-1 text-zinc-600 hover:text-white transition-colors">
                       <X size={20} />
                     </button>
                   </div>
                 </div>
 
-                {/* Linha 2: Cliente e Equipamento (Principal Mobile) */}
-                <div className="px-3.5 py-4 sm:px-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                       <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1 pl-0.5">Cliente Titular</p>
-                       <h2 className="text-xl font-black text-white uppercase tracking-tight leading-tight truncate">
-                        {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
-                      </h2>
-                      <div className="flex items-center gap-2 mt-2 text-zinc-500">
-                        <Smartphone size={14} className="text-blue-500/50" />
-                        <p className="text-[11px] font-bold uppercase tracking-widest truncate">
-                          {selectedOrder.equipment.brand} {selectedOrder.equipment.model}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="shrink-0 flex flex-col items-end gap-2">
-
-                      <div className="flex items-center gap-1.5">
-                         <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[selectedOrder.priority]}`} />
-                         <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{selectedOrder.priority}</span>
-                      </div>
-                    </div>
+                {/* BOTTOM ROW: Client & Equipment */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1 flex flex-col justify-center">
+                    <h2 className="text-base sm:text-xl font-black text-white uppercase tracking-tight truncate leading-none">
+                      {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
+                    </h2>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-1.5 bg-[#141414] border border-zinc-800/80 px-2.5 py-1.5 rounded-sm">
+                    <Smartphone size={12} className="text-blue-500/80" />
+                    <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">
+                      {selectedOrder.equipment.model}
+                    </span>
                   </div>
                 </div>
+              </div>
 
                 {/* Barra de Ações Superior (Apenas Desktop) */}
                 <div className="hidden sm:flex bg-[#050505] border-t border-zinc-800/30 items-center gap-3 px-6 py-3 overflow-x-auto no-scrollbar scroll-smooth shrink-0">
@@ -3295,9 +3293,9 @@ export default function StatusOsModule({
               </div>
               </div>
                 {/* Barra Inferior Fixa (Mobile Only) */}
-                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-zinc-800 px-3 pt-3 pb-8 flex items-center gap-2 z-[70] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-xl border-t border-zinc-800 px-2 pt-2 pb-6 flex items-center gap-1.5 z-[70] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                   {/* Botão Status */}
-                  <div className="flex-1 relative flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-[#00E676] active:bg-zinc-800 transition-all overflow-hidden group">
+                  <div className="flex-1 relative flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-[#00E676] active:bg-zinc-800 transition-all overflow-hidden group">
                     <select
                       value={selectedOrder.status}
                       onChange={(e) => {
@@ -3330,28 +3328,28 @@ export default function StatusOsModule({
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
-                    <CheckCircle2 size={18} className="pointer-events-none" />
-                    <span className="text-[9px] font-black uppercase mt-1 pointer-events-none group-active:scale-95 transition-transform">Status</span>
+                    <CheckCircle2 size={16} className="pointer-events-none" />
+                    <span className="text-[8px] font-black uppercase mt-1 pointer-events-none group-active:scale-95 transition-transform">Status</span>
                   </div>
 
                   {/* Botão Editar */}
                   {onEdit && (
                     <button
                       onClick={() => onEdit(selectedOrder)}
-                      className="flex-1 flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
+                      className="flex-1 flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
                     >
-                      <Pencil size={18} />
-                      <span className="text-[9px] font-black uppercase mt-1">Editar</span>
+                      <Pencil size={16} />
+                      <span className="text-[8px] font-black uppercase mt-1">Editar</span>
                     </button>
                   )}
 
                   {/* Botão Docs */}
                   <button
                     onClick={() => handleViewDocs(selectedOrder)}
-                    className="flex-1 flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
+                    className="flex-1 flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
                   >
-                    <FileText size={18} />
-                    <span className="text-[9px] font-black uppercase mt-1">Docs</span>
+                    <FileText size={16} />
+                    <span className="text-[8px] font-black uppercase mt-1">Docs</span>
                   </button>
 
                   {/* Botão WhatsApp */}
@@ -3366,10 +3364,10 @@ export default function StatusOsModule({
                       if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
                       window.open(`https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`, 'wa');
                     }}
-                    className="flex-1 flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-[#25D366]/80 active:text-[#25D366] active:bg-zinc-800 transition-all"
+                    className="flex-1 flex flex-col items-center justify-center h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-[#25D366]/80 active:text-[#25D366] active:bg-zinc-800 transition-all"
                   >
-                    <MessageCircle size={18} />
-                    <span className="text-[9px] font-black uppercase mt-1">Whats</span>
+                    <MessageCircle size={16} />
+                    <span className="text-[8px] font-black uppercase mt-1">Whats</span>
                   </button>
                 </div>
             </motion.div>
