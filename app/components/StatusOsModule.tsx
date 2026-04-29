@@ -2362,8 +2362,8 @@ export default function StatusOsModule({
                   </div>
                 </div>
 
-                {/* Linha 3: Barra de Ações Rápidas - Mobile Optimized */}
-                <div className="bg-[#050505] border-t border-zinc-800/30 flex items-center gap-3 px-3 py-3 overflow-x-auto no-scrollbar scroll-smooth">
+                {/* Barra de Ações Superior (Apenas Desktop) */}
+                <div className="hidden sm:flex bg-[#050505] border-t border-zinc-800/30 items-center gap-3 px-6 py-3 overflow-x-auto no-scrollbar scroll-smooth shrink-0">
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="relative group">
                       <select
@@ -2392,7 +2392,7 @@ export default function StatusOsModule({
                             setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                           }
                         }}
-                        className="bg-[#1A1A1A] border border-zinc-800 text-[#00E676] text-[10px] font-black uppercase tracking-widest px-4 h-11 rounded-sm appearance-none pr-10 focus:border-[#00E676] transition-all cursor-pointer"
+                        className="bg-[#1A1A1A] border border-zinc-800 text-[#00E676] text-[10px] font-black uppercase tracking-widest px-4 h-10 rounded-sm appearance-none pr-10 focus:border-[#00E676] transition-all cursor-pointer"
                       >
                         {Object.keys(STATUS_CONFIG).map(status => (
                           <option key={status} value={status}>{status}</option>
@@ -2408,14 +2408,12 @@ export default function StatusOsModule({
 
                   <div className="flex items-center gap-2 shrink-0 pr-4">
                     {onEdit && (
-                      <button onClick={() => onEdit(selectedOrder)} className="flex flex-col items-center justify-center min-w-[70px] h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-500 active:text-white active:bg-zinc-800 transition-all">
-                        <Pencil size={14} />
-                        <span className="text-[8px] font-black uppercase mt-1">Editar</span>
+                      <button onClick={() => onEdit(selectedOrder)} className="flex items-center gap-2 px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase">
+                        <Pencil size={14} /> Editar
                       </button>
                     )}
-                    <button onClick={() => handleViewDocs(selectedOrder)} className="flex flex-col items-center justify-center min-w-[70px] h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-500 active:text-white active:bg-zinc-800 transition-all">
-                      <FileText size={14} />
-                      <span className="text-[8px] font-black uppercase mt-1">Docs</span>
+                    <button onClick={() => handleViewDocs(selectedOrder)} className="flex items-center gap-2 px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase">
+                      <FileText size={14} /> Docs
                     </button>
                     <button
                       onClick={() => {
@@ -2428,24 +2426,9 @@ export default function StatusOsModule({
                         if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
                         window.open(`https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`, 'wa');
                       }}
-                      className="flex flex-col items-center justify-center min-w-[70px] h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-[#25D366]/70 active:text-[#25D366] active:bg-zinc-800 transition-all"
+                      className="flex items-center gap-2 px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-[#25D366] transition-all text-[10px] font-black uppercase"
                     >
-                      <MessageCircle size={14} />
-                      <span className="text-[8px] font-black uppercase mt-1">Whats</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        const originalTitle = document.title;
-                        document.title = `${(companySettings.name || 'Servyx').toUpperCase()}_OS_${selectedOrder.osNumber}`;
-                        document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal');
-                        document.body.classList.add('print-a4');
-                        window.print();
-                        setTimeout(() => { document.title = originalTitle; }, 100);
-                      }}
-                      className="flex flex-col items-center justify-center min-w-[70px] h-11 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-500 active:text-white active:bg-zinc-800 transition-all"
-                    >
-                      <Printer size={14} />
-                      <span className="text-[8px] font-black uppercase mt-1">Imprimir</span>
+                      <MessageCircle size={14} /> WhatsApp
                     </button>
                   </div>
                 </div>
@@ -2533,7 +2516,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[180px] pb-24 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[180px] pb-44 md:pt-8 bg-[#141414] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -3312,6 +3295,85 @@ export default function StatusOsModule({
                   </section>
                 )}
               </div>
+                {/* Barra Inferior Fixa (Mobile Only) */}
+                <div className="md:hidden shrink-0 bg-[#0A0A0A] border-t border-zinc-800 px-3 pt-3 pb-8 flex items-center gap-2 z-[70]">
+                  {/* Botão Status */}
+                  <div className="flex-1 relative">
+                    <select
+                      value={selectedOrder.status}
+                      onChange={(e) => {
+                        const newStatus = e.target.value as OrderStatus;
+                        if (newStatus === 'Equipamento Retirado') {
+                          const balance = selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0);
+                          const hasWarrantyInOrder = selectedOrder.completionData?.warrantyDays || selectedOrder.completionData?.hasWarranty;
+                          if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
+                          if (balance > 0) {
+                            onShowToast(!hasWarrantyInOrder ? "⚠️ Atenção: Pendência financeira detectada." : "💰 Pagamento pendente.");
+                            setPaymentAmount(balance.toString());
+                            setDiscount('0');
+                            setOnSuccessStatus('Equipamento Retirado');
+                            setIsPaymentModalOpen(true);
+                            return;
+                          }
+                          updateOrderStatus(selectedOrder, 'Equipamento Retirado');
+                          return;
+                        }
+                        if (newStatus === 'Reparo Concluído') {
+                          setIsFinishing(true);
+                        } else {
+                          updateOrderStatus(selectedOrder, newStatus);
+                          setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+                        }
+                      }}
+                      className="w-full bg-zinc-900 border border-zinc-800 text-[#00E676] text-[10px] font-black uppercase tracking-tighter h-12 rounded-sm appearance-none px-1 text-center focus:border-[#00E676]"
+                    >
+                      {Object.keys(STATUS_CONFIG).map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
+                      <ChevronDown size={10} />
+                    </div>
+                  </div>
+
+                  {/* Botão Editar */}
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(selectedOrder)}
+                      className="flex-1 flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
+                    >
+                      <Pencil size={18} />
+                      <span className="text-[9px] font-black uppercase mt-1">Editar</span>
+                    </button>
+                  )}
+
+                  {/* Botão Docs */}
+                  <button
+                    onClick={() => handleViewDocs(selectedOrder)}
+                    className="flex-1 flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 active:text-white active:bg-zinc-800 transition-all"
+                  >
+                    <FileText size={18} />
+                    <span className="text-[9px] font-black uppercase mt-1">Docs</span>
+                  </button>
+
+                  {/* Botão WhatsApp */}
+                  <button
+                    onClick={() => {
+                      const customer = customers.find(c => c.id === selectedOrder.customerId);
+                      if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
+                      const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}` : `${window.location.origin}/os/${selectedOrder.id}`;
+                      const template = osSettings.whatsappMessages?.['Entrada Registrada'] || `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\n{link}\n\n{empresa}`;
+                      const message = template.replace(/{cliente}/g, customer.name).replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0')).replace(/{link}/g, portalUrl).replace(/{empresa}/g, companySettings.name || 'Servyx');
+                      let decodedPhone = customer.whatsapp.replace(/\D/g, '');
+                      if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
+                      window.open(`https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`, 'wa');
+                    }}
+                    className="flex-1 flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-[#25D366]/80 active:text-[#25D366] active:bg-zinc-800 transition-all"
+                  >
+                    <MessageCircle size={18} />
+                    <span className="text-[9px] font-black uppercase mt-1">Whats</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
