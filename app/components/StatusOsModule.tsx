@@ -2012,11 +2012,17 @@ export default function StatusOsModule({
 
                           {/* Compact Info (Defect & Status Badges) */}
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-zinc-950/40 rounded-sm px-2 py-1.5 border border-zinc-800/30 min-w-0">
+                            <div className="flex-1 bg-zinc-950/40 rounded-sm px-2 py-1.5 border border-zinc-800/30 min-w-0 space-y-1">
                               <p className="text-[9px] text-zinc-400 line-clamp-1 italic leading-none truncate">
                                 <span className="text-[8px] text-zinc-600 font-black uppercase tracking-wider not-italic mr-1">Defeito:</span>
                                 {order.defect || '—'}
                               </p>
+                              {order.service && (
+                                <p className="text-[9px] text-[#00E676]/70 line-clamp-1 leading-none truncate">
+                                  <span className="text-[8px] text-zinc-600 font-black uppercase tracking-wider mr-1">Serviço:</span>
+                                  {order.service}
+                                </p>
+                              )}
                             </div>
                             <div className="flex gap-1 shrink-0">
                               {isLate && (
@@ -2323,9 +2329,14 @@ export default function StatusOsModule({
                         {selectedOrder.status}
                       </span>
                     </div>
-                    <h2 className="text-sm sm:text-lg font-black text-white truncate leading-tight mt-1 uppercase tracking-wide">
-                      {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
-                    </h2>
+                    <div className="min-w-0 mt-1">
+                      <h2 className="text-xs sm:text-lg font-black text-white truncate leading-tight uppercase tracking-wide">
+                        {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
+                      </h2>
+                      <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest truncate mt-0.5">
+                        {selectedOrder.equipment.brand} {selectedOrder.equipment.model}
+                      </p>
+                    </div>
                   </div>
                   <div className="ml-auto hidden sm:flex items-center gap-2 shrink-0">
                     <span className={`text-[9px] px-2.5 py-1 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
@@ -2499,7 +2510,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-8 pt-16 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-8 pt-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
