@@ -2431,14 +2431,14 @@ export default function StatusOsModule({
               {/* === CORPO (SIDEBAR ESQUERDA + CONTEÚDO DIREITA) === */}
               <div className="flex flex-1 overflow-hidden relative">
                 
-                {/* Mobile Tab Navigation (Sticky & Premium) */}
-                <div className="md:hidden absolute top-0 left-0 right-0 z-[60] flex overflow-x-auto snap-x no-scrollbar items-center px-4 py-2.5 gap-2.5 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-zinc-800/80 shadow-2xl">
+                {/* Mobile Tab Navigation (Sticky & Premium - Scroll-less) */}
+                <div className="md:hidden absolute top-0 left-0 right-0 z-[60] flex items-center justify-between px-1 py-1.5 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-zinc-800/80 shadow-2xl">
                   {[
                     { id: 'geral', label: 'Geral', icon: FileText },
-                    { id: 'laudo', label: 'Diagnóstico', icon: CheckCircle2 },
-                    { id: 'orcamento', label: 'Orçamento', icon: Calculator },
-                    { id: 'seguranca', label: 'Segurança', icon: ShieldCheck },
-                    { id: 'historico', label: 'Linha do Tempo', icon: Clock }
+                    { id: 'laudo', label: 'Laudo', icon: CheckCircle2 },
+                    { id: 'orcamento', label: 'Custos', icon: Calculator },
+                    { id: 'seguranca', label: 'Acesso', icon: ShieldCheck },
+                    { id: 'historico', label: 'Histórico', icon: Clock }
                   ].map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -2446,13 +2446,14 @@ export default function StatusOsModule({
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border snap-start ${
+                        className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 rounded-sm transition-all ${
                           isActive 
-                            ? 'bg-[#00E676] text-black border-[#00E676] shadow-[0_0_20px_rgba(0,230,118,0.2)]' 
-                            : 'text-zinc-500 bg-zinc-900/50 border-zinc-800 hover:text-zinc-300'
+                            ? 'text-[#00E676] bg-zinc-900/80 shadow-[inset_0_-2px_0_rgba(0,230,118,1)]' 
+                            : 'text-zinc-500 hover:text-zinc-300'
                         }`}
                       >
-                        <Icon size={14} className={isActive ? 'text-black' : 'text-zinc-600'} /> {tab.label}
+                        <Icon size={14} className={isActive ? 'text-[#00E676]' : 'text-zinc-600'} />
+                        <span className="text-[7.5px] font-black uppercase tracking-widest">{tab.label}</span>
                       </button>
                     );
                   })}
