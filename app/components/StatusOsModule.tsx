@@ -2348,12 +2348,12 @@ export default function StatusOsModule({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedOrder(null)}
-                      className="p-1 -ml-1 text-zinc-500 hover:text-white transition-colors"
+                      className="p-1 -ml-1 text-zinc-400 hover:text-white transition-colors"
                     >
-                      <ArrowLeft size={20} />
+                      <ChevronLeft size={24} />
                     </button>
-                    <div className="flex items-center gap-2 bg-zinc-900/80 px-2 py-1 rounded-sm border border-zinc-800 shadow-inner">
-                      <span className="text-[10px] sm:text-[11px] font-black font-mono text-[#00E676] tracking-wider uppercase">
+                    <div className="flex items-center gap-2 bg-zinc-900/80 px-2.5 py-1.5 rounded-sm border border-zinc-800 shadow-inner">
+                      <span className="text-[13px] sm:text-sm font-black font-mono text-[#00E676] tracking-wider uppercase">
                         OS {selectedOrder.osNumber.toString().padStart(4, '0')}
                       </span>
                     </div>
@@ -2364,7 +2364,7 @@ export default function StatusOsModule({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className={`text-[8px] sm:text-[9px] px-2 py-1 sm:px-3 sm:py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <span className={`text-[11px] sm:text-xs px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
                       {selectedOrder.status}
                     </span>
                     <button onClick={() => setSelectedOrder(null)} className="p-1 -mr-1 text-zinc-600 hover:text-white transition-colors">
@@ -2380,7 +2380,7 @@ export default function StatusOsModule({
                       {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
                     </h2>
                   </div>
-                  <div className="shrink-0 flex items-center gap-1.5 bg-[#141414] border border-zinc-800/80 px-2.5 py-1.5 rounded-sm">
+                  <div className="shrink-0 hidden sm:flex items-center gap-1.5 bg-[#141414] border border-zinc-800/80 px-2.5 py-1.5 rounded-sm">
                     <Smartphone size={12} className="text-blue-500/80" />
                     <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">
                       {selectedOrder.equipment.model}
