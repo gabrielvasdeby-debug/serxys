@@ -2543,7 +2543,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[180px] pb-44 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[50px] pb-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
