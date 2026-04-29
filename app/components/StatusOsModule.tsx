@@ -2041,7 +2041,7 @@ export default function StatusOsModule({
 
 
                           {/* Action buttons */}
-                          <div className="grid grid-cols-3 gap-2 pt-1">
+                          <div className="grid grid-cols-2 gap-2 pt-1">
                             <button
                               onClick={() => setSelectedOrder(order)}
                               className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 active:bg-zinc-800 transition-colors shadow-sm"
@@ -2065,6 +2065,16 @@ export default function StatusOsModule({
                             >
                               <CheckCircle2 size={18} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Status</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDocs(order);
+                              }}
+                              className="flex flex-col items-center justify-center gap-1 py-3 rounded-md bg-zinc-900 border border-zinc-800 text-amber-500 active:bg-zinc-800 transition-colors shadow-sm"
+                            >
+                              <FileText size={18} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Documentos</span>
                             </button>
                           </div>
                         </div>
