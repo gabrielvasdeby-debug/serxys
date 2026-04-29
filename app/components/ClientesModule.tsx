@@ -36,6 +36,7 @@ export interface Customer {
     street: string;
     number: string;
     neighborhood: string;
+    complement?: string;
     city: string;
     state: string;
     zipCode: string;
@@ -723,6 +724,7 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
       street: initialData?.address.street || '',
       number: initialData?.address.number || '',
       neighborhood: initialData?.address.neighborhood || '',
+      complement: initialData?.address.complement || '',
       city: initialData?.address.city || '',
       state: initialData?.address.state || '',
       zipCode: initialData?.address.zipCode || ''

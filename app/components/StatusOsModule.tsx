@@ -2598,9 +2598,9 @@ export default function StatusOsModule({
                                     <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50">
                                       <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Endereço</p>
                                       <p className="text-[11px] sm:text-xs text-zinc-300 font-bold leading-relaxed">
-                                        {customer.street}, {customer.number}{customer.complement ? ` - ${customer.complement}` : ''}<br />
-                                        {customer.neighborhood} - {customer.city}/{customer.state}<br />
-                                        CEP: {customer.zipCode}
+                                        {customer.address?.street}, {customer.address?.number}{customer.address?.complement ? ` - ${customer.address.complement}` : ''}<br />
+                                        {customer.address?.neighborhood} - {customer.address?.city}/{customer.address?.state}<br />
+                                        CEP: {customer.address?.zipCode}
                                       </p>
                                     </div>
                                   </motion.div>
