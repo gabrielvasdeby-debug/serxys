@@ -2510,7 +2510,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-8 pt-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-8 pt-[90px] pb-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -2625,7 +2625,7 @@ export default function StatusOsModule({
                           </div>
                         ) : (selectedOrder.isVisualChecklist || (selectedOrder as any).is_visual_checklist) ? (
                           <div className="flex-1 -mx-2 sm:mx-0 overflow-x-auto custom-scrollbar pb-2">
-                            <div className="min-w-[450px] sm:min-w-0 sm:max-w-[320px] mx-auto">
+                            <div className="w-full min-w-0 max-w-[320px] mx-auto overflow-hidden">
                               <ControllerChecklistPrint checklist={selectedOrder.checklist} theme="dark" />
                             </div>
                           </div>
