@@ -2313,27 +2313,27 @@ export default function StatusOsModule({
               {/* === CABEÇALHO DO MODAL === */}
               <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A]">
                 {/* Linha 1: Identificação (Optimized for Mobile) */}
-                <div className="flex items-center gap-2 sm:gap-3 px-4 py-3 sm:px-5 sm:pt-4 sm:pb-3 border-b border-zinc-800/50">
+                <div className="flex items-center gap-3 px-4 pt-6 pb-4 sm:px-5 sm:pt-5 sm:pb-4 border-b border-zinc-800/50">
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="p-2 -ml-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors"
+                    className="p-2 -ml-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-sm transition-colors shrink-0"
                   >
-                    <ArrowLeft size={22} />
+                    <ArrowLeft size={24} />
                   </button>
-                  <div className="flex flex-col min-w-0">
+                  <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                       <span className="text-[10px] sm:text-[11px] font-black font-mono text-[#00E676] bg-[#00E676]/5 border border-[#00E676]/20 px-2 py-0.5 rounded-sm uppercase tracking-wider shrink-0">
-                        OS {selectedOrder.osNumber.toString().padStart(4, '0')}
+                       <span className="text-[11px] font-black font-mono text-[#00E676] bg-[#00E676]/5 border border-[#00E676]/20 px-2.5 py-0.5 rounded-sm uppercase tracking-wider shrink-0">
+                        #{selectedOrder.osNumber.toString().padStart(4, '0')}
                       </span>
-                      <span className={`text-[9px] sm:hidden px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color} border border-current/10`}>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color} border border-current/10`}>
                         {selectedOrder.status}
                       </span>
                     </div>
-                    <div className="min-w-0 mt-1">
-                      <h2 className="text-xs sm:text-lg font-black text-white truncate leading-tight uppercase tracking-wide">
+                    <div className="min-w-0 mt-2">
+                      <h2 className="text-sm sm:text-xl font-black text-white truncate leading-none uppercase tracking-wide">
                         {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
                       </h2>
-                      <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest truncate mt-0.5">
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest truncate mt-1.5 leading-none">
                         {selectedOrder.equipment.brand} {selectedOrder.equipment.model}
                       </p>
                     </div>
@@ -2343,8 +2343,8 @@ export default function StatusOsModule({
                       {selectedOrder.status}
                     </span>
                   </div>
-                  <button onClick={() => setSelectedOrder(null)} className="sm:hidden p-2 text-zinc-600">
-                    <X size={20} />
+                  <button onClick={() => setSelectedOrder(null)} className="sm:hidden p-2 text-zinc-700 hover:text-zinc-400 transition-colors">
+                    <X size={22} />
                   </button>
                 </div>
 
