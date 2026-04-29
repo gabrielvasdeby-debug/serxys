@@ -2302,13 +2302,13 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm no-print"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm no-print"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-700 w-full max-w-6xl h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-sm"
+              className="bg-[#141414] border-none sm:border border-zinc-700 w-full max-w-6xl h-full sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-md"
             >
               {/* === CABEÇALHO DO MODAL (REESTRUTURADO MOBILE) === */}
               <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A] relative overflow-hidden">
