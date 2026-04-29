@@ -2308,7 +2308,7 @@ export default function StatusOsModule({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border-none sm:border border-zinc-700 w-full max-w-6xl h-full sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-md"
+              className="bg-[#141414] border-none sm:border border-zinc-700 w-full max-w-6xl h-[100dvh] sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-md relative"
             >
               {/* === CABEÇALHO DO MODAL (REESTRUTURADO MOBILE) === */}
               <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A] relative overflow-hidden">
@@ -2326,7 +2326,7 @@ export default function StatusOsModule({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`hidden sm:inline-block text-[9px] px-3 py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <span className={`text-[9px] px-3 py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
                       {selectedOrder.status}
                     </span>
                     <button onClick={() => setSelectedOrder(null)} className="p-2 -mr-2 text-zinc-600 hover:text-white transition-colors">
@@ -2351,9 +2351,7 @@ export default function StatusOsModule({
                       </div>
                     </div>
                     <div className="shrink-0 flex flex-col items-end gap-2">
-                      <span className={`text-[8px] px-2.5 py-1 rounded-sm font-black uppercase tracking-widest border ${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color} border-current/10`}>
-                        {selectedOrder.status}
-                      </span>
+
                       <div className="flex items-center gap-1.5">
                          <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[selectedOrder.priority]}`} />
                          <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{selectedOrder.priority}</span>
@@ -3297,9 +3295,9 @@ export default function StatusOsModule({
               </div>
               </div>
                 {/* Barra Inferior Fixa (Mobile Only) */}
-                <div className="md:hidden shrink-0 bg-[#0A0A0A] border-t border-zinc-800 px-3 pt-3 pb-8 flex items-center gap-2 z-[70]">
+                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-zinc-800 px-3 pt-3 pb-8 flex items-center gap-2 z-[70] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                   {/* Botão Status */}
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative flex flex-col items-center justify-center h-12 bg-zinc-900 border border-zinc-800 rounded-sm text-[#00E676] active:bg-zinc-800 transition-all overflow-hidden group">
                     <select
                       value={selectedOrder.status}
                       onChange={(e) => {
@@ -3326,15 +3324,14 @@ export default function StatusOsModule({
                           setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                         }
                       }}
-                      className="w-full bg-zinc-900 border border-zinc-800 text-[#00E676] text-[10px] font-black uppercase tracking-tighter h-12 rounded-sm appearance-none px-1 text-center focus:border-[#00E676]"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     >
                       {Object.keys(STATUS_CONFIG).map(s => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
-                      <ChevronDown size={10} />
-                    </div>
+                    <CheckCircle2 size={18} className="pointer-events-none" />
+                    <span className="text-[9px] font-black uppercase mt-1 pointer-events-none group-active:scale-95 transition-transform">Status</span>
                   </div>
 
                   {/* Botão Editar */}
