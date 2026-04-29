@@ -2611,17 +2611,7 @@ export default function StatusOsModule({
                         </div>
                       </section>
 
-                      {/* Prominent Service Section */}
-                      <section className="bg-zinc-900/40 border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm">
-                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
-                          <Wrench size={14} className="text-[#00E676]" /> Serviço Contratado
-                        </h3>
-                        <div className="bg-[#141414] rounded-sm p-4 border border-[#00E676]/20 shadow-[0_0_15px_rgba(0,230,118,0.05)]">
-                          <p className="text-sm sm:text-base font-black text-white uppercase tracking-tight">
-                            {selectedOrder.service || 'Não especificado'}
-                          </p>
-                        </div>
-                      </section>
+
 
                       {/* Aparelho Card */}
                       <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
@@ -2759,6 +2749,18 @@ export default function StatusOsModule({
                           </h3>
                           <div className="bg-[#141414] rounded-sm p-4 border border-zinc-800 flex-1">
                             <p className="text-sm text-white font-medium whitespace-pre-wrap">{selectedOrder.defect}</p>
+                          </div>
+                        </section>
+
+                        {/* Prominent Service Section - Moved here for better mobile flow */}
+                        <section className="bg-zinc-900/40 border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm">
+                          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
+                            <Wrench size={14} className="text-[#00E676]" /> Serviço Contratado
+                          </h3>
+                          <div className="bg-[#141414] rounded-sm p-4 border border-[#00E676]/20 shadow-[0_0_15px_rgba(0,230,118,0.05)]">
+                            <p className="text-sm sm:text-base font-black text-white uppercase tracking-tight">
+                              {selectedOrder.service || 'Não especificado'}
+                            </p>
                           </div>
                         </section>
 
