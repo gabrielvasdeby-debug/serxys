@@ -3295,6 +3295,7 @@ export default function StatusOsModule({
                   </section>
                 )}
               </div>
+              </div>
                 {/* Barra Inferior Fixa (Mobile Only) */}
                 <div className="md:hidden shrink-0 bg-[#0A0A0A] border-t border-zinc-800 px-3 pt-3 pb-8 flex items-center gap-2 z-[70]">
                   {/* Botão Status */}
@@ -3374,7 +3375,6 @@ export default function StatusOsModule({
                     <span className="text-[9px] font-black uppercase mt-1">Whats</span>
                   </button>
                 </div>
-              </div>
             </motion.div>
           </motion.div>
         )}
