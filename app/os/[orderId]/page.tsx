@@ -111,7 +111,7 @@ export default function TrackingPage() {
   // Atualizar título da página para impressão profissional
   useEffect(() => {
     if (order && companySettings.name) {
-      const osNumber = order.osNumber.toString().padStart(4, '0');
+      const osNumber = (order.osNumber || 0).toString().padStart(4, '0');
       const companyName = companySettings.name || 'Servyx';
       document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_OS_${osNumber}`;
     }
@@ -186,6 +186,7 @@ export default function TrackingPage() {
 
         // 3. Fetch customer via secure RPC (SECURITY DEFINER bypasses RLS)
         try {
+          const checklist = orderData.checklist ?? {};
           const { data: custData } = await supabase
             .rpc('get_public_customer', { p_public_id: orderData.id });
           if (custData && custData.length > 0) {
@@ -452,7 +453,7 @@ export default function TrackingPage() {
                 <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Aguardando seu aceite</p>
               </div>
             </div>
-            <p className="text-xl font-mono font-black text-[#00E676]">OS {order.osNumber.toString().padStart(4, '0')}</p>
+            <p className="text-xl font-mono font-black text-[#00E676]">OS {(order.osNumber || 0).toString().padStart(4, '0')}</p>
           </div>
 
           <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
@@ -579,7 +580,7 @@ export default function TrackingPage() {
               </div>
               <div>
                 <p className="text-white font-bold text-sm">Assinatura Confirmada!</p>
-                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest leading-none">OS N° {order.osNumber.toString().padStart(4, '0')} assinada com sucesso</p>
+                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest leading-none">OS N° {(order.osNumber || 0).toString().padStart(4, '0')} assinada com sucesso</p>
               </div>
             </div>
           </motion.div>
@@ -602,7 +603,7 @@ export default function TrackingPage() {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Identificação Os</p>
-            <p className="text-xl font-mono font-black text-[#00E676]">OS {order.osNumber.toString().padStart(4, '0')}</p>
+            <p className="text-xl font-mono font-black text-[#00E676]">OS {(order.osNumber || 0).toString().padStart(4, '0')}</p>
           </div>
         </div>
 
@@ -894,7 +895,7 @@ export default function TrackingPage() {
                 </div>
                 <div>
                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">Nº Referência</p>
-                   <p className="text-sm font-mono font-black text-[#00E676]">OS {order.osNumber.toString().padStart(4, '0')}</p>
+                   <p className="text-sm font-mono font-black text-[#00E676]">OS {(order.osNumber || 0).toString().padStart(4, '0')}</p>
                 </div>
               </div>
             </div>

@@ -78,7 +78,7 @@ export default function ControllerChecklistPrint({ checklist, theme = 'dark', sv
         
         {/* Button dots */}
         {BUTTONS.map(btn => {
-          const status = checklist[btn.id] || 'untested';
+          const status = (checklist && checklist[btn.id]) || 'untested';
           const r = 12;
           
           if (isThermal) {

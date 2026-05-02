@@ -234,8 +234,11 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
                 <div className="flex-1 p-4 flex items-center justify-center bg-white"><div className="text-red-500 font-bold text-[9px] uppercase tracking-widest text-center rounded-lg p-3 bg-red-50 border border-red-200">Não foi possível realizar o checklist.</div></div>
               ) : (
                 <div className="bg-white flex flex-1">
-                  {(() => {
-                    const entries = Object.entries(order.checklist);
+              {(() => {
+                    const checklist = order.checklist || {};
+                    const entries = Object.entries(checklist);
+                    if (entries.length === 0) return <div className="flex-1 p-2 text-center text-slate-400">Nenhum item registrado</div>;
+                    
                     const mid = Math.ceil(entries.length / 2);
                     const left = entries.slice(0, mid);
                     const right = entries.slice(mid);

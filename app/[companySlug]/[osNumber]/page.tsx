@@ -372,7 +372,7 @@ export default function CustomerPortal() {
 
       if (rpcError) throw rpcError;
 
-      const osNumberStr = order.osNumber.toString().padStart(4, '0');
+      const osNumberStr = (order.osNumber || 0).toString().padStart(4, '0');
       const whatsappMessage = `Olá! Aprovo o orçamento da OS ${osNumberStr} no valor de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.budget?.totalValue || 0)}. Pode dar andamento ao serviço!`;
       
       if (company?.whatsapp) {
@@ -427,7 +427,7 @@ export default function CustomerPortal() {
 
       if (rpcError) throw rpcError;
 
-      const osNumberStr = order.osNumber.toString().padStart(4, '0');
+      const osNumberStr = (order.osNumber || 0).toString().padStart(4, '0');
       const whatsappMessage = `Olá! Recusei o orçamento da OS ${osNumberStr}.${motive ? ` Motivo: ${motive}` : ''}`;
       
       if (company?.whatsapp) {
@@ -579,7 +579,7 @@ export default function CustomerPortal() {
   const currentStatusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['Entrada'];
   const StatusIcon = currentStatusConfig.icon;
   const needsApproval = order.status === 'Aguardando Aprovação' || order.budget?.status === 'Aguardando Aprovação';
-  const osFormatted = `OS ${order.osNumber.toString().padStart(4, '0')}`;
+  const osFormatted = `OS ${(order.osNumber || 0).toString().padStart(4, '0')}`;
   
   const needsSignature = !order.signatures?.client && (order.signatures?.mode === 'remote' || order.signatures?.isManual === false);
 
@@ -752,7 +752,7 @@ export default function CustomerPortal() {
           )}
         </AnimatePresence>
 
-        <style jsx global>{`
+        <style>{`
           .custom-scrollbar-hide::-webkit-scrollbar { display: none; }
           .custom-scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
           body { background-color: #050505; color-scheme: dark; }
@@ -778,7 +778,7 @@ export default function CustomerPortal() {
               </div>
               <div>
                 <p className="text-white font-bold text-sm">Aprovação Confirmada!</p>
-                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest leading-none">OS N° {order.osNumber.toString().padStart(4, '0')} atualizada com sucesso</p>
+                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest leading-none">OS N° {(order.osNumber || 0).toString().padStart(4, '0')} atualizada com sucesso</p>
               </div>
             </div>
           </motion.div>

@@ -46,7 +46,7 @@ export default function BudgetDocumentView({
   const isApproved = budget?.status === 'Aprovado';
   const isRejected = budget?.status === 'Recusado';
   const trackingUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const osNumber = order.osNumber.toString().padStart(4, '0');
+  const osNumber = (order.osNumber || 0).toString().padStart(4, '0');
 
   const handleConfirmSign = async () => {
     if (sigCanvas.current?.isEmpty()) {
