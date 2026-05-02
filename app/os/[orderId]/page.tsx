@@ -65,6 +65,7 @@ export default function TrackingPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [customer, setCustomer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [accessError, setAccessError] = useState<{ type: 'EXPIRED' | 'RATE_LIMITED' | 'NOT_FOUND' | null, message: string | null }>({ type: null, message: null });
   const [companySettings, setCompanySettings] = useState<CompanySettings & { isDarkTheme: boolean }>({
     name: 'SERVYX',
@@ -120,6 +121,7 @@ export default function TrackingPage() {
   const sigCanvas = useRef<SignatureCanvas>(null);
 
   useEffect(() => {
+    setIsMounted(true);
     if (!orderId) return;
 
     const fetchOrder = async () => {
