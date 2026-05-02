@@ -26,7 +26,7 @@ import {
   Search,
   XCircle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format, subDays } from 'date-fns';
 import { Profile, Product, Order, View } from '../types';
 import { Customer } from './ClientesModule';

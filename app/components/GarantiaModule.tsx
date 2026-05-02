@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Search, ShieldCheck, ShieldAlert, Filter, 
   Calendar, User, Smartphone, FileText, CheckCircle2, XCircle, 

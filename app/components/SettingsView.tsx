@@ -39,7 +39,7 @@ import {
   AlertTriangle,
   Link
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Profile, CompanySettings, OsSettings, ProfileType, ActivityLog } from '../types';
 import { supabase } from '../supabase';
 import { AVAILABLE_MODULES } from '../constants';

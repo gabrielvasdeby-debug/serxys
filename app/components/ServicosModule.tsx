@@ -6,7 +6,7 @@ import {
   Clock, DollarSign, X, Save,
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, HelpCircle, Printer, Headphones, Watch
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabase';
 import { capFirst } from '../utils/capFirst';
 

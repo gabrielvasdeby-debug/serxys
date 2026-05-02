@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Search, Plus, Edit2, Trash2, Eye, 
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, Box,

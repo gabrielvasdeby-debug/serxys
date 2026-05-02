@@ -55,7 +55,7 @@ import {
   Printer,
   Speaker
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const getDeviceIcon = (equipmentType: string | undefined) => {
   if (!equipmentType) return Smartphone;
@@ -120,6 +120,7 @@ export default function CustomerPortal() {
   const osNumberStr = params?.osNumber as string;
   
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
@@ -137,6 +138,7 @@ export default function CustomerPortal() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     if (!companySlug || !osNumberStr) return;
 
     const fetchData = async () => {
@@ -544,6 +546,8 @@ export default function CustomerPortal() {
     };
   }, [isSignatureModalOpen]);
 
+  if (!isMounted) return null;
+    
   if (loading) {
     return (
       <div className="min-h-screen bg-[#020202] flex flex-col items-center justify-center p-4">

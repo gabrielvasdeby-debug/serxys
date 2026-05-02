@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Search, Cake, MessageCircle, Star, 
   Calendar, CheckCircle2, History, Smartphone, User, 

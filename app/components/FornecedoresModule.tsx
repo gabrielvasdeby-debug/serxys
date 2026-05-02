@@ -7,7 +7,7 @@ import {
   Calendar, ShoppingCart, Filter,
   MessageCircle, Layers
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabase';
 import { formatPhone } from '../utils/formatPhone';
 import { capFirst } from '../utils/capFirst';

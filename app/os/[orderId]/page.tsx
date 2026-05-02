@@ -33,7 +33,7 @@ import {
   Activity,
   Lock
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SignatureCanvas from 'react-signature-canvas';
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType, color: string, bg: string, label: string }> = {
@@ -349,6 +349,8 @@ export default function TrackingPage() {
       setIsSubmittingSignature(false);
     }
   };
+
+  if (!isMounted) return null;
 
   if (loading) {
     return (

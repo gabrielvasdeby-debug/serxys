@@ -21,7 +21,7 @@ import {
   Hash,
   ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabase';
 import { 
   PieChart, 

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Activity, AlertCircle, Bell, Trash2, X, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 // Modules

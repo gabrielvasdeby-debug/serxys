@@ -135,13 +135,13 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
                <div className="flex items-center justify-end w-full mb-1 px-1 gap-4">
                  <div className="flex items-center gap-2">
                    <span className="text-[9px] font-bold text-[#2B323D] uppercase tracking-widest">COMPROVANTE DE OS</span>
-                   <span className="text-[9px] font-black text-red-600">OS {order.osNumber.toString().padStart(4, '0')}</span>
+                   <span className="text-[9px] font-black text-red-600">OS {(order.osNumber || 0).toString().padStart(4, '0')}</span>
                  </div>
                  <span className="bg-[#2B323D] text-white text-[7px] font-bold uppercase px-1.5 py-0.5 rounded-sm tracking-widest">{order.status}</span>
                </div>
                <div className="w-full border-t border-slate-300 pt-1 text-[8px] font-medium text-slate-800 flex justify-between gap-4 px-1">
-                 <span>Data: {new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
-                 <span>Hora: {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                 <span>Data: {order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : '---'}</span>
+                 <span>Hora: {order.createdAt ? new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
                </div>
              </div>
           </div>
@@ -164,21 +164,21 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
         {/* EQUIPAMENTO */}
         <div className="border border-slate-300 rounded-lg mb-1 flex flex-col overflow-hidden">
           <BlockHeader icon={Smartphone} title="EQUIPAMENTO" />
-          <table className="w-full text-center text-[9px] bg-white">
-            <thead className="bg-slate-100 font-bold text-slate-700 border-b border-slate-300 text-[8px]">
-              <tr><th className="py-1 border-r border-slate-300">Tipo</th><th className="py-1 border-r border-slate-300">Marca</th><th className="py-1 border-r border-slate-300">Modelo</th><th className="py-1 border-r border-slate-300">Cor</th><th className="py-1 border-r border-slate-300">IMEI/Série</th><th className="py-1">Senha</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="py-1 border-r border-slate-300">{order.equipment.type}</td>
-                <td className="py-1 border-r border-slate-300">{order.equipment.brand}</td>
-                <td className="py-1 border-r border-slate-300">{order.equipment.model}</td>
-                <td className="py-1 border-r border-slate-300">{order.equipment.color || '—'}</td>
-                <td className="py-1 border-r border-slate-300 font-bold">{order.equipment.serial || '—'}</td>
-                <td className="py-1 font-bold">{order.equipment.passwordType === 'pattern' ? 'Padrão' : order.equipment.passwordType === 'text' ? 'Texto' : 'Sem Senha'}</td>
-              </tr>
-            </tbody>
-          </table>
+            <table className="w-full text-center text-[9px] bg-white">
+              <thead className="bg-slate-100 font-bold text-slate-700 border-b border-slate-300 text-[8px]">
+                <tr><th className="py-1 border-r border-slate-300">Tipo</th><th className="py-1 border-r border-slate-300">Marca</th><th className="py-1 border-r border-slate-300">Modelo</th><th className="py-1 border-r border-slate-300">Cor</th><th className="py-1 border-r border-slate-300">IMEI/Série</th><th className="py-1">Senha</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-1 border-r border-slate-300">{order.equipment?.type || '---'}</td>
+                  <td className="py-1 border-r border-slate-300">{order.equipment?.brand || '---'}</td>
+                  <td className="py-1 border-r border-slate-300">{order.equipment?.model || '---'}</td>
+                  <td className="py-1 border-r border-slate-300">{order.equipment?.color || '—'}</td>
+                  <td className="py-1 border-r border-slate-300 font-bold">{order.equipment?.serial || '—'}</td>
+                  <td className="py-1 font-bold">{order.equipment?.passwordType === 'pattern' ? 'Padrão' : order.equipment?.passwordType === 'text' ? 'Texto' : 'Sem Senha'}</td>
+                </tr>
+              </tbody>
+            </table>
         </div>
 
         {/* DEFEITO E SERVIÇO - FULL WIDTH */}
@@ -202,10 +202,10 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
             <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden">
               <BlockHeader icon={DollarSign} title="VALORES" />
               <div className="p-2 text-[9.5px] bg-white space-y-2 flex-1 flex flex-col justify-center">
-                <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue)}</span></div>
-                <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span></div>
-                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue - (order.financials.amountPaid || 0))}</span></div>
-                <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials.paymentType || 'A combinar'}</span></div>
+                <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.totalValue || 0)}</span></div>
+                <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.amountPaid || 0)}</span></div>
+                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((order.financials?.totalValue || 0) - (order.financials?.amountPaid || 0))}</span></div>
+                <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials?.paymentType || 'A combinar'}</span></div>
               </div>
             </div>
             <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden">
@@ -222,10 +222,10 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
             <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden h-full">
               <BlockHeader icon={DollarSign} title="VALORES" />
               <div className="p-2 text-[9.5px] bg-white space-y-2 flex-1 flex flex-col justify-center">
-                <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue)}</span></div>
-                <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span></div>
-                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue - (order.financials.amountPaid || 0))}</span></div>
-                <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials.paymentType || 'A combinar'}</span></div>
+                <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.totalValue || 0)}</span></div>
+                <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.amountPaid || 0)}</span></div>
+                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((order.financials?.totalValue || 0) - (order.financials?.amountPaid || 0))}</span></div>
+                <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials?.paymentType || 'A combinar'}</span></div>
               </div>
             </div>
             <div className="border border-slate-300 rounded-lg flex flex-col overflow-hidden h-full">

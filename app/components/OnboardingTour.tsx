@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings, Package, Calculator, PlusCircle, Activity,
   ChevronRight, ChevronLeft, X, Sparkles, Hash, ShoppingCart,

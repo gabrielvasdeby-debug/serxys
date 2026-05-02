@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Plus, Minus, ShoppingCart, 
   Calendar, Clock, CreditCard, Banknote, QrCode, ArrowUpRight, 

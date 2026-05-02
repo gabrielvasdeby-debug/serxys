@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Smartphone, AlertTriangle, Wrench, DollarSign, FileText,
   CheckCircle2, X, XCircle, Image as ImageIcon, Check, ShieldCheck, Phone,
@@ -45,7 +45,11 @@ export default function BudgetDocumentView({
   const photos = budget?.photos || [];
   const isApproved = budget?.status === 'Aprovado';
   const isRejected = budget?.status === 'Recusado';
-  const trackingUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const [trackingUrl, setTrackingUrl] = useState('');
+  
+  useEffect(() => {
+    setTrackingUrl(typeof window !== 'undefined' ? window.location.href : '');
+  }, []);
   const osNumber = (order.osNumber || 0).toString().padStart(4, '0');
 
   const handleConfirmSign = async () => {
