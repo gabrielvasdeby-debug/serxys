@@ -702,6 +702,7 @@ export default function OrdemServicoModule({
     document: '',
     notes: '',
     customer_origin: '',
+    displayBirthDate: '',
     address: {
       street: '',
       number: '',
@@ -1042,6 +1043,7 @@ export default function OrdemServicoModule({
       address: customer.address || { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
       notes: customer.notes,
       birthDate: customer.birthDate || '',
+      displayBirthDate: customer.birthDate ? customer.birthDate.split('-').reverse().join('/') : '',
       customer_origin: customer.customer_origin || ''
     });
     setIsCreatingCustomer(true);
@@ -1063,9 +1065,8 @@ export default function OrdemServicoModule({
       const finalPhone = newCustomer.phone ? `${phoneCountry.dialCode} ${newCustomer.phone}` : '';
 
       if (editingCustomerId) {
-        const customerToUpdate = {
+        const customerToUpdate: any = {
           name: newCustomer.name,
-          birth_date: newCustomer.birthDate || null,
           phone: finalPhone,
           whatsapp: finalWhatsapp,
           email: newCustomer.email,
@@ -1073,8 +1074,19 @@ export default function OrdemServicoModule({
           address: newCustomer.address,
           notes: newCustomer.notes,
           customer_origin: newCustomer.customer_origin || null,
-          updated_at: now
+          updated_at: now,
+          birth_date: null
         };
+        
+        if (newCustomer.displayBirthDate) {
+          const parts = newCustomer.displayBirthDate.split('/');
+          if (parts.length === 3) {
+            const [d, m, y] = parts;
+            if (d.length === 2 && m.length === 2 && y.length === 4) {
+              customerToUpdate.birth_date = `${y}-${m}-${d}`;
+            }
+          }
+        }
 
         const { error } = await supabase.from('customers').update(customerToUpdate).eq('id', editingCustomerId).eq('company_id', profile.company_id);
         if (error) throw error;
@@ -1084,7 +1096,7 @@ export default function OrdemServicoModule({
           ...newCustomer, 
           whatsapp: finalWhatsapp,
           phone: finalPhone,
-          birthDate: newCustomer.birthDate 
+          birthDate: customerToUpdate.birth_date || ''
         } as Customer : c);
         
         setCustomers(updatedCustomerList);
@@ -1094,7 +1106,7 @@ export default function OrdemServicoModule({
         setNewCustomer({
           name: '', phone: '', whatsapp: '', email: '', document: '',
           address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-          notes: '', birthDate: '', customer_origin: ''
+          notes: '', birthDate: '', displayBirthDate: '', customer_origin: ''
         });
         setStep('DETAILS');
         onShowToast('Cliente atualizado com sucesso');
@@ -1103,10 +1115,9 @@ export default function OrdemServicoModule({
         const finalWhatsapp = newCustomer.whatsapp ? `${whatsappCountry.dialCode} ${newCustomer.whatsapp}` : '';
         const finalPhone = newCustomer.phone ? `${phoneCountry.dialCode} ${newCustomer.phone}` : '';
 
-        const customerToAdd = {
+        const customerToAdd: any = {
           id: customerId,
           name: newCustomer.name,
-          birth_date: newCustomer.birthDate || null,
           phone: finalPhone,
           whatsapp: finalWhatsapp,
           email: newCustomer.email,
@@ -1117,8 +1128,19 @@ export default function OrdemServicoModule({
           devices: [],
           created_at: now,
           updated_at: now,
-          company_id: profile.company_id
+          company_id: profile.company_id,
+          birth_date: null
         };
+
+        if (newCustomer.displayBirthDate) {
+          const parts = newCustomer.displayBirthDate.split('/');
+          if (parts.length === 3) {
+            const [d, m, y] = parts;
+            if (d.length === 2 && m.length === 2 && y.length === 4) {
+              customerToAdd.birth_date = `${y}-${m}-${d}`;
+            }
+          }
+        }
         
         const { error } = await supabase.from('customers').insert(customerToAdd);
         if (error) throw error;
@@ -1128,6 +1150,7 @@ export default function OrdemServicoModule({
           id: customerId,
           whatsapp: finalWhatsapp,
           phone: finalPhone,
+          birthDate: customerToAdd.birth_date || '',
           devices: [],
           createdAt: now
         };
@@ -1138,7 +1161,7 @@ export default function OrdemServicoModule({
         setNewCustomer({
           name: '', phone: '', whatsapp: '', email: '', document: '',
           address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-          notes: '', birthDate: '', customer_origin: ''
+          notes: '', birthDate: '', displayBirthDate: '', customer_origin: ''
         });
         // Blur the active submit button BEFORE changing step so browser doesn't scroll to it
         if (document.activeElement instanceof HTMLElement) {
@@ -1681,7 +1704,7 @@ export default function OrdemServicoModule({
                         setNewCustomer({
                           name: '', phone: '', whatsapp: '', email: '', document: '',
                           address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-                          notes: '', birthDate: '', customer_origin: ''
+                          notes: '', birthDate: '', displayBirthDate: '', customer_origin: ''
                         });
                       }
                       setIsCreatingCustomer(!isCreatingCustomer);
@@ -1769,10 +1792,11 @@ export default function OrdemServicoModule({
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-zinc-400">Data de Nascimento</label>
                         <input
-                          type="date"
-                          value={newCustomer.birthDate}
-                          onChange={e => setNewCustomer({...newCustomer, birthDate: e.target.value})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors [color-scheme:dark]"
+                          type="tel"
+                          value={newCustomer.displayBirthDate}
+                          onChange={e => setNewCustomer({...newCustomer, displayBirthDate: applyMaskWithCursor(e.target as HTMLInputElement, 'date')})}
+                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          placeholder="DD/MM/AAAA"
                         />
                       </div>
                       <div className="space-y-1">

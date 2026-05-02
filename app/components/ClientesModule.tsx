@@ -714,7 +714,6 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
 function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: { initialData: Customer | null, onSave: (data: Omit<Customer, 'id' | 'devices' | 'createdAt'>) => void, onCancel: () => void, onShowToast: (msg: string) => void, isSaving: boolean }) {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
-    birthDate: initialData?.birthDate || '',
     phone: initialData?.phone || '',
     whatsapp: initialData?.whatsapp || '',
     email: initialData?.email || '',
@@ -729,7 +728,8 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
       state: initialData?.address.state || '',
       zipCode: initialData?.address.zipCode || ''
     },
-    customer_origin: initialData?.customer_origin || ''
+    customer_origin: initialData?.customer_origin || '',
+    displayBirthDate: initialData?.birthDate ? initialData.birthDate.split('-').reverse().join('/') : ''
   });
 
   const [whatsappCountry, setWhatsappCountry] = useState<Country>(countries[0]);
@@ -757,12 +757,22 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
     }
   }, [initialData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    // Convert DD/MM/YYYY to YYYY-MM-DD
+    let birthDate = '';
+    if (formData.displayBirthDate) {
+      const parts = formData.displayBirthDate.split('/');
+      if (parts.length === 3) {
+        const [d, m, y] = parts;
+        if (d.length === 2 && m.length === 2 && y.length === 4) {
+          birthDate = `${y}-${m}-${d}`;
+        }
+      }
+    }
+
     // Combine country code with number before saving
     const finalData = {
       ...formData,
+      birthDate,
       whatsapp: formData.whatsapp ? `${whatsappCountry.dialCode} ${formData.whatsapp}` : '',
       phone: formData.phone ? `${phoneCountry.dialCode} ${formData.phone}` : ''
     };
@@ -835,6 +845,8 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
       finalValue = applyMaskWithCursor(e.target as HTMLInputElement, 'phone');
     } else if (name === 'document') {
       finalValue = applyMaskWithCursor(e.target as HTMLInputElement, 'document');
+    } else if (name === 'displayBirthDate') {
+      finalValue = applyMaskWithCursor(e.target as HTMLInputElement, 'date');
     }
 
     if (name.startsWith('address.')) {
@@ -860,7 +872,14 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">Data de Nascimento</label>
-              <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all [color-scheme:dark]" />
+              <input 
+                type="tel" 
+                name="displayBirthDate" 
+                value={formData.displayBirthDate} 
+                onChange={handleChange} 
+                placeholder="DD/MM/AAAA"
+                className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" 
+              />
             </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-zinc-400">WhatsApp</label>
