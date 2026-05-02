@@ -2866,6 +2866,20 @@ export default function StatusOsModule({
                              </p>
                            </div>
 
+                            {selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0) > 0 && (
+                              <div className="flex items-center justify-between p-3.5 bg-orange-500/5 border border-orange-500/10 rounded-sm">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-orange-500/10 rounded-sm text-orange-500">
+                                    <Clock size={16} />
+                                  </div>
+                                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Saldo Restante</p>
+                                </div>
+                                <p className="text-base font-black text-orange-400">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0))}
+                                </p>
+                              </div>
+                            )}
+
                            <div className="flex items-center justify-between p-4 bg-[#0A0A0A] border border-zinc-800/50 rounded-md">
                              <div className="flex items-center gap-3">
                                <div className="p-2 bg-zinc-800 rounded-sm text-zinc-500">
