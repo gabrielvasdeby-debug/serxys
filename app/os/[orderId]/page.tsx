@@ -268,7 +268,7 @@ export default function TrackingPage() {
         window.location.reload();
       }, 3000);
       } catch (err: any) {
-        setError('Erro ao carregar o portal. Tente novamente mais tarde.');
+        alert(`Erro ao aprovar orçamento: ${err.message || 'Tente novamente.'}`);
       } finally {
       setIsSubmittingApproval(false);
     }
@@ -303,9 +303,8 @@ export default function TrackingPage() {
       if (rpcError) throw rpcError;
 
       window.location.reload();
-    } catch (err) {
-      console.error('Error rejecting budget:', err);
-      alert('Erro ao recusar orçamento.');
+    } catch (err: any) {
+      alert(`Erro ao recusar orçamento: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsSubmittingApproval(false);
     }
@@ -342,9 +341,9 @@ export default function TrackingPage() {
       setTimeout(() => {
         window.location.reload();
       }, 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving entry signature:', err);
-      alert('Erro ao salvar assinatura. Tente novamente.');
+      alert(`Erro ao salvar assinatura: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsSubmittingSignature(false);
     }
@@ -431,9 +430,9 @@ export default function TrackingPage() {
       setTimeout(() => {
         window.location.reload();
       }, 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error finishing entry:', err);
-      alert('Erro ao finalizar. Tente novamente.');
+      alert(`Erro ao finalizar: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsSubmittingSignature(false);
     }

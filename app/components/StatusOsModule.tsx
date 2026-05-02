@@ -9,7 +9,7 @@ import {
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
-  Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon
+  Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight
 } from 'lucide-react';
 import { Customer } from './ClientesModule';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData, BudgetData, BudgetItem, Product } from '../types';
@@ -1453,12 +1453,12 @@ export default function StatusOsModule({
     }
     
     if (groupBy === 'prioridade') {
-      const activePriorityOrders = orders.filter(o => 
+      const activePriorityOrders = [...orders].filter(o => 
         o.status !== 'Orçamento Cancelado' && 
         o.status !== 'Sem Reparo' && 
         o.status !== 'Reparo Concluído' && 
         o.status !== 'Equipamento Retirado'
-      );
+      ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
       return [
         { title: '🔥 Urgente', orders: activePriorityOrders.filter(o => o.priority === 'Urgente') },
@@ -1516,14 +1516,29 @@ export default function StatusOsModule({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsStatusPickerOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+                  activeStatus !== 'ALL'
+                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_10px_rgba(0,230,118,0.05)]'
+                    : 'bg-[#0A0A0A] border-zinc-800 text-zinc-400 active:bg-zinc-800'
+                }`}
               >
                 <Grid size={14} />
-                Filtro
+                {activeStatus === 'ALL' ? 'Filtro' : activeStatus}
               </button>
               <button
-                onClick={() => setIsGroupDropdownOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 bg-[#0A0A0A] border border-zinc-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-zinc-400 active:bg-zinc-800 transition-colors"
+                onClick={() => {
+                  if (groupBy === 'prioridade') {
+                    setGroupBy('nenhum');
+                  } else {
+                    setGroupBy('prioridade');
+                    setActiveStatus('ALL');
+                  }
+                }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+                  groupBy === 'prioridade' 
+                  ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_10px_rgba(0,230,118,0.05)]' 
+                  : 'bg-[#0A0A0A] border-zinc-800 text-zinc-400 active:bg-zinc-800'
+                }`}
               >
                 <AlertCircle size={14} />
                 Prioridade
@@ -2354,8 +2369,8 @@ export default function StatusOsModule({
                     >
                       <ChevronLeft size={24} />
                     </button>
-                    <div className="flex items-center gap-2 bg-zinc-900/80 px-2.5 py-1.5 rounded-sm border border-zinc-800 shadow-inner">
-                      <span className="text-[13px] sm:text-sm font-black font-mono text-[#00E676] tracking-wider uppercase">
+                    <div className="flex items-center gap-2 bg-zinc-900/80 px-3 py-2 rounded-sm border border-zinc-800 shadow-inner">
+                      <span className="text-[16px] sm:text-[18px] font-black font-mono text-[#00E676] tracking-wider uppercase">
                         OS {selectedOrder.osNumber.toString().padStart(4, '0')}
                       </span>
                     </div>
@@ -2366,7 +2381,7 @@ export default function StatusOsModule({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className={`text-[11px] sm:text-xs px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <span className={`text-[13px] sm:text-sm px-3 py-2 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
                       {selectedOrder.status}
                     </span>
                     <button onClick={() => setSelectedOrder(null)} className="p-1 -mr-1 text-zinc-600 hover:text-white transition-colors">
@@ -2545,7 +2560,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[50px] pb-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[45px] pb-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -2619,14 +2634,6 @@ export default function StatusOsModule({
                           <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                             <Smartphone size={14} className="text-blue-400" /> Detalhes do Equipamento
                           </h3>
-                          {selectedOrder.entryPhotos && selectedOrder.entryPhotos.length > 0 && (
-                            <button 
-                              onClick={() => setIsEntryPhotosModalOpen(true)}
-                              className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-1 rounded-sm border border-blue-400/20 hover:bg-blue-400/20 transition-all flex items-center gap-1.5"
-                            >
-                              <CameraIcon size={12} /> Ver Fotos ({selectedOrder.entryPhotos.length})
-                            </button>
-                          )}
                         </div>
                         <div className="relative z-10 space-y-3">
                           <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex items-center justify-between">
@@ -2740,6 +2747,31 @@ export default function StatusOsModule({
                             <p className="text-sm text-zinc-300 italic">{selectedOrder.checklistNotes}</p>
                           </div>
                         )}
+
+                        {/* Fotos de Entrada Button (Prominent for Mobile) */}
+                        <button 
+                          onClick={() => setIsEntryPhotosModalOpen(true)}
+                          className="w-full mt-4 bg-[#141414] border border-zinc-800 rounded-sm py-4 px-5 flex items-center justify-between group hover:border-blue-500/50 hover:bg-zinc-800/50 transition-all active:scale-[0.98]"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-blue-500/10 rounded-sm flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-colors">
+                              <CameraIcon size={18} />
+                            </div>
+                            <div className="text-left">
+                              <span className="block text-xs font-black uppercase tracking-[0.1em] text-white group-hover:text-blue-400 transition-colors">Fotos de Entrada</span>
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Registradas no check-in</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-tighter">
+                                {selectedOrder.entryPhotos?.length || 0}
+                              </span>
+                              <span className="text-[7px] font-bold text-zinc-600 uppercase tracking-widest">Arquivos</span>
+                            </div>
+                            <ChevronRight size={16} className="text-zinc-700 group-hover:text-blue-500 transition-colors" />
+                          </div>
+                        </button>
                       </section>
 
                       <div className="flex flex-col gap-6">
@@ -3875,7 +3907,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -3945,7 +3977,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -4078,7 +4110,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -4135,7 +4167,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -4387,7 +4419,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -4463,7 +4495,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -4519,7 +4551,7 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
+            className="fixed inset-0 z-[130] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md no-print"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}

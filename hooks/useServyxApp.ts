@@ -307,6 +307,7 @@ export function useServyxApp() {
           createdAt: row.created_at,
           updatedAt: row.updated_at,
           deliveryForecast: row.delivery_forecast,
+          entryPhotos: row.entry_photos || [],
         })));
       }
 
@@ -430,6 +431,7 @@ export function useServyxApp() {
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             deliveryForecast: row.delivery_forecast,
+            entryPhotos: row.entry_photos || [],
           };
 
           // 2. Detect if a signature happened
