@@ -72,7 +72,6 @@ export default function DashboardView({
   onMarkNotificationAsRead,
   onClearNotifications
 }: DashboardViewProps) {
-  const [showShortcuts, setShowShortcuts] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -177,17 +176,7 @@ export default function DashboardView({
     return list;
   }, [products, customers, orders, dismissedNotifications, appNotifications]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 60;
-      if (window.innerWidth < 640) {
-        setShowShortcuts(isAtBottom);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+
 
   const allModules = [
     { id: 'nova_os', name: 'Nova OS', subtitle: 'CRIAR TICKET', icon: PlusCircle, color: 'text-[#00E676]', bg: 'bg-[#00E676]/10', shadow: 'shadow-[0_0_15px_rgba(0,230,118,0.2)]' },
@@ -200,6 +189,9 @@ export default function DashboardView({
     { id: 'financeiro', name: 'Financeiro', subtitle: 'CONTABILIDADE', icon: Wallet, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'fornecedores', name: 'Fornecedores', subtitle: 'FORNECEDORES', icon: Truck, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'agenda', name: 'Agenda Técnico', subtitle: 'AGENDA DO TÉCNICO', icon: Calendar, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'relacionamento', name: 'Relacionamento', subtitle: 'MENSAGENS & CRM', icon: MessageCircle, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'relatorios', name: 'Relatórios', subtitle: 'ANÁLISE DE DADOS', icon: BarChart2, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'ajustes', name: 'Ajustes', subtitle: 'CONFIGURAÇÕES', icon: Settings, color: 'text-white', bg: 'bg-[#222222]' },
   ];
 
   const modules = allModules.filter(mod => {
@@ -494,13 +486,9 @@ export default function DashboardView({
       </main>
       
       <motion.footer 
-        initial={{ y: "85%" }}
-        animate={{ 
-          y: showShortcuts ? 0 : "85%"
-        }}
-        whileHover={{ y: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed bottom-0 left-0 right-0 border-t border-zinc-800 bg-[#121212]/90 backdrop-blur-xl flex items-center justify-around px-2 z-30 shadow-2xl overflow-hidden group hover:bg-[#121212]" 
+        initial={{ y: 0 }}
+        animate={{ y: 0 }}
+        className="fixed bottom-0 left-0 right-0 border-t border-zinc-800 bg-[#121212]/95 backdrop-blur-2xl flex items-center justify-around px-2 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] sm:hidden" 
         style={{ height: 'calc(4.5rem + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-zinc-800 rounded-full mt-1 sm:hidden opacity-50"></div>
