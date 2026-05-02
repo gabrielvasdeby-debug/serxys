@@ -757,6 +757,9 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
     }
   }, [initialData]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
     // Convert DD/MM/YYYY to YYYY-MM-DD
     let birthDate = '';
     if (formData.displayBirthDate) {
