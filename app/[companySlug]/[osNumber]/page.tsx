@@ -550,12 +550,28 @@ export default function CustomerPortal() {
     
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020202] flex flex-col items-center justify-center p-4">
-        <div className="relative">
-          <div className="w-16 h-16 border-2 border-zinc-800 rounded-full"></div>
-          <div className="absolute inset-0 w-16 h-16 border-t-2 border-[#00E676] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#020202] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#00E676]/10 rounded-full blur-[80px]" />
+        
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          {/* Animated rings */}
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <div className="absolute inset-0 border border-zinc-900 rounded-full" />
+            <div className="absolute inset-0 border border-[#00E676]/30 rounded-full animate-ping" style={{ animationDuration: '3s' }} />
+            <div className="w-8 h-8 border-2 border-t-[#00E676] border-r-[#00E676] border-b-transparent border-l-transparent rounded-full animate-spin" style={{ animationDuration: '1.5s' }} />
+            <div className="absolute w-2 h-2 bg-[#00E676] rounded-full shadow-[0_0_12px_#00E676]" />
+          </div>
+
+          <div className="text-center space-y-2">
+            <p className="text-zinc-500 font-black uppercase tracking-[0.4em] text-[10px] animate-pulse">Acessando Portal</p>
+            <div className="flex gap-1 justify-center">
+              <span className="w-1 h-1 bg-zinc-800 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1 h-1 bg-zinc-800 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1 h-1 bg-zinc-800 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
         </div>
-        <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-8">Carregando Portal DG TecHelp</p>
       </div>
     );
   }

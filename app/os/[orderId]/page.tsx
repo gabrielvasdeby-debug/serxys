@@ -356,10 +356,27 @@ export default function TrackingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[#00E676] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-zinc-400 animate-pulse">Carregando portal do cliente...</p>
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#00E676]/10 rounded-full blur-[80px]" />
+        
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          {/* Animated rings */}
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <div className="absolute inset-0 border border-zinc-800 rounded-full" />
+            <div className="absolute inset-0 border border-[#00E676]/30 rounded-full animate-ping" style={{ animationDuration: '3s' }} />
+            <div className="w-8 h-8 border-2 border-t-[#00E676] border-r-[#00E676] border-b-transparent border-l-transparent rounded-full animate-spin" style={{ animationDuration: '1.5s' }} />
+            <div className="absolute w-2 h-2 bg-[#00E676] rounded-full shadow-[0_0_12px_#00E676]" />
+          </div>
+
+          <div className="text-center space-y-2">
+            <p className="text-zinc-400 font-black uppercase tracking-[0.4em] text-[10px] animate-pulse">Acessando Portal</p>
+            <div className="flex gap-1 justify-center">
+              <span className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
         </div>
       </div>
     );
