@@ -434,32 +434,34 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
           </div>
 
           <div className="flex items-center gap-3">
-              <div className="flex bg-black/40 p-1 rounded-xl border border-zinc-900 border-white/5 shadow-inner overflow-x-auto max-w-full no-scrollbar">
+            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5 shadow-inner overflow-x-auto no-scrollbar max-w-full">
+              <div className="flex gap-1 min-w-max">
                 <button 
                   onClick={() => setViewMode('catalog')}
-                  className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${viewMode === 'catalog' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'catalog' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   <Grid size={13} />
                   Catálogo
                 </button>
-              {canViewReports && (
-                <>
-                  <button 
-                    onClick={() => setViewMode('reports')}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${viewMode === 'reports' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
-                  >
-                    <TrendingUp size={13} />
-                    Relatórios
-                  </button>
-                  <button 
-                    onClick={() => setViewMode('shoppingList')}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${viewMode === 'shoppingList' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
-                  >
-                    <ShoppingCart size={13} />
-                    Reposição
-                  </button>
-                </>
-              )}
+                {canViewReports && (
+                  <>
+                    <button 
+                      onClick={() => setViewMode('reports')}
+                      className={`px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'reports' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                      <TrendingUp size={13} />
+                      Análise
+                    </button>
+                    <button 
+                      onClick={() => setViewMode('shoppingList')}
+                      className={`px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'shoppingList' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                      <ShoppingCart size={13} />
+                      Reposição
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             {canEdit && (
               <button 
@@ -493,15 +495,15 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                   className="w-full bg-zinc-900/30 border border-zinc-800/50 rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all placeholder:text-zinc-600 text-sm font-medium focus:bg-zinc-900/50"
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2 pb-1">
+              <div className="flex-1 w-full flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-6 px-6 sm:mx-0 sm:px-0">
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                    className={`px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border shrink-0 ${
                       selectedCategory === cat 
-                      ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-xl' 
-                      : 'bg-black/20 border-zinc-800/50 text-zinc-500 hover:border-zinc-700'
+                      ? 'bg-[#00E676] border-[#00E676] text-black shadow-lg shadow-[#00E676]/20' 
+                      : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700'
                     }`}
                   >
                     {cat}
@@ -615,8 +617,9 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                 </div>
               </div>
 
-              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl overflow-hidden shadow-xl overflow-x-auto no-scrollbar">
-                <table className="w-full text-left min-w-[500px]">
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl overflow-hidden shadow-xl">
+                {/* Desktop Table View */}
+                <table className="w-full text-left hidden md:table">
                   <thead>
                     <tr className="bg-black/40 text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
                       <th className="px-6 py-4">Produto</th>
@@ -647,15 +650,36 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                         </td>
                       </tr>
                     ))}
-                    {mostSoldData.length === 0 && (
-                      <tr>
-                        <td colSpan={3} className="px-6 py-24 text-center text-zinc-500 text-xs font-medium italic">
-                          Nenhuma venda registrada no período selecionado.
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-zinc-800/50">
+                  {mostSoldData.map((item, i) => (
+                    <div key={i} className="p-5 flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate leading-tight">{item.name}</p>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                          {item.brand} {item.model}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-black text-[#00E676] mb-1">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total)}
+                        </p>
+                        <span className="bg-[#00E676]/10 text-[#00E676] px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest">
+                          {item.quantity} un
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {mostSoldData.length === 0 && (
+                  <div className="py-24 text-center text-zinc-500 text-xs font-medium italic">
+                    Nenhuma venda registrada no período selecionado.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -677,14 +701,15 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
               </button>
             </div>
 
-            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl overflow-x-auto no-scrollbar">
-              <table className="w-full text-left min-w-[700px]">
+            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl">
+              {/* Desktop View */}
+              <table className="w-full text-left hidden lg:table">
                 <thead>
                   <tr className="bg-black/40 text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
                     <th className="px-6 py-4">Produto</th>
                     <th className="px-6 py-4 text-center">Vendido (30d)</th>
                     <th className="px-6 py-4 text-center">Estoque Atual</th>
-                    <th className="px-6 py-4 text-center">Min. Sugerido</th>
+                    <th className="px-6 py-4 text-center">Min. Alerta</th>
                     <th className="px-6 py-4 text-right">Sugestão Compra</th>
                   </tr>
                 </thead>
@@ -740,15 +765,49 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                       </td>
                     </tr>
                   ))}
-                  {shoppingListData.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-20 text-center text-zinc-500">
-                        Seu estoque está saudável! Nenhuma sugestão de compra no momento.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
+
+              {/* Mobile View */}
+              <div className="lg:hidden divide-y divide-zinc-800/50">
+                {shoppingListData.map((item, i) => (
+                  <div key={i} className="p-5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      {item.image ? (
+                        <div className="w-12 h-12 rounded-xl overflow-hidden relative border border-white/5 shrink-0">
+                          <Image src={item.image} alt={item.name} fill className="object-cover" referrerPolicy="no-referrer" />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-700 shrink-0">
+                          <Package size={24} />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white leading-tight truncate">{item.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-[10px] font-black ${item.stock <= item.minStock ? 'text-red-500' : 'text-zinc-500'}`}>
+                            Estoque: {item.stock}
+                          </span>
+                          <span className="text-zinc-700 font-bold">•</span>
+                          <span className="text-[10px] text-zinc-500 font-bold">Vendido: {item.sold}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <div className="bg-blue-500/10 border border-blue-500/20 text-blue-500 px-3 py-2 rounded-xl text-center">
+                        <p className="text-[9px] font-black uppercase tracking-widest leading-none mb-1">Repor</p>
+                        <p className="text-sm font-black">+{item.suggestion || Math.max(1, (item.minStock - item.stock + 5))}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {shoppingListData.length === 0 && (
+                <div className="py-20 text-center text-zinc-500 text-xs font-medium italic">
+                  Seu estoque está saudável! Nenhuma sugestão de compra no momento.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -836,18 +895,18 @@ function ProductCard({ product, onEdit, onDelete, canEdit }: { product: Product,
 
         {/* Action Overlay */}
         {canEdit && (
-          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
             <button 
               onClick={onEdit}
-              className="p-1.5 bg-black/60 backdrop-blur-xl hover:bg-[#00E676] hover:text-black text-white rounded-lg border border-white/5 transition-all shadow-xl"
+              className="p-2 sm:p-1.5 bg-black/80 backdrop-blur-xl hover:bg-[#00E676] hover:text-black text-white rounded-xl border border-white/10 transition-all shadow-xl"
             >
-              <Edit2 size={12} />
+              <Edit2 size={14} />
             </button>
             <button 
               onClick={onDelete}
-              className="p-1.5 bg-black/60 backdrop-blur-xl hover:bg-red-500 text-white rounded-lg border border-white/5 transition-all shadow-xl"
+              className="p-2 sm:p-1.5 bg-black/80 backdrop-blur-xl hover:bg-red-500 text-white rounded-xl border border-white/10 transition-all shadow-xl"
             >
-              <Trash2 size={12} />
+              <Trash2 size={14} />
             </button>
           </div>
         )}
