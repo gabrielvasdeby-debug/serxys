@@ -420,7 +420,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
-              className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 text-zinc-400 hover:text-white"
+              className="p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/5 text-zinc-400 hover:text-white"
             >
               <ArrowLeft size={18} />
             </button>
@@ -434,11 +434,11 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5 shadow-inner overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex bg-black/40 p-1 rounded-lg border border-white/5 shadow-inner overflow-x-auto no-scrollbar max-w-full">
               <div className="flex gap-1 min-w-max">
                 <button 
                   onClick={() => setViewMode('catalog')}
-                  className={`px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'catalog' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  className={`px-4 sm:px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'catalog' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   <Grid size={13} />
                   Catálogo
@@ -447,14 +447,14 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                   <>
                     <button 
                       onClick={() => setViewMode('reports')}
-                      className={`px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'reports' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      className={`px-4 sm:px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'reports' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
                       <TrendingUp size={13} />
                       Análise
                     </button>
                     <button 
                       onClick={() => setViewMode('shoppingList')}
-                      className={`px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'shoppingList' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      className={`px-4 sm:px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'shoppingList' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
                       <ShoppingCart size={13} />
                       Reposição
@@ -469,7 +469,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                   setEditingProduct(null);
                   setIsProductModalOpen(true);
                 }}
-                className="relative bg-gradient-to-br from-[#00E676] to-[#00C853] text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all flex items-center gap-2 shadow-2xl shadow-[#00E676]/20 active:scale-95 group overflow-hidden shrink-0"
+                className="relative bg-gradient-to-br from-[#00E676] to-[#00C853] text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all flex items-center gap-2 shadow-2xl shadow-[#00E676]/20 active:scale-95 group overflow-hidden shrink-0"
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
@@ -492,7 +492,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                   placeholder="Pesquisar por nome, categoria ou código..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-zinc-900/30 border border-zinc-800/50 rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all placeholder:text-zinc-600 text-sm font-medium focus:bg-zinc-900/50"
+                  className="w-full bg-zinc-900/30 border border-zinc-800/50 rounded-lg pl-12 pr-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all placeholder:text-zinc-600 text-sm font-medium focus:bg-zinc-900/50"
                 />
               </div>
               <div className="flex-1 w-full flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-6 px-6 sm:mx-0 sm:px-0">
@@ -500,7 +500,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border shrink-0 ${
+                    className={`px-5 py-3 rounded-md text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border shrink-0 ${
                       selectedCategory === cat 
                       ? 'bg-[#00E676] border-[#00E676] text-black shadow-lg shadow-[#00E676]/20' 
                       : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700'
@@ -514,30 +514,30 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:border-[#00E676]/20 transition-all">
+              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-lg flex items-center justify-between group hover:border-[#00E676]/20 transition-all">
                 <div className="space-y-0.5">
                   <p className="text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Ativos</p>
                   <p className="text-lg sm:text-xl font-black text-white">{products.length}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#00E676]/10 flex items-center justify-center text-[#00E676]">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-[#00E676]/10 flex items-center justify-center text-[#00E676]">
                   <Package size={16} className="sm:w-18 sm:h-18" />
                 </div>
               </div>
-              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:border-amber-500/20 transition-all">
+              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-lg flex items-center justify-between group hover:border-amber-500/20 transition-all">
                 <div className="space-y-0.5">
                   <p className="text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Alerta</p>
                   <p className="text-lg sm:text-xl font-black text-amber-500">{lowStockProducts.length}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-amber-500/10 flex items-center justify-center text-amber-500">
                   <AlertTriangle size={16} className="sm:w-18 sm:h-18" />
                 </div>
               </div>
-              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:border-red-500/20 transition-all col-span-2 md:col-span-1">
+              <div className="bg-zinc-900/30 border border-zinc-800/50 p-4 sm:p-5 rounded-lg flex items-center justify-between group hover:border-red-500/20 transition-all col-span-2 md:col-span-1">
                 <div className="space-y-0.5">
                   <p className="text-[8px] sm:text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Zerados</p>
                   <p className="text-lg sm:text-xl font-black text-red-500">{outOfStockProducts.length}</p>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-red-500/10 flex items-center justify-center text-red-500">
                   <Package size={16} className="sm:w-18 sm:h-18" />
                 </div>
               </div>
@@ -595,7 +595,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-zinc-900/40 border border-zinc-800/50 p-6 rounded-[2.5rem] shadow-xl">
+              <div className="bg-zinc-900/40 border border-zinc-800/50 p-6 rounded-lg shadow-xl">
                 <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-6">Gráfico de Vendas (Quantidade)</h3>
                 <div className="h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -604,10 +604,10 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                       <XAxis dataKey="name" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
                       <YAxis stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#141414', border: '1px solid #333', borderRadius: '12px' }}
+                        contentStyle={{ backgroundColor: '#141414', border: '1px solid #333', borderRadius: '4px' }}
                         itemStyle={{ color: '#fff' }}
                       />
-                      <Bar dataKey="quantity" fill="#00E676" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="quantity" fill="#00E676" radius={[0, 0, 0, 0]}>
                         {mostSoldData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={index === 0 ? '#00E676' : '#00E676' + (index < 3 ? '88' : '44')} />
                         ))}
@@ -617,7 +617,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
                 </div>
               </div>
 
-              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-3xl overflow-hidden shadow-xl">
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-lg overflow-hidden shadow-xl">
                 {/* Desktop Table View */}
                 <table className="w-full text-left hidden md:table">
                   <thead>
@@ -701,7 +701,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
               </button>
             </div>
 
-            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-lg overflow-hidden shadow-2xl">
               {/* Desktop View */}
               <table className="w-full text-left hidden lg:table">
                 <thead>
@@ -869,7 +869,7 @@ function ProductCard({ product, onEdit, onDelete, canEdit }: { product: Product,
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl overflow-hidden flex flex-col group hover:border-[#00E676]/30 transition-all hover:shadow-2xl hover:shadow-[#00E676]/5 relative"
+      className="bg-zinc-900/40 border border-zinc-800/50 rounded-lg overflow-hidden flex flex-col group hover:border-[#00E676]/30 transition-all hover:shadow-2xl hover:shadow-[#00E676]/5 relative"
     >
       <div className="aspect-[4/3] relative overflow-hidden bg-zinc-950">
         {product.image ? (
@@ -898,13 +898,13 @@ function ProductCard({ product, onEdit, onDelete, canEdit }: { product: Product,
           <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
             <button 
               onClick={onEdit}
-              className="p-2 sm:p-1.5 bg-black/80 backdrop-blur-xl hover:bg-[#00E676] hover:text-black text-white rounded-xl border border-white/10 transition-all shadow-xl"
+              className="p-2 sm:p-1.5 bg-black/80 backdrop-blur-xl hover:bg-[#00E676] hover:text-black text-white rounded-md border border-white/10 transition-all shadow-xl"
             >
               <Edit2 size={14} />
             </button>
             <button 
               onClick={onDelete}
-              className="p-2 sm:p-1.5 bg-black/80 backdrop-blur-xl hover:bg-red-500 text-white rounded-xl border border-white/10 transition-all shadow-xl"
+              className="p-2 sm:p-1.5 bg-black/80 backdrop-blur-xl hover:bg-red-500 text-white rounded-md border border-white/10 transition-all shadow-xl"
             >
               <Trash2 size={14} />
             </button>
@@ -1057,13 +1057,13 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
       <motion.div 
         initial={{ scale: 0.95, y: 30 }}
         animate={{ scale: 1, y: 0 }}
-        className="bg-[#0A0A0A] border border-white/10 sm:rounded-[32px] rounded-2xl w-full max-w-5xl sm:max-h-[85vh] max-h-[96vh] overflow-hidden flex flex-col shadow-2xl relative"
+        className="bg-[#0A0A0A] border border-white/10 rounded-lg w-full max-w-5xl sm:max-h-[85vh] max-h-[96vh] overflow-hidden flex flex-col shadow-2xl relative"
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-zinc-900/50">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-[#00E676]/10 flex items-center justify-center text-[#00E676]">
+              <div className="w-8 h-8 rounded-lg bg-[#00E676]/10 flex items-center justify-center text-[#00E676]">
                 {product ? <Edit2 size={18} /> : <Plus size={18} />}
               </div>
               <h2 className="text-xl font-black text-white tracking-tight uppercase">
@@ -1073,7 +1073,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
           </div>
           <button 
             onClick={onClose} 
-            className="w-10 h-10 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all text-zinc-400 hover:text-white"
+            className="w-10 h-10 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-all text-zinc-400 hover:text-white"
           >
             <X size={20} />
           </button>
@@ -1100,7 +1100,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         type="text" 
                         value={formData.barcode}
                         onChange={e => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
-                        className={`w-full bg-black/60 border ${isDuplicate ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-blue-500/50'} rounded-2xl pl-12 pr-4 py-3.5 text-white focus:outline-none transition-all font-black text-lg tracking-tight`}
+                        className={`w-full bg-black/60 border ${isDuplicate ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-blue-500/50'} rounded-lg pl-12 pr-4 py-3.5 text-white focus:outline-none transition-all font-black text-lg tracking-tight`}
                         placeholder="Código de Barras"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
@@ -1115,7 +1115,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         type="button"
                         onClick={() => handleBarcodeSearch()}
                         disabled={isSearching}
-                        className="flex-1 sm:flex-none px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                        className="flex-1 sm:flex-none px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                       >
                         {isSearching ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Search size={16} />}
                         {isSearching ? '...' : 'Buscar'}
@@ -1123,7 +1123,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       <button 
                         type="button"
                         onClick={() => setIsScannerOpen(true)}
-                        className="flex-1 sm:flex-none px-6 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+                        className="flex-1 sm:flex-none px-6 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
                       >
                         <Camera size={18} />
                         Escanear
@@ -1165,7 +1165,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         type="text" 
                         value={formData.name}
                         onChange={e => setFormData(prev => ({ ...prev, name: capFirst(e.target.value) }))}
-                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('name') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 sm:py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
+                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('name') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-lg px-5 py-3 sm:py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
                         placeholder="Ex: Tela iPhone 13 Pro Max"
                       />
                       {autoFilledFields.has('name') && <CheckCircle2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#00E676] animate-bounce" />}
@@ -1178,7 +1178,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       type="text" 
                       value={formData.brand}
                       onChange={e => setFormData(prev => ({ ...prev, brand: capFirst(e.target.value) }))}
-                      className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('brand') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
+                      className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('brand') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-lg px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
                       placeholder="Ex: Apple, Samsung"
                     />
                   </div>
@@ -1189,7 +1189,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       type="text" 
                       value={formData.model}
                       onChange={e => setFormData(prev => ({ ...prev, model: capFirst(e.target.value) }))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700"
                       placeholder="Ex: A2643, SM-G998B"
                     />
                   </div>
@@ -1202,7 +1202,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         list="categories-list"
                         value={formData.category}
                         onChange={e => setFormData(prev => ({ ...prev, category: capFirst(e.target.value) }))}
-                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('category') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
+                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('category') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-lg px-5 py-3 sm:py-4 text-white focus:outline-none focus:border-[#00E676]/50 transition-all font-bold placeholder:text-zinc-700`}
                         placeholder="Selecione ou digite uma categoria"
                       />
                       <datalist id="categories-list">
@@ -1219,7 +1219,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                     <textarea 
                         value={formData.description}
                         onChange={e => setFormData(prev => ({ ...prev, description: capFirst(e.target.value) }))}
-                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('description') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-[#00E676]/50 transition-all min-h-[60px] font-medium resize-none placeholder:text-zinc-700`}
+                        className={`w-full bg-zinc-900/50 border ${autoFilledFields.has('description') ? 'border-[#00E676]' : 'border-zinc-800'} rounded-lg px-5 py-3 text-white focus:outline-none focus:border-[#00E676]/50 transition-all min-h-[60px] font-medium resize-none placeholder:text-zinc-700`}
                         placeholder="Observações adicionais, compatibilidade, etc..."
                     />
                     {autoFilledFields.has('description') && <CheckCircle2 size={16} className="absolute right-4 top-4 text-[#00E676] animate-bounce" />}
@@ -1234,7 +1234,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       step="0.01"
                       value={formData.price || ''}
                       onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-[#00E676] font-black text-xl focus:outline-none focus:border-[#00E676]/50 transition-all"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg px-5 py-4 text-[#00E676] font-black text-xl focus:outline-none focus:border-[#00E676]/50 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1244,7 +1244,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       step="0.01"
                       value={formData.costPrice || ''}
                       onChange={e => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-zinc-400 font-bold focus:outline-none focus:border-white/20 transition-all"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg px-5 py-4 text-zinc-400 font-bold focus:outline-none focus:border-white/20 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1253,7 +1253,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       type="number" 
                       value={formData.stock || ''}
                       onChange={e => setFormData(prev => ({ ...prev, stock: Math.max(0, parseInt(e.target.value) || 0) }))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-white font-black text-xl focus:outline-none focus:border-white/20 transition-all"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg px-5 py-4 text-white font-black text-xl focus:outline-none focus:border-white/20 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1265,7 +1265,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                       type="number" 
                       value={formData.minStock || ''}
                       onChange={e => setFormData(prev => ({ ...prev, minStock: Math.max(0, parseInt(e.target.value) || 0) }))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-amber-500 font-black text-xl focus:outline-none focus:border-amber-500/50 transition-all"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg px-5 py-4 text-amber-500 font-black text-xl focus:outline-none focus:border-amber-500/50 transition-all"
                     />
                   </div>
                 </div>
@@ -1280,18 +1280,18 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                 </div>
 
               <div className="lg:sticky lg:top-0 space-y-4">
-                <div className={`aspect-[4/3] rounded-[24px] border-2 border-dashed ${autoFilledFields.has('image') ? 'border-[#00E676]' : 'border-zinc-800'} bg-black/40 overflow-hidden relative group hover:border-zinc-700 transition-all`}>
+                <div className={`aspect-[4/3] rounded-lg border-2 border-dashed ${autoFilledFields.has('image') ? 'border-[#00E676]' : 'border-zinc-800'} bg-black/40 overflow-hidden relative group hover:border-zinc-700 transition-all`}>
                   {formData.image ? (
                     <>
                       <Image src={formData.image} alt="Preview" fill className="object-cover transition-transform duration-700 group-hover:scale-105" referrerPolicy="no-referrer" />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 gap-3">
-                        <label className="w-full py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer transition-transform active:scale-95">
+                        <label className="w-full py-3 bg-white text-black rounded-lg font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer transition-transform active:scale-95">
                           <Edit2 size={14} /> Trocar Imagem
                           <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                         </label>
                         <button 
                           onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                          className="w-full py-3 bg-red-500/20 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95"
+                          className="w-full py-3 bg-red-500/20 text-red-500 rounded-lg font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95"
                         >
                           <Trash2 size={14} /> Remover
                         </button>
@@ -1299,7 +1299,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                     </>
                   ) : (
                     <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.02] transition-colors group">
-                      <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-[#00E676]/10 group-hover:text-[#00E676] transition-all">
+                      <div className="w-16 h-16 bg-zinc-900 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-[#00E676]/10 group-hover:text-[#00E676] transition-all">
                         <ImageIcon size={32} />
                       </div>
                       <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Adicionar Foto</span>
@@ -1331,7 +1331,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
             <button 
               onClick={handleSave}
               disabled={isDuplicate || !formData.name || isSaving}
-              className={`flex-1 sm:flex-none px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl ${isDuplicate || !formData.name || isSaving ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-[#00E676] hover:bg-[#00C853] text-black shadow-[#00E676]/20'}`}
+              className={`flex-1 sm:flex-none px-10 py-3.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl ${isDuplicate || !formData.name || isSaving ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-[#00E676] hover:bg-[#00C853] text-black shadow-[#00E676]/20'}`}
             >
               {isSaving ? (
                 <>
@@ -1356,7 +1356,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="w-full max-w-xl aspect-square bg-zinc-900 rounded-[32px] border border-white/10 overflow-hidden relative flex flex-col shadow-2xl"
+                        className="w-full max-w-xl aspect-square bg-zinc-900 rounded-lg border border-white/10 overflow-hidden relative flex flex-col shadow-2xl"
                     >
                         <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-20">
                             <h3 className="text-sm font-black uppercase tracking-widest text-white">Escanear Código</h3>
@@ -1368,7 +1368,7 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
                         <div className="flex-1 relative bg-black">
                             {/* Visual guide */}
                             <div className="absolute inset-0 pointer-events-none border-[60px] border-black/60 flex items-center justify-center z-10">
-                                <div className="w-full h-full border-2 border-[#00E676] rounded-2xl relative">
+                                <div className="w-full h-full border-2 border-[#00E676] rounded-lg relative">
                                     <div className="absolute left-[-2px] right-[-2px] top-1/2 h-[2px] bg-[#00E676] shadow-[0_0_10px_#00E676] animate-pulse" />
                                 </div>
                             </div>
