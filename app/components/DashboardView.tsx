@@ -191,7 +191,6 @@ export default function DashboardView({
     { id: 'agenda', name: 'Agenda Técnico', subtitle: 'AGENDA DO TÉCNICO', icon: Calendar, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'relacionamento', name: 'Relacionamento', subtitle: 'MENSAGENS & CRM', icon: MessageCircle, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'relatorios', name: 'Relatórios', subtitle: 'ANÁLISE DE DADOS', icon: BarChart2, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'ajustes', name: 'Ajustes', subtitle: 'CONFIGURAÇÕES', icon: Settings, color: 'text-white', bg: 'bg-[#222222]' },
   ];
 
   const modules = allModules.filter(mod => {
@@ -386,6 +385,13 @@ export default function DashboardView({
                         >
                           <Users size={16} />
                           Trocar Perfil
+                        </button>
+                        <button 
+                          onClick={() => { onNavigate('ajustes'); setIsProfileMenuOpen(false); }}
+                          className="w-full px-4 py-3 flex items-center gap-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all text-xs font-bold uppercase tracking-widest"
+                        >
+                          <Settings size={16} />
+                          Configurações
                         </button>
                         <div className="h-px bg-zinc-800 mx-2 my-1" />
                         <button 
