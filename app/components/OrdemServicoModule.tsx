@@ -740,6 +740,7 @@ export default function OrdemServicoModule({
   const [isScanReminderOpen, setIsScanReminderOpen] = useState(false);
   const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Monitor scroll for header styling if needed, otherwise simplified
   const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -910,6 +911,39 @@ export default function OrdemServicoModule({
       onShowToast(`Erro ao salvar foto capturada: ${error.message}`);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleNativeCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    setIsUploading(true);
+    try {
+      const file = files[0];
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `entry-photos/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filePath);
+        
+      setEntryPhotos([...entryPhotos, publicUrl]);
+      onShowToast('Foto capturada com sucesso!');
+    } catch (error: any) {
+      console.error('Native capture error:', error);
+      onShowToast(`Erro ao capturar foto: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      // Reset input value to allow capturing the same image name if needed
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
     }
   };
 
@@ -2580,7 +2614,7 @@ export default function OrdemServicoModule({
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                       <div className="flex items-center gap-3">
                         <button 
-                          onClick={() => setIsCameraModalOpen(true)}
+                          onClick={() => cameraInputRef.current?.click()}
                           className={`w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] hover:bg-zinc-700 transition-all ${isUploading ? 'opacity-50' : ''}`}
                           disabled={isUploading}
                         >
@@ -2627,12 +2661,20 @@ export default function OrdemServicoModule({
                               )}
                             </label>
 
-                            {/* Option: Camera Direct */}
+                            {/* Option: Camera Direct (Native) */}
                             <button 
-                              onClick={() => setIsCameraModalOpen(true)}
+                              onClick={() => cameraInputRef.current?.click()}
                               className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                               disabled={isUploading}
                             >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                ref={cameraInputRef}
+                                onChange={handleNativeCameraCapture}
+                              />
                               {isUploading ? (
                                 <Loader2 size={24} className="text-[#00E676] animate-spin" />
                               ) : (
