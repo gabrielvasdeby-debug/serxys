@@ -840,7 +840,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                         <>
                            <button 
                              onClick={() => setIsQuickSaleOpen(true)}
-                             className="w-full h-20 md:h-24 bg-zinc-900 border border-blue-500/30 hover:border-blue-500/50 text-zinc-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.05)]"
+                             className="w-full h-20 md:h-24 bg-zinc-900 border border-blue-500/30 hover:border-blue-500/50 text-zinc-400 rounded-xl md:rounded-2xl transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.05)]"
                            >
                               <div className="absolute inset-0 bg-blue-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                               <ShoppingCart size={22} className="text-blue-500/50 group-hover:text-blue-400 transition-all" strokeWidth={2.5} />
@@ -848,11 +848,11 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                            </button>
                            
                            <div className="grid grid-cols-2 gap-3">
-                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-emerald-500/30 hover:border-emerald-500/50 text-zinc-400 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-emerald-500/30 hover:border-emerald-500/50 text-zinc-400 rounded-xl transition-all active:scale-[0.98] items-center justify-center gap-2 group shadow-[0_0_15px_rgba(16,185,129,0.05)]">
                                  <Plus size={18} strokeWidth={3} className="text-emerald-500/50 group-hover:text-emerald-400 transition-colors" />
                                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/50 group-hover:text-emerald-400">Entrada</span>
                               </button>
-                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-red-500/30 hover:border-red-500/50 text-zinc-400 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group shadow-[0_0_15px_rgba(239,68,68,0.05)]">
+                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-red-500/30 hover:border-red-500/50 text-zinc-400 rounded-xl transition-all active:scale-[0.98] items-center justify-center gap-2 group shadow-[0_0_15px_rgba(239,68,68,0.05)]">
                                  <Minus size={18} strokeWidth={3} className="text-red-500/50 group-hover:text-red-400 transition-colors" />
                                  <span className="text-[10px] font-black uppercase tracking-widest text-red-500/50 group-hover:text-red-400">Retirada</span>
                               </button>
@@ -1454,7 +1454,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-md">
-      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#1A1A1A] border border-zinc-700/80 rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)]">
+      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#1A1A1A] border border-zinc-700/80 rounded-xl w-full max-w-sm overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)]">
         <div className={`p-4 sm:p-5 border-b border-zinc-700/50 flex items-center justify-between ${type === 'entrada' ? 'bg-emerald-500/[0.03]' : 'bg-red-500/[0.03]'}`}>
           <div className="flex items-center gap-3">
              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${type === 'entrada' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -1469,13 +1469,13 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Valor da Operação</label>
             <div className="relative group">
                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-black text-zinc-600">R$</span>
-               <input autoFocus type="number" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="0,00" className={`w-full bg-[#111111] border border-zinc-700/50 rounded-2xl pl-12 pr-4 py-3 sm:py-4 text-white text-2xl sm:text-3xl font-black focus:outline-none transition-all placeholder:text-zinc-700 ${type === 'entrada' ? 'focus:border-emerald-500/50' : 'focus:border-red-500/50'}`} />
+               <input autoFocus type="number" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="0,00" className={`w-full bg-[#111111] border border-zinc-700/50 rounded-lg pl-12 pr-4 py-3 sm:py-4 text-white text-2xl sm:text-3xl font-black focus:outline-none transition-all placeholder:text-zinc-700 ${type === 'entrada' ? 'focus:border-emerald-500/50' : 'focus:border-red-500/50'}`} />
             </div>
           </div>
           
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Descrição / Motivo</label>
-            <input type="text" value={description} onChange={e => setDescription(capFirst(e.target.value))} placeholder="Ex: Pagamento Fornecedor" className={`w-full bg-[#111111] border border-zinc-700/50 rounded-xl px-4 py-3 text-white text-[11px] font-bold focus:outline-none transition-all uppercase placeholder:text-zinc-700 ${type === 'entrada' ? 'focus:border-emerald-500/50' : 'focus:border-red-500/50'}`} />
+            <input type="text" value={description} onChange={e => setDescription(capFirst(e.target.value))} placeholder="Ex: Pagamento Fornecedor" className={`w-full bg-[#111111] border border-zinc-700/50 rounded-lg px-4 py-3 text-white text-[11px] font-bold focus:outline-none transition-all uppercase placeholder:text-zinc-700 ${type === 'entrada' ? 'focus:border-emerald-500/50' : 'focus:border-red-500/50'}`} />
           </div>
 
           {type === 'saida' && (
@@ -1483,7 +1483,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
               <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Destinatário / Fornecedor</label>
               <div className="flex items-stretch gap-2">
                 <div className="relative flex-1">
-                   <select value={supplierId} onChange={e => setSupplierId(e.target.value)} className="w-full h-12 bg-[#111111] border border-zinc-700/50 rounded-xl px-4 text-white text-[11px] font-bold focus:outline-none focus:border-red-500/50 appearance-none uppercase transition-all">
+                   <select value={supplierId} onChange={e => setSupplierId(e.target.value)} className="w-full h-12 bg-[#111111] border border-zinc-700/50 rounded-lg px-4 text-white text-[11px] font-bold focus:outline-none focus:border-red-500/50 appearance-none uppercase transition-all">
                      <option value="">Nenhum</option>
                      {suppliers.map(s => <option key={s.id} value={s.id}>{s.company_name}</option>)}
                    </select>
@@ -1498,7 +1498,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
                     onShowToast('Abrindo cadastro de fornecedor...');
                     setShowQuickSupplier(true);
                   }}
-                  className="w-12 h-12 bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-white hover:text-red-500 rounded-xl flex items-center justify-center transition-all active:scale-95 shadow-lg group"
+                  className="w-12 h-12 bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-white hover:text-red-500 rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-lg group"
                 >
                   <Plus size={20} strokeWidth={3} className="group-hover:scale-110 transition-transform" />
                 </button>
@@ -1513,7 +1513,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
             </label>
             <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
               {['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].map((m) => (
-                <button key={m} onClick={() => setPaymentMethod(m as any)} className={`py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all active:scale-95 ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-[#111111] text-zinc-400 border-zinc-700/60 hover:border-zinc-600'}`}>{m}</button>
+                <button key={m} onClick={() => setPaymentMethod(m as any)} className={`py-2.5 rounded-lg text-[9px] font-black uppercase tracking-tighter border transition-all active:scale-95 ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-[#111111] text-zinc-400 border-zinc-700/60 hover:border-zinc-600'}`}>{m}</button>
               ))}
             </div>
           </div>
@@ -1521,7 +1521,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
           <button 
             disabled={!value || parseFloat(value) <= 0 || !description || isSaving}
             onClick={handleSave} 
-            className={`w-full py-4 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${!value || parseFloat(value) <= 0 || !description || isSaving ? 'opacity-20 grayscale cursor-not-allowed text-zinc-600' : 'active:scale-95 shadow-xl'} ${type === 'entrada' ? 'bg-[#00E676] text-black shadow-emerald-500/20' : 'bg-red-500 text-white shadow-red-500/20'}`}
+            className={`w-full py-4 font-black rounded-xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${!value || parseFloat(value) <= 0 || !description || isSaving ? 'opacity-20 grayscale cursor-not-allowed text-zinc-600' : 'active:scale-95 shadow-xl'} ${type === 'entrada' ? 'bg-[#00E676] text-black shadow-emerald-500/20' : 'bg-red-500 text-white shadow-red-500/20'}`}
           >
             {isSaving ? (
               <>
