@@ -1454,8 +1454,8 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-md">
-      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#101010] border border-zinc-800 rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)]">
-        <div className={`p-4 sm:p-5 border-b border-zinc-800 flex items-center justify-between ${type === 'entrada' ? 'bg-emerald-500/[0.03]' : 'bg-red-500/[0.03]'}`}>
+      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#1A1A1A] border border-zinc-700/80 rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)]">
+        <div className={`p-4 sm:p-5 border-b border-zinc-700/50 flex items-center justify-between ${type === 'entrada' ? 'bg-emerald-500/[0.03]' : 'bg-red-500/[0.03]'}`}>
           <div className="flex items-center gap-3">
              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${type === 'entrada' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                 {type === 'entrada' ? <Plus size={16} /> : <Minus size={16} />}
@@ -1469,13 +1469,13 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Valor da Operação</label>
             <div className="relative group">
                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-black text-zinc-600">R$</span>
-               <input autoFocus type="number" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="0,00" className="w-full bg-black border border-zinc-800 rounded-2xl pl-12 pr-4 py-3 sm:py-4 text-white text-2xl sm:text-3xl font-black focus:outline-none focus:border-zinc-700 transition-all placeholder:text-zinc-900" />
+               <input autoFocus type="number" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="0,00" className={`w-full bg-[#111111] border border-zinc-700/50 rounded-2xl pl-12 pr-4 py-3 sm:py-4 text-white text-2xl sm:text-3xl font-black focus:outline-none transition-all placeholder:text-zinc-700 ${type === 'entrada' ? 'focus:border-emerald-500/50' : 'focus:border-red-500/50'}`} />
             </div>
           </div>
           
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Descrição / Motivo</label>
-            <input type="text" value={description} onChange={e => setDescription(capFirst(e.target.value))} placeholder="Ex: Pagamento Fornecedor" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white text-[11px] font-bold focus:outline-none focus:border-zinc-700 transition-all uppercase placeholder:text-zinc-900" />
+            <input type="text" value={description} onChange={e => setDescription(capFirst(e.target.value))} placeholder="Ex: Pagamento Fornecedor" className={`w-full bg-[#111111] border border-zinc-700/50 rounded-xl px-4 py-3 text-white text-[11px] font-bold focus:outline-none transition-all uppercase placeholder:text-zinc-700 ${type === 'entrada' ? 'focus:border-emerald-500/50' : 'focus:border-red-500/50'}`} />
           </div>
 
           {type === 'saida' && (
@@ -1483,7 +1483,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
               <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-1">Destinatário / Fornecedor</label>
               <div className="flex items-stretch gap-2">
                 <div className="relative flex-1">
-                   <select value={supplierId} onChange={e => setSupplierId(e.target.value)} className="w-full h-12 bg-black border border-zinc-800 rounded-xl px-4 text-white text-[11px] font-bold focus:outline-none focus:border-zinc-700 appearance-none uppercase transition-all">
+                   <select value={supplierId} onChange={e => setSupplierId(e.target.value)} className="w-full h-12 bg-[#111111] border border-zinc-700/50 rounded-xl px-4 text-white text-[11px] font-bold focus:outline-none focus:border-red-500/50 appearance-none uppercase transition-all">
                      <option value="">Nenhum</option>
                      {suppliers.map(s => <option key={s.id} value={s.id}>{s.company_name}</option>)}
                    </select>
@@ -1498,7 +1498,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
                     onShowToast('Abrindo cadastro de fornecedor...');
                     setShowQuickSupplier(true);
                   }}
-                  className="w-12 h-12 bg-zinc-800 border border-zinc-700 hover:border-[#00E676]/50 text-white hover:text-[#00E676] rounded-xl flex items-center justify-center transition-all active:scale-95 shadow-lg group"
+                  className="w-12 h-12 bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-white hover:text-red-500 rounded-xl flex items-center justify-center transition-all active:scale-95 shadow-lg group"
                 >
                   <Plus size={20} strokeWidth={3} className="group-hover:scale-110 transition-transform" />
                 </button>
@@ -1513,7 +1513,7 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
             </label>
             <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
               {['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].map((m) => (
-                <button key={m} onClick={() => setPaymentMethod(m as any)} className={`py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all active:scale-95 ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}>{m}</button>
+                <button key={m} onClick={() => setPaymentMethod(m as any)} className={`py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all active:scale-95 ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-[#111111] text-zinc-400 border-zinc-700/60 hover:border-zinc-600'}`}>{m}</button>
               ))}
             </div>
           </div>
