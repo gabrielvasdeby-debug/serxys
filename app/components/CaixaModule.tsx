@@ -780,10 +780,10 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             {canAction && (
               <button 
                 onClick={() => setIsClosingModalOpen(true)} 
-                className="p-2 sm:px-6 sm:py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-black border border-red-500/20 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shrink-0"
+                className="px-3 py-2 sm:px-6 sm:py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-black border border-red-500/20 rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 sm:gap-2 shrink-0"
               >
                 <X size={14} strokeWidth={3} />
-                <span className="hidden sm:inline">Encerrar</span>
+                <span>Fechar</span>
               </button>
             )}
           </div>
