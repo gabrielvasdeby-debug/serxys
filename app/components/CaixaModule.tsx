@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Plus, Minus, ShoppingCart, 
@@ -973,9 +973,9 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                    {t.type === 'entrada' ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownLeft size={18} strokeWidth={2.5} />}
                                 </div>
                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-4">
-                                     <p className="text-xs font-black text-white uppercase truncate tracking-tight">{t.description}</p>
-                                     <span className={`text-base font-black tracking-tighter ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
+                                  <div className="flex items-start justify-between gap-2">
+                                     <p className="text-xs font-black text-white uppercase truncate tracking-tight min-w-0 flex-1">{t.description}</p>
+                                     <span className={`text-sm font-black tracking-tighter shrink-0 whitespace-nowrap ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
                                   </div>
                                   <div className="flex items-center gap-3 mt-1">
                                      <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} className="text-zinc-600" /> {t.time}</span>
