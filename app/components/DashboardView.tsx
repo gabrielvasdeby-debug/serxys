@@ -181,16 +181,16 @@ export default function DashboardView({
   const allModules = [
     { id: 'nova_os', name: 'Nova OS', subtitle: 'CRIAR TICKET', icon: PlusCircle, color: 'text-[#00E676]', bg: 'bg-[#00E676]/10', shadow: 'shadow-[0_0_15px_rgba(0,230,118,0.2)]' },
     { id: 'status_os', name: 'Status OS', subtitle: 'MONITORAR FLUXO', icon: Activity, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'clientes', name: 'Clientes', subtitle: 'BANCO DE DADOS CRM', icon: Users, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'garantia', name: 'Garantia', subtitle: 'GARANTIAS', icon: ShieldCheck, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'produtos', name: 'Produtos', subtitle: 'CONTROLE DE ESTOQUE', icon: Package, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'servicos', name: 'Serviços', subtitle: 'CATÁLOGO DE SERVIÇOS', icon: Wrench, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'caixa', name: 'Caixa', subtitle: 'CAIXA DIÁRIO', icon: Calculator, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'financeiro', name: 'Financeiro', subtitle: 'CONTABILIDADE', icon: Wallet, color: 'text-white', bg: 'bg-[#222222]' },
-    { id: 'fornecedores', name: 'Fornecedores', subtitle: 'FORNECEDORES', icon: Truck, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'agenda', name: 'Agenda Técnico', subtitle: 'AGENDA DO TÉCNICO', icon: Calendar, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'financeiro', name: 'Financeiro', subtitle: 'CONTABILIDADE', icon: Wallet, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'garantia', name: 'Garantia', subtitle: 'GARANTIAS', icon: ShieldCheck, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'clientes', name: 'Clientes', subtitle: 'BANCO DE DADOS CRM', icon: Users, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'produtos', name: 'Produtos', subtitle: 'CONTROLE DE ESTOQUE', icon: Package, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'fornecedores', name: 'Fornecedores', subtitle: 'FORNECEDORES', icon: Truck, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'relacionamento', name: 'Relacionamento', subtitle: 'MENSAGENS & CRM', icon: MessageCircle, color: 'text-white', bg: 'bg-[#222222]' },
     { id: 'relatorios', name: 'Relatórios', subtitle: 'ANÁLISE DE DADOS', icon: BarChart2, color: 'text-white', bg: 'bg-[#222222]' },
+    { id: 'servicos', name: 'Serviços', subtitle: 'CATÁLOGO DE SERVIÇOS', icon: Wrench, color: 'text-white', bg: 'bg-[#222222]' },
   ];
 
   const modules = allModules.filter(mod => {

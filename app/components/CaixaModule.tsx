@@ -747,15 +747,15 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       <header className="bg-[#050505] border-b border-zinc-800/80 p-3 sm:p-4 sticky top-0 z-20 backdrop-blur-3xl shrink-0">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-2 overflow-x-hidden">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <button onClick={onBack} className="p-2 sm:px-4 bg-zinc-900/50 hover:bg-red-500/20 border border-zinc-800 hover:border-red-500/50 rounded-xl sm:rounded-2xl transition-all active:scale-95 group shrink-0 flex items-center gap-2">
-              <ChevronLeft className="w-6 h-6 sm:w-4 sm:h-4 text-zinc-500 group-hover:text-red-500 transition-colors" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-red-500 hidden sm:inline">Sair do Caixa</span>
+            <button onClick={onBack} className="p-2 sm:px-4 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 rounded-xl sm:rounded-2xl transition-all active:scale-95 group shrink-0 flex items-center gap-2">
+              <ChevronLeft className="w-6 h-6 sm:w-4 sm:h-4 text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-zinc-300 hidden sm:inline">Sair do Caixa</span>
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-xl font-black tracking-tight truncate">Caixa Diário</h1>
                 {currentSession && (
-                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 bg-zinc-900 text-zinc-500 border border-zinc-800`}>
                     {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
                   </span>
                 )}
@@ -780,7 +780,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             {canAction && (
               <button 
                 onClick={() => setIsClosingModalOpen(true)} 
-                className="px-3 py-2 sm:px-6 sm:py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-black border border-red-500/20 rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 sm:gap-2 shrink-0"
+                className="px-3 py-2 sm:px-6 sm:py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-100 border border-zinc-800 rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 sm:gap-2 shrink-0"
               >
                 <X size={14} strokeWidth={3} />
                 <span>Fechar</span>
@@ -801,13 +801,13 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             {!canAction && (
               <div className="bg-[#0A0A0A] border border-zinc-800/40 rounded-[24px] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl relative overflow-hidden shrink-0">
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border ${currentSession?.status === 'closed' ? 'bg-red-500/10 border-red-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
-                    {currentSession?.status === 'closed' ? <ShieldAlert className="text-red-500" size={24} /> : <AlertCircle className="text-blue-500" size={24} />}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border border-zinc-800 bg-zinc-900`}>
+                    {currentSession?.status === 'closed' ? <ShieldAlert className="text-zinc-500" size={24} /> : <AlertCircle className="text-zinc-500" size={24} />}
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xs font-black uppercase tracking-widest text-zinc-100 flex items-center gap-2">
                        {currentSession?.status === 'closed' ? 'Caixa Encerrado' : (selectedDate === today ? 'INICIAR NOVO CAIXA DIARIO' : 'Caixa Não Iniciado')}
-                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${currentSession?.status === 'closed' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-zinc-900 text-zinc-500 border border-zinc-800`}>
                          {selectedDate === today ? 'Hoje' : format(parseISO(selectedDate), 'dd/MM/yyyy')}
                        </span>
                     </h3>
@@ -822,7 +822,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                     {currentSession?.status === 'closed' && profile.type === 'ADM' && (
                       <button 
                         onClick={() => handleReopenCash(currentSession)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-black border border-blue-500/20 rounded-xl uppercase text-[9px] tracking-widest transition-all"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-black border border-zinc-800 rounded-xl uppercase text-[9px] tracking-widest transition-all"
                       >
                         <Calculator size={12} />
                         Reabrir
@@ -831,7 +831,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                     
                     <button 
                       onClick={() => setIsOpeningModalOpen(true)}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00E676] hover:bg-[#00E676]/90 text-black font-black rounded-xl uppercase text-[9px] tracking-widest transition-all shadow-lg shadow-[#00E676]/10"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-zinc-100 hover:bg-white text-black font-black rounded-xl uppercase text-[9px] tracking-widest transition-all shadow-sm"
                     >
                       <Plus size={12} strokeWidth={3} />
                       {currentSession?.status === 'closed' ? 'INICIAR NOVO CAIXA DIARIO' : 'Abrir Caixa'}
@@ -852,31 +852,31 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             )}
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-                <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] relative overflow-hidden group shadow-lg`}>
+                <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] relative overflow-hidden group shadow-sm`}>
                    <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><Banknote size={35} /></div>
-                   <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Dinheiro em Caixa</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-emerald-400' : 'text-red-400'} tracking-tighter`}>
+                   <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Dinheiro em Caixa</p>
+                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-zinc-100' : 'text-red-500/80'} tracking-tighter`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.cashInHand)}
                    </h2>
                 </div>
-               <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md">
-                  <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform text-emerald-500"><TrendingUp size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
+               <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm">
+                  <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><TrendingUp size={30} /></div>
+                  <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
                   <h2 className="text-lg sm:text-xl font-black text-zinc-100 tracking-tighter">
                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}
                   </h2>
                </div>
-               <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md">
-                  <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform text-red-500"><TrendingDown size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-zinc-300 tracking-tighter">
+               <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm">
+                  <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><TrendingDown size={30} /></div>
+                  <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
+                  <h2 className="text-lg sm:text-xl font-black text-zinc-100 tracking-tighter">
                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}
                   </h2>
                </div>
-                <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md`}>
-                   <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform text-blue-500"><Calculator size={30} /></div>
-                   <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-blue-400' : 'text-red-400'} tracking-tighter`}>
+                <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm`}>
+                   <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><Calculator size={30} /></div>
+                   <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
+                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-zinc-100' : 'text-red-500/80'} tracking-tighter`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.balance)}
                    </h2>
                 </div>
@@ -887,28 +887,28 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                <div className="w-full lg:w-[380px] shrink-0 md:overflow-y-auto custom-scrollbar pr-1 min-h-0 pb-4 flex flex-col gap-5">
                   <div className="space-y-4 shrink-0">
                      <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-3 bg-[#00E676] rounded-full"></div>
+                        <div className="w-1 h-3 bg-zinc-800 rounded-full"></div>
                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Painel de Ações</h3>
                      </div>
                      {canAction ? (
                         <>
                            <button 
                              onClick={() => setIsQuickSaleOpen(true)}
-                             className="w-full h-20 md:h-24 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-emerald-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] shadow-2xl flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
+                             className="w-full h-20 md:h-24 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
                            >
-                              <div className="absolute inset-0 bg-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                              <ShoppingCart size={22} className="text-emerald-500 group-hover:scale-110 transition-all" strokeWidth={2.5} />
-                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-100 group-hover:text-white transition-colors">Nova Venda</span>
+                              <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              <ShoppingCart size={22} className="text-zinc-800 group-hover:text-zinc-500 transition-all" strokeWidth={2.5} />
+                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-700 group-hover:text-zinc-400 transition-colors">Nova Venda</span>
                            </button>
                            
                            <div className="grid grid-cols-2 gap-3">
-                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/30 text-emerald-500 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Plus size={18} strokeWidth={3} className="text-emerald-500/40 group-hover:text-emerald-500 transition-colors" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-100">Entrada</span>
+                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-600 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
+                                 <Plus size={18} strokeWidth={3} className="text-zinc-800 group-hover:text-zinc-600 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-700 group-hover:text-zinc-500">Entrada</span>
                               </button>
-                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-zinc-800 hover:border-red-500/30 text-red-500 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Minus size={18} strokeWidth={3} className="text-red-500/40 group-hover:text-red-500 transition-colors" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-100">Retirada</span>
+                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-600 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
+                                 <Minus size={18} strokeWidth={3} className="text-zinc-800 group-hover:text-zinc-600 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-700 group-hover:text-zinc-500">Retirada</span>
                               </button>
                            </div>
                         </>
@@ -942,8 +942,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                    className="absolute bottom-full right-0 mb-3 w-72 p-4 bg-zinc-900 border border-zinc-800 rounded-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] backdrop-blur-xl pointer-events-none"
                                  >
                                     <div className="flex gap-3">
-                                       <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
-                                          <HelpCircle size={14} className="text-blue-400" />
+                                       <div className="w-8 h-8 rounded-full bg-zinc-950 flex items-center justify-center shrink-0 border border-zinc-800">
+                                          <HelpCircle size={14} className="text-zinc-600" />
                                        </div>
                                        <div className="space-y-2">
                                           <p className="text-[11px] text-zinc-300 font-bold leading-relaxed">
@@ -963,11 +963,11 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                      <div className="space-y-4">
                         {Object.keys(totals.entriesByType).filter(k => k !== 'total' && totals.entriesByType[k] > 0).map((method) => {
                            const config: Record<string, { label: string, color: string, barColor: string }> = {
-                             'Dinheiro': { label: 'Dinheiro', color: 'text-zinc-100', barColor: 'bg-emerald-500' },
-                             'PIX': { label: 'PIX', color: 'text-zinc-100', barColor: 'bg-emerald-500/60' },
-                             'Débito': { label: 'Débito', color: 'text-zinc-100', barColor: 'bg-emerald-500/40' },
-                             'Crédito': { label: 'Crédito', color: 'text-zinc-100', barColor: 'bg-emerald-500/20' },
-                             'Link': { label: 'Link de Pagamento', color: 'text-zinc-100', barColor: 'bg-emerald-500/10' },
+                             'Dinheiro': { label: 'Dinheiro', color: 'text-zinc-300', barColor: 'bg-zinc-600' },
+                             'PIX': { label: 'PIX', color: 'text-zinc-300', barColor: 'bg-zinc-700' },
+                             'Débito': { label: 'Débito', color: 'text-zinc-300', barColor: 'bg-zinc-800' },
+                             'Crédito': { label: 'Crédito', color: 'text-zinc-300', barColor: 'bg-zinc-800' },
+                             'Link': { label: 'Link de Pagamento', color: 'text-zinc-300', barColor: 'bg-zinc-900' },
                            };
                            const { label, color, barColor } = config[method] || { label: method, color: 'text-zinc-400', barColor: 'bg-zinc-700' };
                            const val = totals.entriesByType[method] || 0;
@@ -975,10 +975,10 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                            return (
                              <div key={method} className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                   <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tighter">{label}</span>
+                                   <span className="text-[10px] font-black text-zinc-800 uppercase tracking-tighter">{label}</span>
                                    <span className={`text-[12px] font-black ${color}`}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)}</span>
                                 </div>
-                                <div className="h-0.5 bg-zinc-900 rounded-full overflow-hidden">
+                                <div className="h-0.5 bg-zinc-950 rounded-full overflow-hidden">
                                    <motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} className={`h-full ${barColor}`} />
                                 </div>
                              </div>
@@ -1015,7 +1015,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                        <div className="divide-y divide-zinc-900/40 md:overflow-y-auto flex-1 custom-scrollbar">
                           {filteredTransactions.map((t) => (
                              <div key={t.id} className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-900/50 shadow-inner bg-zinc-900/40 ${t.type === 'entrada' ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-900 shadow-inner bg-zinc-950 text-zinc-800`}>
                                    {t.type === 'entrada' ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownLeft size={18} strokeWidth={2.5} />}
                                 </div>
                                <div className="flex-1 min-w-0">
@@ -1029,7 +1029,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                      {t.osId && <span className="text-[9px] font-black text-blue-500/40 uppercase tracking-widest pl-3 border-l border-zinc-800/50">OS {t.osId}</span>}
                                   </div>
                                </div>
-                               {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-600 sm:text-zinc-800 hover:text-red-500 transition-all sm:opacity-0 sm:group-hover:opacity-100 active:scale-95"><Trash2 size={18} /></button>)}
+                               {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-800 hover:text-zinc-400 transition-all sm:opacity-0 sm:group-hover:opacity-100 active:scale-95"><Trash2 size={18} /></button>)}
                             </div>
                           ))}
                           {filteredTransactions.length === 0 && (
