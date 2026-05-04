@@ -852,31 +852,31 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             )}
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-                <div className={`bg-[#050505] border-2 ${totals.cashInHand >= 0 ? 'border-emerald-500/30' : 'border-red-500/30'} px-3 py-3 rounded-[20px] relative overflow-hidden group shadow-lg`}>
+                <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] relative overflow-hidden group shadow-lg`}>
                    <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><Banknote size={35} /></div>
-                   <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Dinheiro</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-[#00E676] drop-shadow-[0_0_10px_rgba(0,230,118,0.15)]' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.15)]'} tracking-tighter`}>
+                   <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Dinheiro em Caixa</p>
+                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-emerald-400' : 'text-red-400'} tracking-tighter`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.cashInHand)}
                    </h2>
                 </div>
-               <div className="bg-[#050505] border-2 border-emerald-600/20 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md">
+               <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md">
                   <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform text-emerald-500"><TrendingUp size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Entradas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-white tracking-tighter">
+                  <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
+                  <h2 className="text-lg sm:text-xl font-black text-zinc-100 tracking-tighter">
                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}
                   </h2>
                </div>
-               <div className="bg-[#050505] border-2 border-red-500/20 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md">
+               <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md">
                   <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform text-red-500"><TrendingDown size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Saídas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-white/90 tracking-tighter">
+                  <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
+                  <h2 className="text-lg sm:text-xl font-black text-zinc-300 tracking-tighter">
                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}
                   </h2>
                </div>
-                <div className={`bg-[#050505] border-2 ${totals.balance >= 0 ? 'border-blue-500/30' : 'border-red-500/30'} px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md`}>
+                <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-md`}>
                    <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform text-blue-500"><Calculator size={30} /></div>
-                   <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Líquido</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-blue-400' : 'text-red-500'} tracking-tighter`}>
+                   <p className="text-[7px] font-black text-zinc-700 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
+                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-blue-400' : 'text-red-400'} tracking-tighter`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.balance)}
                    </h2>
                 </div>
@@ -894,21 +894,21 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                         <>
                            <button 
                              onClick={() => setIsQuickSaleOpen(true)}
-                             className="w-full h-20 md:h-24 bg-[#122A1E] border-2 border-emerald-500/20 hover:border-emerald-500/40 text-emerald-300 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] shadow-2xl flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
+                             className="w-full h-20 md:h-24 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-emerald-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] shadow-2xl flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
                            >
-                              <div className="absolute inset-0 bg-emerald-500/[0.05] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                              <ShoppingCart size={22} className="text-emerald-400 group-hover:text-emerald-300 group-hover:scale-110 transition-all" strokeWidth={2.5} />
-                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-100 group-hover:text-white transition-colors">Nova Venda</span>
+                              <div className="absolute inset-0 bg-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              <ShoppingCart size={22} className="text-emerald-500 group-hover:scale-110 transition-all" strokeWidth={2.5} />
+                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-100 group-hover:text-white transition-colors">Nova Venda</span>
                            </button>
                            
                            <div className="grid grid-cols-2 gap-3">
                               <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/30 text-emerald-500 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Plus size={18} strokeWidth={3} className="group-hover:scale-125 transition-transform" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-white">Entrada</span>
+                                 <Plus size={18} strokeWidth={3} className="text-emerald-500/40 group-hover:text-emerald-500 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-100">Entrada</span>
                               </button>
                               <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-zinc-800 hover:border-red-500/30 text-red-500 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Minus size={18} strokeWidth={3} className="group-hover:scale-125 transition-transform" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-white">Retirada</span>
+                                 <Minus size={18} strokeWidth={3} className="text-red-500/40 group-hover:text-red-500 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-100">Retirada</span>
                               </button>
                            </div>
                         </>
@@ -962,27 +962,27 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                      </div>
                      <div className="space-y-4">
                         {Object.keys(totals.entriesByType).filter(k => k !== 'total' && totals.entriesByType[k] > 0).map((method) => {
-                          const config: Record<string, { label: string, color: string, barColor: string }> = {
-                            'Dinheiro': { label: 'Dinheiro', color: 'text-emerald-400', barColor: 'bg-emerald-500' },
-                            'PIX': { label: 'PIX', color: 'text-violet-400', barColor: 'bg-violet-500' },
-                            'Débito': { label: 'Débito', color: 'text-blue-400', barColor: 'bg-blue-500' },
-                            'Crédito': { label: 'Crédito', color: 'text-blue-500', barColor: 'bg-indigo-500' },
-                            'Link': { label: 'Link de Pagamento', color: 'text-orange-400', barColor: 'bg-orange-500' },
-                          };
-                          const { label, color, barColor } = config[method] || { label: method, color: 'text-zinc-400', barColor: 'bg-zinc-700' };
-                          const val = totals.entriesByType[method] || 0;
-                          const percent = Math.min(100, totals.entries > 0 ? (val / totals.entries) * 100 : 0);
-                          return (
-                            <div key={method} className="space-y-2">
-                               <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-black text-zinc-600 uppercase tracking-tighter">{label}</span>
-                                  <span className={`text-[12px] font-black ${color}`}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)}</span>
-                               </div>
-                               <div className="h-0.5 bg-zinc-900 rounded-full overflow-hidden">
-                                  <motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} className={`h-full ${barColor}`} />
-                               </div>
-                            </div>
-                          );
+                           const config: Record<string, { label: string, color: string, barColor: string }> = {
+                             'Dinheiro': { label: 'Dinheiro', color: 'text-zinc-100', barColor: 'bg-emerald-500' },
+                             'PIX': { label: 'PIX', color: 'text-zinc-100', barColor: 'bg-emerald-500/60' },
+                             'Débito': { label: 'Débito', color: 'text-zinc-100', barColor: 'bg-emerald-500/40' },
+                             'Crédito': { label: 'Crédito', color: 'text-zinc-100', barColor: 'bg-emerald-500/20' },
+                             'Link': { label: 'Link de Pagamento', color: 'text-zinc-100', barColor: 'bg-emerald-500/10' },
+                           };
+                           const { label, color, barColor } = config[method] || { label: method, color: 'text-zinc-400', barColor: 'bg-zinc-700' };
+                           const val = totals.entriesByType[method] || 0;
+                           const percent = Math.min(100, totals.entries > 0 ? (val / totals.entries) * 100 : 0);
+                           return (
+                             <div key={method} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                   <span className="text-[10px] font-black text-zinc-700 uppercase tracking-tighter">{label}</span>
+                                   <span className={`text-[12px] font-black ${color}`}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)}</span>
+                                </div>
+                                <div className="h-0.5 bg-zinc-900 rounded-full overflow-hidden">
+                                   <motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} className={`h-full ${barColor}`} />
+                                </div>
+                             </div>
+                           );
                         })}
                      </div>
                   </div>
@@ -990,14 +990,14 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
                <div className="flex-1 flex flex-col gap-4 md:overflow-hidden min-h-0 mb-10 md:mb-0">
                   <div className="flex items-center gap-2 px-1 shrink-0">
-                     <div className="w-1 h-3 bg-blue-500 rounded-full"></div>
+                     <div className="w-1 h-3 bg-zinc-700 rounded-full"></div>
                      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Histórico de Atividades</h3>
                   </div>
                   
                   <div className="flex items-center justify-between border-b border-zinc-900/50 pb-3 shrink-0">
                      <div className="flex w-full sm:w-auto gap-2 p-1 bg-zinc-900/40 border border-zinc-800/50 rounded-2xl">
-                        <button onClick={() => setActiveTab('fluxo')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-600 hover:text-white'}`}>Lançamentos</button>
-                        <button onClick={() => setActiveTab('vendas')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendas' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-600 hover:text-white'}`}>Vendas PDV</button>
+                        <button onClick={() => setActiveTab('fluxo')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-white'}`}>Lançamentos</button>
+                        <button onClick={() => setActiveTab('vendas')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendas' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-white'}`}>Vendas PDV</button>
                      </div>
                      {activeTab === 'fluxo' && (
                         <div className="hidden sm:flex gap-1 bg-black/40 p-1 rounded-xl border border-zinc-900">
@@ -1011,17 +1011,17 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   </div>
 
                   {activeTab === 'fluxo' ? (
-                    <div className="flex-1 bg-[#050505] border border-zinc-800/50 rounded-[32px] md:overflow-hidden shadow-2xl flex flex-col min-h-0">
+                    <div className="flex-1 bg-[#050505] border border-zinc-800/50 rounded-[32px] md:overflow-hidden shadow-sm flex flex-col min-h-0">
                        <div className="divide-y divide-zinc-900/40 md:overflow-y-auto flex-1 custom-scrollbar">
                           {filteredTransactions.map((t) => (
-                            <div key={t.id} className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
-                               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800/40 shadow-inner ${t.type === 'entrada' ? 'bg-emerald-500/5 text-emerald-500' : 'bg-red-500/5 text-red-500'}`}>
-                                  {t.type === 'entrada' ? <ArrowUpRight size={20} strokeWidth={2.5} /> : <ArrowDownLeft size={20} strokeWidth={2.5} />}
-                               </div>
+                             <div key={t.id} className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-900/50 shadow-inner bg-zinc-900/40 ${t.type === 'entrada' ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
+                                   {t.type === 'entrada' ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownLeft size={18} strokeWidth={2.5} />}
+                                </div>
                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between gap-4">
                                      <p className="text-xs font-black text-white uppercase truncate tracking-tight">{t.description}</p>
-                                     <span className={`text-base font-black tracking-tighter ${t.type === 'entrada' ? 'text-emerald-400' : 'text-red-400'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
+                                     <span className={`text-base font-black tracking-tighter ${t.type === 'entrada' ? 'text-zinc-100' : 'text-zinc-100'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
                                   </div>
                                   <div className="flex items-center gap-3 mt-1">
                                      <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} className="text-zinc-800" /> {t.time}</span>
@@ -1083,12 +1083,12 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                    
                                    <div className="flex justify-between items-end mt-1 pt-3 border-t border-zinc-800/40">
                                       <div className="flex flex-col gap-1">
-                                         <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Pagamento</span>
-                                         <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-sm self-start">{s.paymentMethod}</span>
+                                         <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">Pagamento</span>
+                                         <span className="text-[10px] font-black text-emerald-500/60 bg-emerald-500/5 px-2 py-0.5 rounded-sm self-start border border-emerald-500/10">{s.paymentMethod}</span>
                                       </div>
                                       <div className="flex flex-col items-end">
-                                         <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Total</span>
-                                         <span className="text-lg font-black text-[#00E676] tracking-tighter">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span>
+                                         <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-0.5">Total</span>
+                                         <span className="text-lg font-black text-zinc-100 tracking-tighter">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span>
                                       </div>
                                    </div>
                                 </div>
