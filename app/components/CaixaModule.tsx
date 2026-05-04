@@ -6,7 +6,7 @@ import {
   ArrowDownLeft, CheckCircle2, X, Search, Trash2,
   TrendingUp, TrendingDown, Wallet, History, Save,
   ShieldAlert, AlertCircle, Barcode, FileDown, Printer, ShoppingBag, ChevronRight, Check,
-  Calculator, ChevronUp, ChevronDown, HelpCircle, Loader2, Home
+  Calculator, ChevronUp, ChevronDown, ChevronLeft, HelpCircle, Loader2, Home
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { generateCashReportPDF } from '../utils/pdfGenerator';
@@ -747,8 +747,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       <header className="bg-[#050505] border-b border-zinc-800/80 p-3 sm:p-4 sticky top-0 z-20 backdrop-blur-3xl shrink-0">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-2 overflow-x-hidden">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <button onClick={onBack} className="p-2 px-3 sm:px-4 bg-zinc-900/50 hover:bg-red-500/20 border border-zinc-800 hover:border-red-500/50 rounded-xl sm:rounded-2xl transition-all active:scale-95 group shrink-0 flex items-center gap-2">
-              <ArrowLeft size={16} className="text-zinc-500 group-hover:text-red-500 transition-colors" />
+            <button onClick={onBack} className="p-2 sm:px-4 bg-zinc-900/50 hover:bg-red-500/20 border border-zinc-800 hover:border-red-500/50 rounded-xl sm:rounded-2xl transition-all active:scale-95 group shrink-0 flex items-center gap-2">
+              <ChevronLeft className="w-6 h-6 sm:w-4 sm:h-4 text-zinc-500 group-hover:text-red-500 transition-colors" />
               <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-red-500 hidden sm:inline">Sair do Caixa</span>
             </button>
             <div className="min-w-0">
