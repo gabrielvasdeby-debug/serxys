@@ -797,7 +797,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] animate-pulse">Sincronizando Dados...</p>
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-4 md:overflow-hidden min-h-0">
             {!canAction && (
               <div className="bg-[#0A0A0A] border border-zinc-800/40 rounded-[24px] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl relative overflow-hidden shrink-0">
                 <div className="flex items-center gap-4 min-w-0">
@@ -884,7 +884,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
             <div className="flex-1 flex flex-col lg:flex-row gap-6 md:overflow-hidden min-h-0">
                
-               <div className="w-full lg:w-[380px] shrink-0 overflow-y-auto custom-scrollbar pr-1 min-h-0 pb-4 flex flex-col gap-5">
+               <div className="w-full lg:w-[380px] shrink-0 md:overflow-y-auto custom-scrollbar pr-1 min-h-0 pb-4 flex flex-col gap-5">
                   <div className="space-y-4 shrink-0">
                      <div className="flex items-center gap-2 px-1">
                         <div className="w-1 h-3 bg-[#00E676] rounded-full"></div>
@@ -995,9 +995,9 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   </div>
                   
                   <div className="flex items-center justify-between border-b border-zinc-900/50 pb-3 shrink-0">
-                     <div className="flex gap-2 p-1 bg-zinc-900/40 border border-zinc-800/50 rounded-2xl">
-                        <button onClick={() => setActiveTab('fluxo')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-600 hover:text-white'}`}>Lançamentos</button>
-                        <button onClick={() => setActiveTab('vendas')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendas' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-600 hover:text-white'}`}>Vendas PDV</button>
+                     <div className="flex w-full sm:w-auto gap-2 p-1 bg-zinc-900/40 border border-zinc-800/50 rounded-2xl">
+                        <button onClick={() => setActiveTab('fluxo')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-600 hover:text-white'}`}>Lançamentos</button>
+                        <button onClick={() => setActiveTab('vendas')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendas' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-600 hover:text-white'}`}>Vendas PDV</button>
                      </div>
                      {activeTab === 'fluxo' && (
                         <div className="hidden sm:flex gap-1 bg-black/40 p-1 rounded-xl border border-zinc-900">
@@ -1011,8 +1011,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   </div>
 
                   {activeTab === 'fluxo' ? (
-                    <div className="flex-1 bg-[#050505] border border-zinc-800/50 rounded-[32px] overflow-hidden shadow-2xl flex flex-col min-h-0">
-                       <div className="divide-y divide-zinc-900/40 overflow-y-auto flex-1 custom-scrollbar">
+                    <div className="flex-1 bg-[#050505] border border-zinc-800/50 rounded-[32px] md:overflow-hidden shadow-2xl flex flex-col min-h-0">
+                       <div className="divide-y divide-zinc-900/40 md:overflow-y-auto flex-1 custom-scrollbar">
                           {filteredTransactions.map((t) => (
                             <div key={t.id} className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800/40 shadow-inner ${t.type === 'entrada' ? 'bg-emerald-500/5 text-emerald-500' : 'bg-red-500/5 text-red-500'}`}>
@@ -1029,7 +1029,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                      {t.osId && <span className="text-[9px] font-black text-blue-500/40 uppercase tracking-widest pl-3 border-l border-zinc-800/50">OS {t.osId}</span>}
                                   </div>
                                </div>
-                               {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-800 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"><Trash2 size={16} /></button>)}
+                               {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-600 sm:text-zinc-800 hover:text-red-500 transition-all sm:opacity-0 sm:group-hover:opacity-100 active:scale-95"><Trash2 size={18} /></button>)}
                             </div>
                           ))}
                           {filteredTransactions.length === 0 && (
@@ -1038,13 +1038,13 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                        </div>
                     </div>
                   ) : (
-                    <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
+                    <div className="flex-1 flex flex-col gap-4 md:overflow-hidden min-h-0">
                        <div className="relative group shrink-0">
                           <Search size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-800 group-focus-within:text-[#00E676] transition-colors" />
                           <input type="text" placeholder="Buscar venda ou cliente..." value={searchSale} onChange={e => setSearchSale(e.target.value)} className="w-full bg-[#050505] border-2 border-zinc-900 rounded-[32px] pl-16 pr-8 py-5 text-sm font-black text-white focus:outline-none focus:border-[#00E676]/10 shadow-2xl transition-all placeholder:text-zinc-900 uppercase" />
                        </div>
-                       <div className="flex-1 bg-[#050505] border border-zinc-800/50 rounded-[32px] overflow-hidden shadow-2xl flex flex-col min-h-0">
-                          <div className="overflow-auto flex-1 custom-scrollbar">
+                       <div className="flex-1 bg-[#050505] border border-zinc-800/50 rounded-[32px] md:overflow-hidden shadow-2xl flex flex-col min-h-0">
+                          <div className="hidden sm:block md:overflow-auto flex-1 custom-scrollbar">
                              <table className="w-full border-collapse">
                                 <thead className="bg-zinc-950 border-b border-zinc-900 sticky top-0 z-10">
                                    <tr>
@@ -1067,6 +1067,38 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                    ))}
                                 </tbody>
                              </table>
+                          </div>
+                          
+                          {/* Versão Mobile (Cards) */}
+                          <div className="sm:hidden overflow-y-auto flex-1 custom-scrollbar flex flex-col gap-2 p-3 bg-[#0A0A0A]">
+                             {sales.filter(s => { const search = searchSale.toLowerCase(); const numStr = `venda #${String(s.saleNumber).padStart(8, '0')}`.toLowerCase(); return numStr.includes(search) || (s.customerName || '').toLowerCase().includes(search); }).map((s) => (
+                                <div key={s.id} onClick={() => setSelectedSale(s)} className="bg-[#141414] border border-zinc-800/80 rounded-xl p-4 flex flex-col gap-3 active:scale-[0.98] transition-transform">
+                                   <div className="flex justify-between items-start">
+                                      <div className="flex flex-col">
+                                         <span className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">ID: {String(s.saleNumber).padStart(8, '0')}</span>
+                                         <span className="text-sm font-black text-white uppercase leading-tight">{s.customerName || 'Venda Direta'}</span>
+                                      </div>
+                                      <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1 bg-black px-2 py-1 rounded-md border border-zinc-800/50"><Clock size={10}/> {s.time}</span>
+                                   </div>
+                                   
+                                   <div className="flex justify-between items-end mt-1 pt-3 border-t border-zinc-800/40">
+                                      <div className="flex flex-col gap-1">
+                                         <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Pagamento</span>
+                                         <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-sm self-start">{s.paymentMethod}</span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                         <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Total</span>
+                                         <span className="text-lg font-black text-[#00E676] tracking-tighter">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span>
+                                      </div>
+                                   </div>
+                                </div>
+                             ))}
+                             {sales.filter(s => { const search = searchSale.toLowerCase(); const numStr = `venda #${String(s.saleNumber).padStart(8, '0')}`.toLowerCase(); return numStr.includes(search) || (s.customerName || '').toLowerCase().includes(search); }).length === 0 && (
+                                <div className="flex-1 py-12 text-center flex flex-col items-center justify-center gap-4 grayscale opacity-10">
+                                   <ShoppingCart size={40} />
+                                   <p className="text-xs font-black uppercase tracking-[0.2em]">Nenhuma venda encontrada</p>
+                                </div>
+                             )}
                           </div>
                        </div>
                     </div>
