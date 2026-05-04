@@ -894,21 +894,21 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                         <>
                            <button 
                              onClick={() => setIsQuickSaleOpen(true)}
-                             className="w-full h-20 md:h-24 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/30 text-zinc-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
+                             className="w-full h-20 md:h-24 bg-zinc-900 border border-blue-500/30 hover:border-blue-500/50 text-zinc-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.05)]"
                            >
-                              <div className="absolute inset-0 bg-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                              <ShoppingCart size={22} className="text-zinc-400 group-hover:text-emerald-500 transition-all" strokeWidth={2.5} />
-                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 group-hover:text-emerald-500 transition-colors">Nova Venda</span>
+                              <div className="absolute inset-0 bg-blue-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              <ShoppingCart size={22} className="text-blue-500/50 group-hover:text-blue-400 transition-all" strokeWidth={2.5} />
+                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-blue-500/50 group-hover:text-blue-400 transition-colors">Nova Venda</span>
                            </button>
                            
                            <div className="grid grid-cols-2 gap-3">
-                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/30 text-zinc-400 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Plus size={18} strokeWidth={3} className="text-zinc-500 group-hover:text-emerald-500 transition-colors" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-emerald-500">Entrada</span>
+                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-emerald-500/30 hover:border-emerald-500/50 text-zinc-400 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+                                 <Plus size={18} strokeWidth={3} className="text-emerald-500/50 group-hover:text-emerald-400 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/50 group-hover:text-emerald-400">Entrada</span>
                               </button>
-                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-zinc-800 hover:border-red-500/30 text-zinc-400 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Minus size={18} strokeWidth={3} className="text-zinc-500 group-hover:text-red-500 transition-colors" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-red-500">Retirada</span>
+                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-900 border border-red-500/30 hover:border-red-500/50 text-zinc-400 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group shadow-[0_0_15px_rgba(239,68,68,0.05)]">
+                                 <Minus size={18} strokeWidth={3} className="text-red-500/50 group-hover:text-red-400 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-red-500/50 group-hover:text-red-400">Retirada</span>
                               </button>
                            </div>
                         </>
