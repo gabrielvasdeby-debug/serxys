@@ -1904,25 +1904,26 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
        <motion.div 
          initial={{ opacity: 0, scale: 0.99 }} 
          animate={{ opacity: 1, scale: 1 }} 
-         className="bg-[#070707] w-full h-full md:max-w-[1600px] md:h-[97vh] md:rounded-xl overflow-hidden shadow-2xl flex flex-col border border-zinc-800/50"
+         className="bg-[#1A1A1A] w-full h-full md:max-w-[1600px] md:h-[97vh] md:rounded-xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.6)] flex flex-col md:border border-zinc-700/50"
        >
-          {/* Top Bar - Precision Density */}
-          <div className="h-12 border-b border-zinc-800/80 bg-[#1A1A1A] flex items-center px-4 shrink-0 justify-between gap-4">
-             <div className="flex items-center gap-2.5 shrink-0">
-                <Barcode size={20} className="text-[#00E676]" />
-                <h2 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest sm:block hidden">PDV TERMINAL</h2>
+          {/* Top Bar - Responsive Stack */}
+          <div className="h-auto md:h-14 py-3 md:py-0 border-b border-zinc-700/50 bg-[#111111] flex flex-col md:flex-row items-center px-4 shrink-0 justify-between gap-3 sm:gap-4">
+             <div className="flex w-full md:w-auto items-center justify-between gap-4 shrink-0">
+                <div className="flex items-center gap-2.5">
+                   <Barcode size={20} className="text-[#00E676]" />
+                   <h2 className="text-[10px] sm:text-[11px] font-black text-zinc-400 uppercase tracking-widest">PDV TERMINAL</h2>
+                </div>
+                <button 
+                  onClick={onClose}
+                  className="flex md:hidden items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg"
+                >
+                   <X size={14} strokeWidth={3} />
+                   <span className="text-[9px] font-black uppercase tracking-widest">Sair</span>
+                </button>
              </div>
 
-             <button 
-               onClick={onClose}
-               className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 text-red-500 hover:text-black rounded-lg transition-all group"
-             >
-                <X size={14} strokeWidth={3} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Sair do PDV</span>
-             </button>
-
-             <div className="flex-1 max-w-xl flex gap-px bg-zinc-800/40 p-px rounded-lg overflow-hidden border border-zinc-800">
-                <div className="flex-1 relative bg-black">
+             <div className="w-full md:max-w-xl flex gap-px bg-[#1A1A1A] p-px rounded-xl overflow-hidden border border-zinc-700/50 shadow-inner">
+                <div className="flex-1 relative bg-[#111111]">
                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                    <input 
                      ref={searchInputRef}
@@ -1930,20 +1931,20 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                      placeholder="ESCANEIE OU BUSCA RÁPIDA..." 
                      value={search}
                      onChange={e => setSearch(e.target.value)}
-                     className="w-full bg-transparent pl-10 pr-4 py-2 text-[12px] font-bold text-white focus:outline-none placeholder:text-zinc-600"
+                     className="w-full bg-transparent pl-10 pr-4 py-2.5 text-[12px] font-bold text-white focus:outline-none placeholder:text-zinc-600"
                    />
                 </div>
-                <button className="bg-zinc-800 border-l border-zinc-700/50 hover:bg-zinc-800 text-white font-black px-5 text-[9px] uppercase tracking-widest transition-colors shrink-0">PROCESSAR</button>
+                <button className="bg-zinc-800 hover:bg-zinc-700 text-white font-black px-5 text-[9px] uppercase tracking-widest transition-colors shrink-0">PROCESSAR</button>
              </div>
 
-             <button onClick={onClose} className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white transition-all ml-auto hover:bg-zinc-800/50 rounded-lg"><X size={20} /></button>
+             <button onClick={onClose} className="hidden md:flex w-10 h-10 items-center justify-center text-zinc-400 hover:text-white transition-all ml-auto hover:bg-zinc-800/50 rounded-lg"><X size={20} /></button>
           </div>
 
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-px bg-zinc-800/50">
              
              {/* Cart Column (70/30 Density) */}
-             <div className="flex-1 flex flex-col bg-black overflow-hidden h-[45vh] md:h-full">
-                <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900 flex items-center justify-between shrink-0">
+             <div className="flex-1 flex flex-col bg-[#1A1A1A] overflow-hidden h-[45vh] md:h-full">
+                <div className="px-4 py-3 border-b border-zinc-700/50 bg-[#111111] flex items-center justify-between shrink-0">
                    <div className="flex items-center gap-2">
                       <ShoppingCart size={16} className="text-zinc-400" />
                       <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">ITENS LANÇADOS</span>
@@ -2016,7 +2017,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                         initial={{ opacity: 0, y: 5 }} 
                         animate={{ opacity: 1, y: 0 }} 
                         exit={{ opacity: 0, y: 5 }}
-                        className="absolute top-12 left-4 right-4 md:right-1/2 md:mr-4 bg-[#080808] border border-zinc-700 rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] z-[300] flex flex-col max-h-[65vh] overflow-hidden"
+                        className="absolute top-28 md:top-14 left-4 right-4 md:right-1/2 md:mr-4 bg-[#111111] border border-zinc-700/80 rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] z-[300] flex flex-col max-h-[60vh] overflow-hidden"
                       >
                          <div className="flex-1 overflow-y-auto p-1 custom-scrollbar flex flex-col divide-y divide-zinc-900/40">
                             {filteredProducts.map(p => (
@@ -2053,7 +2054,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
              </div>
 
              {/* Right Column (Controls) */}
-             <div className="flex-1 bg-black flex flex-col p-4 md:p-6 lg:p-8 justify-between gap-3 overflow-y-auto custom-scrollbar">
+             <div className="flex-1 bg-[#1A1A1A] flex flex-col p-4 md:p-6 lg:p-8 justify-between gap-3 overflow-y-auto custom-scrollbar">
                 
                 <div className="w-full max-w-lg mx-auto space-y-4 flex-1 flex flex-col justify-start">
                    
@@ -2110,10 +2111,10 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                                 setCustomerName(e.target.value);
                                 if (!e.target.value) setSelectedCustomerId('');
                               }}
-                              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-4 py-3 text-[11px] font-black text-zinc-400 focus:outline-none focus:border-blue-500/20 transition-all uppercase placeholder:text-zinc-900 shadow-inner"
+                              className="w-full bg-[#111111] border border-zinc-700/50 rounded-xl pl-11 pr-4 py-3 text-[11px] font-black text-white focus:outline-none focus:border-[#00E676]/50 transition-all uppercase placeholder:text-zinc-700 shadow-inner"
                             />
                             {customerName.length >= 2 && !selectedCustomerId && (
-                               <div className="absolute left-0 right-0 top-full mt-1 bg-[#1A1A1A] border border-zinc-700 rounded-xl overflow-hidden shadow-2xl z-[200] max-h-32 overflow-y-auto divide-y divide-zinc-900 custom-scrollbar">
+                               <div className="absolute left-0 right-0 top-full mt-1 bg-[#111111] border border-zinc-700/50 rounded-xl overflow-hidden shadow-2xl z-[200] max-h-32 overflow-y-auto divide-y divide-zinc-800/50 custom-scrollbar">
                                   {customers.filter(c => c.name.toLowerCase().includes(customerName.toLowerCase())).map(c => (
                                     <button key={c.id} onClick={() => { setCustomerName(c.name); setSelectedCustomerId(c.id); }} className="w-full text-left px-5 py-3 hover:bg-[#00E676]/5 text-[11px] font-bold text-zinc-500 hover:text-white uppercase transition-colors">{c.name}</button>
                                   ))}
@@ -2131,7 +2132,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                               <button 
                                 key={m} 
                                 onClick={() => setPaymentMethod(m as any)} 
-                                className={`py-3.5 sm:py-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest border transition-all active:scale-[0.98] ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-zinc-900 text-zinc-600 border-zinc-800/50 hover:border-zinc-700'}`}
+                                className={`py-3.5 sm:py-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest border transition-all active:scale-[0.98] ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-[#111111] text-zinc-400 border-zinc-700/60 hover:border-zinc-600'}`}
                               >
                                 {m}
                               </button>
@@ -2141,12 +2142,12 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                    </div>
 
                    {/* Totalization View (Precision) */}
-                   <div className="bg-[#080808] border border-zinc-800 rounded-[24px] py-4 sm:py-6 flex flex-col items-center justify-center text-center shadow-inner group border-t border-t-[#00E676]/10">
+                   <div className="bg-[#111111] border border-zinc-700/50 rounded-xl py-4 sm:py-6 flex flex-col items-center justify-center text-center shadow-inner group border-t border-t-[#00E676]/20">
                       <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] sm:tracking-[0.5em] mb-1 sm:mb-2">TOTAL EM CAIXA</span>
                       <span className="text-3xl sm:text-4xl font-black text-[#00E676] tracking-tighter drop-shadow-[0_0_15px_rgba(0,230,118,0.2)]">
                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
                       </span>
-                      <div className="mt-3 sm:mt-4 px-4 py-1 bg-zinc-900 rounded-full border border-zinc-800 text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                      <div className="mt-3 sm:mt-4 px-4 py-1 bg-[#1A1A1A] rounded-full border border-zinc-700/50 text-[9px] font-black text-zinc-400 uppercase tracking-widest">
                          FORMA: {paymentMethod}
                       </div>
                    </div>
@@ -2156,7 +2157,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                  <button 
                    onClick={handleFinalize} 
                    disabled={selectedItems.length === 0 || isSaving}
-                   className="w-full h-22 sm:h-14 bg-gradient-to-r from-[#00E676] to-[#00C853] hover:from-[#00C853] hover:to-[#00B24A] shadow-[0_15px_30px_rgba(0,230,118,0.3)] hover:shadow-[#00E676]/40 disabled:from-zinc-950 disabled:to-zinc-950 disabled:text-zinc-900 rounded-[18px] sm:rounded-[22px] transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-4 text-black font-black uppercase tracking-widest sm:tracking-[0.4em] text-[15px] sm:text-[10px] group mb-2"
+                   className="w-full h-16 sm:h-14 bg-gradient-to-r from-[#00E676] to-[#00C853] hover:from-[#00C853] hover:to-[#00B24A] shadow-[0_15px_30px_rgba(0,230,118,0.3)] hover:shadow-[#00E676]/40 disabled:from-zinc-900 disabled:to-zinc-900 disabled:text-zinc-600 rounded-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-4 text-black font-black uppercase tracking-widest sm:tracking-[0.4em] text-[15px] sm:text-[10px] group mb-2"
                  >
                    {isSaving ? (
                      <>
