@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Plus, Minus, ShoppingCart, 
@@ -1062,6 +1062,41 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           </motion.div>
         )}
       </main>
+
+      {/* Barra de Exportação PDF — fixa no rodapé */}
+      {!loading && (transactions.length > 0 || currentSession) && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 md:relative md:bottom-auto md:z-auto">
+          <div className="max-w-[1600px] mx-auto px-3 pb-3 pt-2 md:px-4 md:py-3">
+            <div className="bg-[#111111] border border-zinc-700/60 rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-2xl shadow-black/60 backdrop-blur-xl">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
+                  <FileDown size={15} className="text-zinc-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest leading-none truncate">Relatório do Dia</p>
+                  <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-0.5 truncate">
+                    {transactions.filter(t => t.type === 'entrada').length} entradas · {transactions.filter(t => t.type === 'saida').length} saídas · {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (!currentSession) {
+                    onShowToast('Nenhuma sessão ativa para exportar.');
+                    return;
+                  }
+                  generateCashReportPDF(currentSession, transactions, totals, companySettings);
+                  onShowToast('Gerando PDF...');
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-zinc-100 text-black font-black text-[9px] uppercase tracking-widest rounded-xl transition-all active:scale-95 shrink-0 shadow-lg"
+              >
+                <FileDown size={13} strokeWidth={2.5} />
+                Exportar PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {isOpeningModalOpen && (
