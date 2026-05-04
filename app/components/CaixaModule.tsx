@@ -755,7 +755,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-xl font-black tracking-tight truncate">Caixa Diário</h1>
                 {currentSession && (
-                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 bg-zinc-900 text-zinc-500 border border-zinc-800`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}>
                     {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
                   </span>
                 )}
@@ -853,30 +853,30 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
                 <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] relative overflow-hidden group shadow-sm`}>
-                   <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><Banknote size={35} /></div>
-                   <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Dinheiro em Caixa</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-zinc-100' : 'text-red-500/80'} tracking-tighter`}>
+                   <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-emerald-500"><Banknote size={35} /></div>
+                   <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Dinheiro em Caixa</p>
+                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-white' : 'text-red-500'} tracking-tighter`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.cashInHand)}
                    </h2>
                 </div>
                <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm">
-                  <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><TrendingUp size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-zinc-100 tracking-tighter">
+                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-emerald-500"><TrendingUp size={30} /></div>
+                  <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
+                  <h2 className="text-lg sm:text-xl font-black text-emerald-500 tracking-tighter">
                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}
                   </h2>
                </div>
                <div className="bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm">
-                  <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><TrendingDown size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-zinc-100 tracking-tighter">
+                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-red-500"><TrendingDown size={30} /></div>
+                  <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
+                  <h2 className="text-lg sm:text-xl font-black text-red-500 tracking-tighter">
                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}
                   </h2>
                </div>
                 <div className={`bg-[#050505] border border-zinc-800/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm`}>
-                   <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:scale-110 transition-transform"><Calculator size={30} /></div>
-                   <p className="text-[7px] font-black text-zinc-800 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-zinc-100' : 'text-red-500/80'} tracking-tighter`}>
+                   <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-blue-500"><Calculator size={30} /></div>
+                   <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
+                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-blue-500' : 'text-red-500'} tracking-tighter`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.balance)}
                    </h2>
                 </div>
@@ -894,21 +894,21 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                         <>
                            <button 
                              onClick={() => setIsQuickSaleOpen(true)}
-                             className="w-full h-20 md:h-24 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
+                             className="w-full h-20 md:h-24 bg-zinc-950 border border-zinc-900 hover:border-emerald-500/30 text-zinc-400 rounded-[20px] md:rounded-[28px] transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-1 group relative overflow-hidden shrink-0"
                            >
-                              <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                              <ShoppingCart size={22} className="text-zinc-800 group-hover:text-zinc-500 transition-all" strokeWidth={2.5} />
-                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-700 group-hover:text-zinc-400 transition-colors">Nova Venda</span>
+                              <div className="absolute inset-0 bg-emerald-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              <ShoppingCart size={22} className="text-zinc-600 group-hover:text-emerald-500 transition-all" strokeWidth={2.5} />
+                              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-600 group-hover:text-emerald-500 transition-colors">Nova Venda</span>
                            </button>
                            
                            <div className="grid grid-cols-2 gap-3">
-                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-600 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Plus size={18} strokeWidth={3} className="text-zinc-800 group-hover:text-zinc-600 transition-colors" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-700 group-hover:text-zinc-500">Entrada</span>
+                              <button onClick={() => { setTransactionModalType('entrada'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-950 border border-zinc-900 hover:border-emerald-500/30 text-zinc-600 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
+                                 <Plus size={18} strokeWidth={3} className="text-zinc-700 group-hover:text-emerald-500 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-emerald-500">Entrada</span>
                               </button>
-                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 text-zinc-600 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
-                                 <Minus size={18} strokeWidth={3} className="text-zinc-800 group-hover:text-zinc-600 transition-colors" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-700 group-hover:text-zinc-500">Retirada</span>
+                              <button onClick={() => { setTransactionModalType('saida'); setIsTransactionModalOpen(true); }} className="flex h-16 bg-zinc-950 border border-zinc-900 hover:border-red-500/30 text-zinc-600 rounded-2xl transition-all active:scale-[0.98] items-center justify-center gap-2 group">
+                                 <Minus size={18} strokeWidth={3} className="text-zinc-700 group-hover:text-red-500 transition-colors" />
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-red-500">Retirada</span>
                               </button>
                            </div>
                         </>
@@ -996,13 +996,21 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   
                   <div className="flex items-center justify-between border-b border-zinc-900/50 pb-3 shrink-0">
                      <div className="flex w-full sm:w-auto gap-2 p-1 bg-zinc-900/40 border border-zinc-800/50 rounded-2xl">
-                        <button onClick={() => setActiveTab('fluxo')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-white'}`}>Lançamentos</button>
-                        <button onClick={() => setActiveTab('vendas')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendas' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-white'}`}>Vendas PDV</button>
+                        <button onClick={() => setActiveTab('fluxo')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-zinc-100 text-black shadow-lg' : 'text-zinc-600 hover:text-zinc-300'}`}>Lançamentos</button>
+                        <button onClick={() => setActiveTab('vendas')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendas' ? 'bg-zinc-100 text-black shadow-lg' : 'text-zinc-600 hover:text-zinc-300'}`}>Vendas PDV</button>
                      </div>
                      {activeTab === 'fluxo' && (
                         <div className="hidden sm:flex gap-1 bg-black/40 p-1 rounded-xl border border-zinc-900">
                            {['all', 'entrada', 'saida'].map(type => (
-                             <button key={type} onClick={() => setFilterType(type as any)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${filterType === type ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-500'}`}>
+                             <button 
+                               key={type} 
+                               onClick={() => setFilterType(type as any)} 
+                               className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
+                                 filterType === type 
+                                   ? (type === 'entrada' ? 'bg-emerald-500 text-black' : type === 'saida' ? 'bg-red-500 text-white' : 'bg-zinc-100 text-black') 
+                                   : 'text-zinc-600 hover:text-zinc-400'
+                               }`}
+                             >
                                {type === 'all' ? 'Ver Tudo' : type === 'entrada' ? 'Entradas' : 'Saídas'}
                              </button>
                            ))}
@@ -1015,13 +1023,13 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                        <div className="divide-y divide-zinc-900/40 md:overflow-y-auto flex-1 custom-scrollbar">
                           {filteredTransactions.map((t) => (
                              <div key={t.id} className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-900 shadow-inner bg-zinc-950 text-zinc-800`}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-900 shadow-inner bg-zinc-950 ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>
                                    {t.type === 'entrada' ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownLeft size={18} strokeWidth={2.5} />}
                                 </div>
                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between gap-4">
                                      <p className="text-xs font-black text-white uppercase truncate tracking-tight">{t.description}</p>
-                                     <span className={`text-base font-black tracking-tighter ${t.type === 'entrada' ? 'text-zinc-100' : 'text-zinc-100'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
+                                     <span className={`text-base font-black tracking-tighter ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
                                   </div>
                                   <div className="flex items-center gap-3 mt-1">
                                      <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} className="text-zinc-800" /> {t.time}</span>
@@ -1048,10 +1056,10 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                              <table className="w-full border-collapse">
                                 <thead className="bg-zinc-950 border-b border-zinc-900 sticky top-0 z-10">
                                    <tr>
-                                      <th className="px-4 py-3 text-left text-[9px] font-black text-zinc-700 uppercase tracking-[0.15em]">Nº Registro</th>
-                                      <th className="px-4 py-3 text-left text-[9px] font-black text-zinc-700 uppercase tracking-[0.15em]">Destino / Comprador</th>
-                                      <th className="px-4 py-3 text-left text-[9px] font-black text-zinc-700 uppercase tracking-[0.15em]">Hora</th>
-                                      <th className="px-4 py-3 text-right text-[9px] font-black text-zinc-700 uppercase tracking-[0.15em]">Valor Total</th>
+                                      <th className="px-4 py-3 text-left text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Nº Registro</th>
+                                      <th className="px-4 py-3 text-left text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Destino / Comprador</th>
+                                      <th className="px-4 py-3 text-left text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Hora</th>
+                                      <th className="px-4 py-3 text-right text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Valor Total</th>
                                        <th className="px-2 py-3"></th>
                                    </tr>
                                 </thead>
@@ -1060,8 +1068,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                       <tr key={s.id} onClick={() => setSelectedSale(s)} className="hover:bg-white/[0.02] cursor-pointer transition-colors group">
                                          <td className="px-4 py-3"><span className="text-xs font-black text-white/40 group-hover:text-[#00E676] transition-colors tracking-tighter block">ID: {String(s.saleNumber).padStart(8, '0')}</span></td>
                                          <td className="px-4 py-3"><div className="flex flex-col"><span className="text-xs font-black text-white uppercase truncate max-w-[200px] leading-none mb-1">{s.customerName || 'Venda Direta'}</span><span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest">{s.paymentMethod}</span></div></td>
-                                         <td className="px-4 py-3 text-zinc-600 font-black text-[10px] uppercase">{s.time}</td>
-                                         <td className="px-4 py-3 text-right"><span className="text-lg font-black text-[#00E676] drop-shadow-[0_0_10px_rgba(0,230,118,0.15)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span></td>
+                                         <td className="px-4 py-3 text-zinc-400 font-black text-[10px] uppercase">{s.time}</td>
+                                         <td className="px-4 py-3 text-right"><span className="text-lg font-black text-emerald-500 drop-shadow-[0_0_10px_rgba(0,230,118,0.15)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span></td>
                                           <td className="px-2 py-3"><button title="2a Via" onClick={e => { e.stopPropagation(); handleReprintSale(s); }} className="p-2 rounded-lg text-zinc-700 hover:text-[#00E676] hover:bg-[#00E676]/10 transition-all opacity-0 group-hover:opacity-100 active:scale-95"><Printer size={15} strokeWidth={1.5} /></button></td>
                                       </tr>
                                    ))}
@@ -1088,7 +1096,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                       </div>
                                       <div className="flex flex-col items-end">
                                          <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-0.5">Total</span>
-                                         <span className="text-lg font-black text-zinc-100 tracking-tighter">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span>
+                                         <span className="text-lg font-black text-emerald-500 tracking-tighter">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span>
                                       </div>
                                    </div>
                                 </div>
