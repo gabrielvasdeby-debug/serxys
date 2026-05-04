@@ -161,42 +161,64 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     setLoading(true);
 
     const fetchData = async () => {
-      const { data: openSessionsArr } = await supabase
-        .from('cash_sessions')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .eq('status', 'open')
-        .order('opened_at', { ascending: false })
-        .limit(1);
+      // FASE 1: Dispara open session + dados secundários em paralelo
+      const [
+        openSessionsResult,
+        productsResult,
+        suppliersResult,
+        customersResult,
+        allSessionsResult,
+      ] = await Promise.all([
+        supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).eq('status', 'open').order('opened_at', { ascending: false }).limit(1),
+        supabase.from('products').select('*').eq('company_id', profile.company_id),
+        supabase.from('suppliers').select('id, company_name').eq('company_id', profile.company_id).order('company_name'),
+        supabase.from('customers').select('id, name').eq('company_id', profile.company_id).order('name'),
+        supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).order('date', { ascending: false }).limit(50),
+      ]);
 
-      const openSession = openSessionsArr && openSessionsArr.length > 0 ? openSessionsArr[0] : null;
+      // Processa dados secundários (não bloqueiam o render)
+      if (productsResult.data) setProducts(productsResult.data.map(p => ({
+        id: p.id, name: p.name, price: p.price, stock: p.stock,
+        category: p.category, minStock: p.min_stock, barcode: p.barcode,
+        brand: p.brand, model: p.model, image: p.image
+      })) as Product[]);
+      if (suppliersResult.data) setAvailableSuppliers(suppliersResult.data);
+      if (customersResult.data) setCustomers(customersResult.data);
+      if (allSessionsResult.data) {
+        setSessions(allSessionsResult.data.map(s => ({
+          id: s.id, date: s.date, status: s.status,
+          openingTime: s.opened_at ? new Date(s.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---',
+          openingUser: s.opened_by, openingUserName: s.opened_by_name || 'Sistema',
+          closingTime: s.closed_at ? new Date(s.closed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---',
+          closingUser: s.closed_by, closingUserName: s.closed_by_name || 'Sistema',
+          initialValue: s.opening_balance, finalValue: s.closing_balance || 0,
+          expectedValue: s.expected_balance || 0, totalEntries: s.total_entries || 0,
+          totalExits: s.total_exits || 0, difference: s.difference || 0
+        }) as CashSession));
+      }
 
+      // Determina a data correta
+      const openSession = openSessionsResult.data && openSessionsResult.data.length > 0 ? openSessionsResult.data[0] : null;
       let dateToFetch = selectedDate;
       const isDefaultToday = selectedDate === today;
-      
       if (openSession && isDefaultToday) {
         dateToFetch = openSession.date;
         setSelectedDate(dateToFetch);
       }
 
-      const { data: sessionsForDate } = await supabase
-        .from('cash_sessions')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .eq('date', dateToFetch)
-        .order('status', { ascending: false })
-        .limit(1);
-      
-      const sessionData = sessionsForDate && sessionsForDate.length > 0 ? sessionsForDate[0] : null;
-      
+      // FASE 2: Busca sessão da data + vendas em paralelo
+      const [sessionForDateResult, salesResult] = await Promise.all([
+        supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).eq('date', dateToFetch).order('status', { ascending: false }).limit(1),
+        supabase.from('sales').select('*').eq('company_id', profile.company_id).eq('date', dateToFetch).order('created_at', { ascending: false }),
+      ]);
+
+      const sessionData = sessionForDateResult.data && sessionForDateResult.data.length > 0 ? sessionForDateResult.data[0] : null;
+
       if (sessionData) {
         setCurrentSession({
-          id: sessionData.id,
-          date: sessionData.date,
-          status: sessionData.status,
+          id: sessionData.id, date: sessionData.date, status: sessionData.status,
           openingTime: sessionData.opened_at ? new Date(sessionData.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
-          openingUser: sessionData.opened_by,
-          openingUserName: sessionData.opened_by_name || 'Usuário',
+          openingUser: sessionData.opened_by, openingUserName: sessionData.opened_by_name || 'Usuário',
           initialValue: sessionData.opening_balance,
           closingTime: sessionData.closed_at ? new Date(sessionData.closed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : undefined,
           finalValue: sessionData.closing_balance
@@ -205,106 +227,30 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
         setCurrentSession(null);
       }
 
-      let transData: any[] | null = null;
-      if (sessionData) {
-        const { data } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('company_id', profile.company_id)
-          .eq('session_id', sessionData.id)
-          .order('created_at', { ascending: false });
-        transData = data;
-      } else {
-        const { data } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('company_id', profile.company_id)
-          .eq('date', dateToFetch)
-          .order('created_at', { ascending: false });
-        transData = data;
-      }
-      
-      if (transData) {
-        setTransactions(transData.map(t => ({
-          id: t.id,
-          type: t.type,
-          description: t.description,
-          value: t.value,
-          paymentMethod: t.payment_method,
-          date: t.date,
-          time: t.time,
-          osId: t.os_id,
-          userId: t.user_id,
-          createdAt: t.created_at
-        })) as Transaction[]);
-      }
-
-      const [{ data: pData }, { data: sData }, { data: cData }] = await Promise.all([
-        supabase.from('products').select('*').eq('company_id', profile.company_id),
-        supabase.from('suppliers').select('id, company_name').eq('company_id', profile.company_id).order('company_name'),
-        supabase.from('customers').select('id, name').eq('company_id', profile.company_id).order('name')
-      ]);
-
-      if (pData) setProducts(pData.map(p => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          stock: p.stock,
-          category: p.category,
-          minStock: p.min_stock,
-          barcode: p.barcode,
-          brand: p.brand,
-          model: p.model,
-          image: p.image
-      })) as Product[]);
-      if (sData) setAvailableSuppliers(sData);
-      if (cData) setCustomers(cData);
-
-      const { data: allSessions } = await supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).order('date', { ascending: false }).limit(50);
-      if (allSessions) {
-        setSessions(allSessions.map(s => ({
-          id: s.id,
-          date: s.date,
-          status: s.status,
-          openingTime: s.opened_at ? new Date(s.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---',
-          openingUser: s.opened_by,
-          openingUserName: s.opened_by_name || 'Sistema',
-          closingTime: s.closed_at ? new Date(s.closed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---',
-          closingUser: s.closed_by,
-          closingUserName: s.closed_by_name || 'Sistema',
-          initialValue: s.opening_balance,
-          finalValue: s.closing_balance || 0,
-          expectedValue: s.expected_balance || 0,
-          totalEntries: s.total_entries || 0,
-          totalExits: s.total_exits || 0,
-          difference: s.difference || 0
-        }) as CashSession));
-      }
-
-      setIsSalesLoading(true);
-      const { data: salesData } = await supabase
-        .from('sales')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .eq('date', dateToFetch)
-        .order('created_at', { ascending: false });
-      
-      if (salesData) {
-        setSales(salesData.map(s => ({
-          id: s.id,
-          saleNumber: s.sale_number,
-          date: s.date,
+      if (salesResult.data) {
+        setSales(salesResult.data.map(s => ({
+          id: s.id, saleNumber: s.sale_number, date: s.date,
           time: s.time || new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          items: s.items,
-          total: s.total,
-          paymentMethod: s.payment_method,
-          customerName: s.customer_name,
-          userId: s.user_id,
-          userName: s.user_name,
-          createdAt: s.created_at
+          items: s.items, total: s.total, paymentMethod: s.payment_method,
+          customerName: s.customer_name, userId: s.user_id,
+          userName: s.user_name, createdAt: s.created_at
         })) as Sale[]);
       }
-      setIsSalesLoading(false);
+
+      // FASE 3: Busca transações (depende do sessionData)
+      const transQuery = sessionData
+        ? supabase.from('transactions').select('*').eq('company_id', profile.company_id).eq('session_id', sessionData.id).order('created_at', { ascending: false })
+        : supabase.from('transactions').select('*').eq('company_id', profile.company_id).eq('date', dateToFetch).order('created_at', { ascending: false });
+
+      const { data: transData } = await transQuery;
+
+      if (transData) {
+        setTransactions(transData.map(t => ({
+          id: t.id, type: t.type, description: t.description, value: t.value,
+          paymentMethod: t.payment_method, date: t.date, time: t.time,
+          osId: t.os_id, userId: t.user_id, createdAt: t.created_at
+        })) as Transaction[]);
+      }
 
       setLoading(false);
     };
