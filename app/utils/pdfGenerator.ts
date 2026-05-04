@@ -70,16 +70,15 @@ export const generateCashReportPDF = (
   autoTable(doc, {
     startY: currentY,
     margin: { left: margin, right: margin },
-    head: [['1. INFORMAÇÕES DE TURNO', '', '', '']],
+    head: [[{ content: '1. INFORMAÇÕES DE TURNO', colSpan: 4, styles: { halign: 'left', fillColor: [40, 40, 40], textColor: [255, 255, 255] } }]],
     body: [
       ['Abertura:', session.openingTime, 'Usuário:', session.openingUserName || 'Sistema'],
       ['Fechamento:', session.closingTime || '---', 'Usuário:', session.closingUserName || '---'],
       ['Status:', session.status === 'open' ? 'ABERTO' : 'ENCERRADO', 'ID Sessão:', session.id.slice(0, 8).toUpperCase()]
     ],
     theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold' },
-    columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 25 }, 1: { cellWidth: 35 }, 2: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 25 } }
+    styles: { fontSize: 8, cellPadding: 3 },
+    columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 25 }, 1: { cellWidth: 40 }, 2: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 25 } }
   });
 
   currentY = (doc as any).lastAutoTable.finalY + 8;
@@ -145,24 +144,27 @@ export const generateCashReportPDF = (
   autoTable(doc, {
     startY: currentY,
     margin: { left: margin, right: margin },
-    head: [['4. MOVIMENTAÇÕES DETALHADAS (CRONOLÓGICO)', '', '', '', '', '']],
-    body: [['Hora', 'Tipo', 'Ref#', 'Descrição / Motivo', 'Pagt.', 'Valor'], ...detailRows],
+    head: [
+      [{ content: '4. MOVIMENTAÇÕES DETALHADAS (CRONOLÓGICO)', colSpan: 6, styles: { halign: 'left', fillColor: [40, 40, 40], textColor: [255, 255, 255] } }],
+      ['Hora', 'Tipo', 'Ref#', 'Descrição / Motivo', 'Pagt.', 'Valor']
+    ],
+    body: detailRows,
     theme: 'grid',
-    styles: { fontSize: 7, cellPadding: 2 },
-    headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+    headStyles: { fontStyle: 'bold' },
     bodyStyles: { textColor: [40, 40, 40] },
     columnStyles: { 
       0: { cellWidth: 15 }, 
-      1: { cellWidth: 20 }, 
+      1: { cellWidth: 22 }, 
       2: { cellWidth: 15 },
-      3: { cellWidth: 80 },
-      4: { cellWidth: 20 },
-      5: { halign: 'right', fontStyle: 'bold' } 
+      3: { cellWidth: 'auto' }, 
+      4: { cellWidth: 22 },
+      5: { halign: 'right', fontStyle: 'bold', cellWidth: 25 } 
     },
     didParseCell: (data) => {
-      if (data.row.index === 0) {
-        data.cell.styles.fontStyle = 'bold';
+      if (data.row.index === 1 && data.section === 'head') {
         data.cell.styles.fillColor = [240, 240, 240];
+        data.cell.styles.textColor = [40, 40, 40];
       }
     }
   });
