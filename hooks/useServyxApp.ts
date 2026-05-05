@@ -797,8 +797,15 @@ export function useServyxApp() {
       if (error) throw error;
       if (data.user) {
         const initialSlug = company.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-        await setCompanySettings({ ...companySettings, name: company, whatsapp: whatsapp, publicSlug: initialSlug });
-        setToastMessage('Conta criada com sucesso!');
+        // Save company settings first (non-blocking for the auth flow)
+        setCompanySettings({ ...companySettings, name: company, whatsapp: whatsapp, publicSlug: initialSlug });
+        setToastMessage('Conta criada com sucesso! Carregando...');
+        // Load data and profiles before navigating so selectedProfile is not null
+        const loadedProfiles = await loadDataFromSupabase();
+        if (loadedProfiles.length > 0) {
+          setSelectedProfile(loadedProfiles[0]);
+        }
+        setToastMessage('Bem-vindo ao Servyx!');
         setView('DASHBOARD');
       }
     } catch (err: any) {
