@@ -703,6 +703,9 @@ export function useServyxApp() {
           if (error.message === 'Invalid login credentials') {
             throw new Error('E-mail ou senha incorretos.');
           }
+          if (error.message.toLowerCase().includes('email not confirmed') || error.message.toLowerCase().includes('email_not_confirmed')) {
+            throw new Error('E-mail ainda não confirmado. Verifique sua caixa de entrada ou peça ao administrador para desativar a confirmação de e-mail no Supabase (Authentication → Settings → Disable email confirmations).');
+          }
           throw error;
         }
 
