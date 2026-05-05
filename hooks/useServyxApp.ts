@@ -185,7 +185,7 @@ export function useServyxApp() {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
         console.error('[Servyx] Error getting session in loadData:', sessionError);
-        await handleLogout();
+        // Do not logout on session errors unless strictly necessary
         return [];
       }
       if (!session) {
@@ -213,8 +213,20 @@ export function useServyxApp() {
           company_id: activeCompanyId,
           permissions: DEFAULT_PERMISSIONS['ADM']
         };
-        const { data: inserted } = await supabase.from('profiles').upsert(initialProfile).select().single();
-        if (inserted) {
+        
+        // Use upsert to create or update the initial profile
+        const { data: inserted, error: upsertError } = await supabase.from('profiles').upsert(initialProfile).select().single();
+        
+        if (upsertError) {
+          console.error('[Servyx] Profile creation error:', upsertError);
+          // Try a simple select as fallback
+          const { data: retry } = await supabase.from('profiles').select('*').eq('user_id', user.id);
+          if (retry && retry.length > 0) {
+            currentProfiles = retry as Profile[];
+            setProfiles(currentProfiles);
+            activeCompanyId = currentProfiles[0].company_id;
+          }
+        } else if (inserted) {
           currentProfiles = [inserted as Profile];
           setProfiles(currentProfiles);
         }
@@ -684,39 +696,34 @@ export function useServyxApp() {
   const handleLogin = async (email?: string, password?: string) => {
     if (email && password) {
       try {
+        setToastMessage('Acessando sua conta...');
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
         if (error) {
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-          if (signUpError) throw signUpError;
-          if (signUpData.user) {
-            setToastMessage('Conta criada e login realizado!');
-            await loadDataFromSupabase().then((loadedProfiles: Profile[]) => {
-              if (loadedProfiles.length === 1) {
-                setSelectedProfile(loadedProfiles[0]);
-                setView('DASHBOARD');
-              } else {
-                setView('PROFILES');
-              }
-            });
+          if (error.message === 'Invalid login credentials') {
+            throw new Error('E-mail ou senha incorretos.');
           }
-          return;
+          throw error;
         }
+
         if (data.user) {
           setToastMessage('Login realizado com sucesso!');
-          await loadDataFromSupabase().then((loadedProfiles: Profile[]) => {
-            if (loadedProfiles.length === 1) {
-              setSelectedProfile(loadedProfiles[0]);
-              setView('DASHBOARD');
-            } else {
-              setView('PROFILES');
-            }
-          });
+          const loadedProfiles = await loadDataFromSupabase();
+          if (loadedProfiles.length === 1) {
+            setSelectedProfile(loadedProfiles[0]);
+            setView('DASHBOARD');
+          } else if (loadedProfiles.length > 1) {
+            setView('PROFILES');
+          } else {
+            // No profiles even after loading/creating? Something is wrong, but let's try to show the profiles screen
+            setView('PROFILES');
+          }
         }
       } catch (err: any) {
         setToastMessage(`Erro: ${err.message}`);
       }
     } else {
-      setView('PROFILES');
+      setView('LOGIN');
     }
   };
 
