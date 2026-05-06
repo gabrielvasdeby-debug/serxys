@@ -3830,10 +3830,10 @@ export default function StatusOsModule({
                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       <div className="flex items-start gap-3">
                         <div 
-                          className={`mt-0.5 w-5 h-5 rounded-md border transition-all flex items-center justify-center cursor-pointer ${confirmationChecklist.testedAndApproved ? 'bg-[#00E676] border-[#00E676] text-black shadow-[0_0_10px_rgba(0,230,118,0.3)]' : 'bg-black border-zinc-700 text-transparent hover:border-zinc-500'}`}
+                          className={`mt-0.5 w-11 h-11 sm:w-6 sm:h-6 rounded-md border transition-all flex items-center justify-center cursor-pointer ${confirmationChecklist.testedAndApproved ? 'bg-[#00E676] border-[#00E676] text-black shadow-[0_0_10px_rgba(0,230,118,0.3)]' : 'bg-black border-zinc-700 text-transparent hover:border-zinc-500'}`}
                           onClick={() => setConfirmationChecklist(prev => ({ ...prev, testedAndApproved: !prev.testedAndApproved }))}
                         >
-                          <Check size={14} strokeWidth={4} />
+                          <Check className="w-6 h-6 sm:w-4 sm:h-4" strokeWidth={4} />
                         </div>
                         <div>
                           <p className="text-xs font-bold text-white uppercase tracking-tight">Testado e Aprovado</p>
@@ -3843,10 +3843,10 @@ export default function StatusOsModule({
 
                       <div className="flex items-start gap-3">
                         <div 
-                          className={`mt-0.5 w-5 h-5 rounded-md border transition-all flex items-center justify-center cursor-pointer ${confirmationChecklist.workingCorrectly ? 'bg-[#00E676] border-[#00E676] text-black shadow-[0_0_10px_rgba(0,230,118,0.3)]' : 'bg-black border-zinc-700 text-transparent hover:border-zinc-500'}`}
+                          className={`mt-0.5 w-11 h-11 sm:w-6 sm:h-6 rounded-md border transition-all flex items-center justify-center cursor-pointer ${confirmationChecklist.workingCorrectly ? 'bg-[#00E676] border-[#00E676] text-black shadow-[0_0_10px_rgba(0,230,118,0.3)]' : 'bg-black border-zinc-700 text-transparent hover:border-zinc-500'}`}
                           onClick={() => setConfirmationChecklist(prev => ({ ...prev, workingCorrectly: !prev.workingCorrectly }))}
                         >
-                          <Check size={14} strokeWidth={4} />
+                          <Check className="w-6 h-6 sm:w-4 sm:h-4" strokeWidth={4} />
                         </div>
                         <div>
                           <p className="text-xs font-bold text-white uppercase tracking-tight">Funcionando</p>
@@ -3856,10 +3856,10 @@ export default function StatusOsModule({
 
                       <div className="flex items-start gap-3">
                         <div 
-                          className={`mt-0.5 w-5 h-5 rounded-md border transition-all flex items-center justify-center cursor-pointer ${confirmationChecklist.customerAware ? 'bg-[#00E676] border-[#00E676] text-black shadow-[0_0_10px_rgba(0,230,118,0.3)]' : 'bg-black border-zinc-700 text-transparent hover:border-zinc-500'}`}
+                          className={`mt-0.5 w-11 h-11 sm:w-6 sm:h-6 rounded-md border transition-all flex items-center justify-center cursor-pointer ${confirmationChecklist.customerAware ? 'bg-[#00E676] border-[#00E676] text-black shadow-[0_0_10px_rgba(0,230,118,0.3)]' : 'bg-black border-zinc-700 text-transparent hover:border-zinc-500'}`}
                           onClick={() => setConfirmationChecklist(prev => ({ ...prev, customerAware: !prev.customerAware }))}
                         >
-                          <Check size={14} strokeWidth={4} />
+                          <Check className="w-6 h-6 sm:w-4 sm:h-4" strokeWidth={4} />
                         </div>
                         <div>
                           <p className="text-xs font-bold text-white uppercase tracking-tight">Cliente Ciente</p>

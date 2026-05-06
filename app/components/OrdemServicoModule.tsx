@@ -2525,24 +2525,24 @@ export default function OrdemServicoModule({
                                   <div className="flex items-center gap-1 bg-[#141414] rounded-sm p-0.5 border border-zinc-800">
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'works'})}
-                                      className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
                                       title="Funciona"
                                     >
-                                      <Check size={13} />
+                                      <Check className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'broken'})}
-                                      className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
                                       title="Não Funciona"
                                     >
-                                      <X size={13} />
+                                      <X className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'untested'})}
-                                      className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
                                       title="Sem Teste"
                                     >
-                                      <Grid size={13} />
+                                      <Grid className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                   </div>
                                 </div>
@@ -2555,24 +2555,24 @@ export default function OrdemServicoModule({
                                   <div className="flex items-center gap-1 bg-[#141414] rounded-sm p-0.5 border border-zinc-800">
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'works'})}
-                                      className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
                                       title="Funciona"
                                     >
-                                      <Check size={13} />
+                                      <Check className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'broken'})}
-                                      className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
                                       title="Não Funciona"
                                     >
-                                      <X size={13} />
+                                      <X className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'untested'})}
-                                      className={`p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
                                       title="Sem Teste"
                                     >
-                                      <Grid size={13} />
+                                      <Grid className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                   </div>
                                 </div>
