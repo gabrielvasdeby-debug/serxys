@@ -55,7 +55,7 @@ export default function ServyxApp() {
     osSettings, setOsSettings,
     companySettings, setCompanySettings,
     isCompanyIncomplete,
-    handleLogin, handleRegister, handleLogout, handleGoogleLogin,
+    handleLogin, handleRegister, handleLogout,
     handleNavigate, handleSelectProfile, handleVerifyPin,
     handleDeleteProfile, handleUpdateProfile, handleSaveProfile,
     handleConfirmReset, handleDismissNotification,
@@ -227,7 +227,7 @@ export default function ServyxApp() {
         <AnimatePresence mode="wait">
           {isAuthReady && view === 'LOGIN' && (
             <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0">
-              <LoginView onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => setView('REGISTER')} />
+              <LoginView onLogin={handleLogin} onRegister={() => setView('REGISTER')} />
             </motion.div>
           )}
           {isAuthReady && view === 'REGISTER' && (

@@ -730,14 +730,7 @@ export function useServyxApp() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-      if (error) throw error;
-    } catch (err) {
-      setToastMessage('Erro ao entrar com Google');
-    }
-  };
+
 
   const setCompanySettings = async (newSettings: CompanySettings) => {
     try {
@@ -1014,7 +1007,7 @@ export function useServyxApp() {
     companySettings, setCompanySettings,
     isCompanyIncomplete,
     showSetupWarning,
-    handleLogin, handleRegister, handleLogout, handleGoogleLogin,
+    handleLogin, handleRegister, handleLogout,
     handleNavigate, handleSelectProfile, handleVerifyPin,
     handleDeleteProfile, handleUpdateProfile, handleSaveProfile,
     dismissTutorial,
