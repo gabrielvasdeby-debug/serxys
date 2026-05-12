@@ -1667,17 +1667,8 @@ export default function OrdemServicoModule({
 
   return (
     <>
-      <div className="h-screen w-full max-w-[100vw] bg-[#0A0A0A] text-white flex flex-col overflow-hidden">
-
-      {/* Main App Content - Hidden on Print */}
-        {/* Success Animation Modal */}
-        <SuccessAnimationModal 
-          isOpen={showSuccessModal}
-          osNumber={successOsNumber}
-          onClose={() => setShowSuccessModal(false)}
-        />
-
-        <div className="nova-os-ui flex flex-col flex-1 h-full overflow-hidden">
+      <div className="fixed inset-0 h-screen w-full max-w-[100vw] bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50">
+        <div className="nova-os-ui flex flex-col flex-1 h-full w-full overflow-hidden">
         {/* Header */}
       <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -1714,9 +1705,9 @@ export default function OrdemServicoModule({
         key={step}
         ref={mainRef}
         onScroll={handleMainScroll}
-        className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden pb-safe w-full"
+        className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden pb-safe w-full min-w-0"
       >
-        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 w-full">
+        <div className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
           
           {step === 'CLIENT' && (
             <motion.div 
@@ -2078,7 +2069,7 @@ export default function OrdemServicoModule({
               className="space-y-6 overflow-x-hidden px-0.5"
             >
               {/* Selected Client Summary */}
-              <div className="bg-[#141414] border border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+              <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00E676]/20 to-zinc-900 border border-[#00E676]/30 flex items-center justify-center text-[#00E676] font-black text-xl shadow-inner">
                     {selectedCustomer.name.charAt(0).toUpperCase()}
@@ -2909,7 +2900,7 @@ export default function OrdemServicoModule({
                 {activeTab === 'FINANCIAL' && (
                   <>
                   {/* Financials */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
+                  <section className="w-full bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm overflow-hidden">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
                          <Banknote size={16} />
@@ -3026,7 +3017,7 @@ export default function OrdemServicoModule({
                 {activeTab === 'SIGNATURE' && (
                   <>
                   {/* Signatures */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-3 sm:p-6 shadow-sm overflow-hidden">
+                  <section className="w-full bg-[#141414] border border-zinc-800 rounded-md p-3 sm:p-6 shadow-sm overflow-hidden">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
                          <Pencil size={16} />
