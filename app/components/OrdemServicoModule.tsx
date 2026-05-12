@@ -1667,7 +1667,7 @@ export default function OrdemServicoModule({
 
   return (
     <>
-      <div className="fixed inset-0 h-screen w-full max-w-[100vw] bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50">
+      <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50">
         <div className="nova-os-ui flex flex-col flex-1 h-full w-full overflow-hidden">
         {/* Header */}
       <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
@@ -2103,57 +2103,83 @@ export default function OrdemServicoModule({
                 </div>
               </div>
 
-              {/* Tabs Navigation (Stepper) */}
-              <div ref={tabsScrollRef} className="relative mb-6 w-full overflow-x-auto no-scrollbar">
-                 <div className="flex w-max sm:w-full gap-2 sm:gap-1 pb-1">
-                   {[
-                     { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
-                     { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
-                     { id: 'SERVICE', label: 'Serviço', icon: FileText },
-                     { id: 'FINANCIAL', label: 'Financeiro', icon: Banknote },
-                     { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
-                   ].map((tab, idx, arr) => {
-                     const isSelected = activeTab === tab.id;
-                     
-                     return (
-                       <button
-                         key={tab.id}
-                         data-selected={isSelected}
-                         onClick={() => setActiveTab(tab.id as any)}
-                         className={`flex-1 min-w-[100px] sm:min-w-0 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 h-14 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
-                           isSelected 
-                             ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]' 
-                             : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
-                         }`}
-                         style={{
-                           clipPath: idx === 0 
-                                     ? 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 0% 50%)'
-                                     : idx === arr.length - 1
-                                       ? 'polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 10px 50%)'
-                                       : 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%)',
-                           zIndex: isSelected ? 50 : arr.length - idx
-                         }}
-                       >
-                         {/* Optional Icon inner shadow/color */}
-                         <div className={`transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           <tab.icon size={16} className="sm:w-4 sm:h-4" />
-                         </div>
-                         <span className={`text-[9px] sm:text-[10px] uppercase font-black tracking-widest transition-colors ${
-                           isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
-                         }`}>
-                           {tab.label}
-                         </span>
-                         
-                         {isSelected && (
-                           <motion.div 
-                             layoutId="activeTabIndicator"
-                             className="absolute bottom-0 left-[10px] right-[10px] h-0.5 bg-[#00E676] rounded-full sm:hidden"
-                           />
-                         )}
-                       </button>
-                     );
-                   })}
-                 </div>
+              {/* Tabs Navigation */}
+              {/* MOBILE: scrollable pills (no clip-path, no negative margins) */}
+              <div ref={tabsScrollRef} className="sm:hidden relative mb-6 w-full overflow-x-auto no-scrollbar">
+                <div className="flex gap-2 pb-1 w-max">
+                  {[
+                    { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
+                    { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
+                    { id: 'SERVICE', label: 'Serviço', icon: FileText },
+                    { id: 'FINANCIAL', label: 'Financeiro', icon: Banknote },
+                    { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
+                  ].map((tab) => {
+                    const isSelected = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        data-selected={isSelected}
+                        onClick={() => setActiveTab(tab.id as any)}
+                        className={`flex flex-col items-center justify-center gap-1 h-14 px-4 rounded-md border transition-all duration-200 shrink-0 ${
+                          isSelected
+                            ? 'bg-[#00E676]/20 border-[#00E676]/60 text-[#00E676] shadow-[0_0_12px_rgba(0,230,118,0.15)]'
+                            : 'bg-[#141414] border-zinc-800 text-zinc-500'
+                        }`}
+                      >
+                        <tab.icon size={15} />
+                        <span className="text-[9px] font-black uppercase tracking-wider whitespace-nowrap">{tab.label}</span>
+                        {isSelected && (
+                          <motion.div
+                            layoutId="activeTabIndicatorMobile"
+                            className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#00E676] rounded-full"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* DESKTOP: stepper with clip-path */}
+              <div className="hidden sm:flex relative mb-6 gap-1 pb-1">
+                {[
+                  { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
+                  { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
+                  { id: 'SERVICE', label: 'Serviço', icon: FileText },
+                  { id: 'FINANCIAL', label: 'Financeiro', icon: Banknote },
+                  { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
+                ].map((tab, idx, arr) => {
+                  const isSelected = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      data-selected={isSelected}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`flex-1 flex flex-row items-center justify-center gap-2 h-12 relative ${idx !== 0 ? '-ml-4' : ''} transition-all duration-300 group ${
+                        isSelected
+                          ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]'
+                          : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
+                      }`}
+                      style={{
+                        clipPath: idx === 0
+                          ? 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 0% 50%)'
+                          : idx === arr.length - 1
+                            ? 'polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 10px 50%)'
+                            : 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%)',
+                        zIndex: isSelected ? 50 : arr.length - idx
+                      }}
+                    >
+                      <div className={`transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                        <tab.icon size={16} />
+                      </div>
+                      <span className={`text-[10px] uppercase font-black tracking-widest transition-colors ${
+                        isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
+                      }`}>
+                        {tab.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="space-y-4 sm:space-y-6">
