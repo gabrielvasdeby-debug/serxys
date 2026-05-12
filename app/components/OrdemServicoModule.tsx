@@ -172,26 +172,26 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
     <div className="space-y-4">
       <div 
         onClick={() => setIsOpen(true)}
-        className={`group relative overflow-hidden h-16 rounded-md border transition-all cursor-pointer flex items-center justify-between px-6 ${
+        className={`group relative overflow-hidden h-auto min-h-[4rem] sm:h-16 py-3 sm:py-0 rounded-md border transition-all cursor-pointer flex items-center justify-between px-3 sm:px-6 gap-2 ${
           isConfirmed 
             ? 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10' 
             : 'bg-zinc-800/20 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40'
         }`}
       >
-        <div className="flex items-center gap-4">
-          <div className={`w-8 h-8 rounded-sm flex items-center justify-center transition-colors ${isConfirmed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-800 text-zinc-500 group-hover:text-zinc-300'}`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`w-8 h-8 shrink-0 rounded-sm flex items-center justify-center transition-colors ${isConfirmed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-800 text-zinc-500 group-hover:text-zinc-300'}`}>
              {isConfirmed ? <CheckCircle2 size={18} /> : <PenTool size={18} />}
           </div>
-          <div>
-            <h4 className="text-[10px] uppercase font-black tracking-widest text-zinc-500 mb-0.5">{title}</h4>
-            <p className={`text-xs font-bold transition-colors ${isConfirmed ? 'text-emerald-400/80' : 'text-zinc-400 group-hover:text-white'}`}>
-              {isConfirmed ? 'Assinatura Registrada' : 'Toque para Assinar'}
+          <div className="min-w-0">
+            <h4 className="text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-zinc-500 mb-0.5 truncate">{title}</h4>
+            <p className={`text-[10px] sm:text-xs font-bold transition-colors truncate ${isConfirmed ? 'text-emerald-400/80' : 'text-zinc-400 group-hover:text-white'}`}>
+              {isConfirmed ? 'Registrada' : 'Toque para Assinar'}
             </p>
           </div>
         </div>
 
         {isConfirmed && previewUrl && (
-          <div className="h-10 w-24 bg-white/5 rounded-sm overflow-hidden border border-white/5 p-1 flex items-center justify-center grayscale opacity-60">
+          <div className="h-10 w-16 sm:w-24 shrink-0 bg-white/5 rounded-sm overflow-hidden border border-white/5 p-1 flex items-center justify-center grayscale opacity-60">
              <img src={previewUrl} alt="Preview" className="max-h-full max-w-full object-contain invert" />
           </div>
         )}
@@ -1667,7 +1667,7 @@ export default function OrdemServicoModule({
 
   return (
     <>
-      <div className="h-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden">
+      <div className="h-screen w-full max-w-[100vw] bg-[#0A0A0A] text-white flex flex-col overflow-hidden">
 
       {/* Main App Content - Hidden on Print */}
         {/* Success Animation Modal */}
@@ -1714,9 +1714,9 @@ export default function OrdemServicoModule({
         key={step}
         ref={mainRef}
         onScroll={handleMainScroll}
-        className="flex-1 p-3 sm:p-6 overflow-y-auto pb-safe"
+        className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden pb-safe w-full"
       >
-        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 w-full">
           
           {step === 'CLIENT' && (
             <motion.div 
@@ -2113,8 +2113,8 @@ export default function OrdemServicoModule({
               </div>
 
               {/* Tabs Navigation (Stepper) */}
-              <div ref={tabsScrollRef} className="relative mb-6 overflow-x-auto no-scrollbar">
-                 <div className="flex w-full min-w-max sm:min-w-0 gap-2 sm:gap-1 pb-1">
+              <div ref={tabsScrollRef} className="relative mb-6 w-full overflow-x-auto no-scrollbar">
+                 <div className="flex w-max sm:w-full gap-2 sm:gap-1 pb-1">
                    {[
                      { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
                      { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
@@ -3026,7 +3026,7 @@ export default function OrdemServicoModule({
                 {activeTab === 'SIGNATURE' && (
                   <>
                   {/* Signatures */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
+                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-3 sm:p-6 shadow-sm overflow-hidden">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
                          <Pencil size={16} />
@@ -3120,8 +3120,8 @@ export default function OrdemServicoModule({
                         </div>
                       ) : signatureMode === 'remote' ? (
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <div className="p-6 text-center bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-sm">
-                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                          <div className="p-4 sm:p-6 text-center bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-sm">
+                            <p className="text-[9px] sm:text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed mb-4">
                               Ao escolher via WhatsApp, você deve assinar como técnico primeiro. Após salvar, a OS será criada e você poderá enviar o link para o cliente.
                             </p>
                             <SignaturePad 
