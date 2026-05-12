@@ -1714,7 +1714,7 @@ export default function OrdemServicoModule({
         key={step}
         ref={mainRef}
         onScroll={handleMainScroll}
-        className="flex-1 p-3 sm:p-6 overflow-y-auto"
+        className="flex-1 p-3 sm:p-6 overflow-y-auto pb-safe"
       >
         <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
           
@@ -3264,7 +3264,7 @@ export default function OrdemServicoModule({
                 </>
               )}
 
-              <div className="pb-8" />
+              <div className="pb-32 sm:pb-8" />
             </div>
           </motion.div>
         )}
