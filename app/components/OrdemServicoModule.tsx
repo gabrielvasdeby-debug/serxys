@@ -741,6 +741,7 @@ export default function OrdemServicoModule({
   const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
 
   // Monitor scroll for header styling if needed, otherwise simplified
   const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -796,6 +797,14 @@ export default function OrdemServicoModule({
   // Reset scroll to top when changing steps, tabs, or selected customer
   useLayoutEffect(() => {
     scrollToTop();
+    
+    // Scroll active tab into view if on mobile
+    if (tabsScrollRef.current) {
+      const activeElement = tabsScrollRef.current.querySelector('[data-selected="true"]');
+      if (activeElement) {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
     
     // Multiple attempts to handle different layout/animation durations
     const t0 = setTimeout(scrollToTop, 0); // Immediate next frame
@@ -2104,24 +2113,25 @@ export default function OrdemServicoModule({
               </div>
 
               {/* Tabs Navigation (Stepper) */}
-              <div className="relative mb-6">
-                 <div className="flex w-full gap-0.5 sm:gap-1">
+              <div ref={tabsScrollRef} className="relative mb-6 overflow-x-auto no-scrollbar -mx-3 sm:mx-0 px-3 sm:px-0">
+                 <div className="flex w-full min-w-max sm:min-w-0 gap-2 sm:gap-1 pb-1">
                    {[
                      { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
                      { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
                      { id: 'SERVICE', label: 'Serviço', icon: FileText },
                      { id: 'FINANCIAL', label: 'Financeiro', icon: Banknote },
-                     { id: 'SIGNATURE', label: 'Assinaturas', icon: Pencil },
+                     { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
                    ].map((tab, idx, arr) => {
                      const isSelected = activeTab === tab.id;
                      
                      return (
                        <button
                          key={tab.id}
+                         data-selected={isSelected}
                          onClick={() => setActiveTab(tab.id as any)}
-                         className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 h-14 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
+                         className={`flex-1 min-w-[100px] sm:min-w-0 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 h-14 sm:h-12 relative ${idx !== 0 ? '-ml-2 sm:-ml-4' : ''} transition-all duration-300 group ${
                            isSelected 
-                             ? 'bg-[#00E676]/20 border border-[#00E676]/50' 
+                             ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]' 
                              : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
                          }`}
                          style={{
@@ -2130,18 +2140,25 @@ export default function OrdemServicoModule({
                                      : idx === arr.length - 1
                                        ? 'polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 10px 50%)'
                                        : 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%)',
-                           zIndex: arr.length - idx
+                           zIndex: isSelected ? 50 : arr.length - idx
                          }}
                        >
                          {/* Optional Icon inner shadow/color */}
-                         <div className={`transition-colors ${isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           <tab.icon size={14} className="sm:w-4 sm:h-4 w-3.5 h-3.5" />
+                         <div className={`transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                           <tab.icon size={16} className="sm:w-4 sm:h-4" />
                          </div>
-                         <span className={`text-[8px] sm:text-[10px] uppercase font-black tracking-widest truncate max-w-[50px] sm:max-w-none transition-colors ${
+                         <span className={`text-[9px] sm:text-[10px] uppercase font-black tracking-widest transition-colors ${
                            isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
                          }`}>
                            {tab.label}
                          </span>
+                         
+                         {isSelected && (
+                           <motion.div 
+                             layoutId="activeTabIndicator"
+                             className="absolute bottom-0 left-[10px] right-[10px] h-0.5 bg-[#00E676] rounded-full sm:hidden"
+                           />
+                         )}
                        </button>
                      );
                    })}
