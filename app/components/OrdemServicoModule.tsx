@@ -2075,7 +2075,7 @@ export default function OrdemServicoModule({
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+              className="space-y-6 overflow-x-hidden px-0.5"
             >
               {/* Selected Client Summary */}
               <div className="bg-[#141414] border border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
@@ -2894,13 +2894,13 @@ export default function OrdemServicoModule({
                   </section>
 
 
-                  <div className="flex justify-between mt-4">
-                    <button onClick={() => setActiveTab('CHECKLIST')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center gap-2">
-                      &larr; Voltar
-                    </button>
-                    <button onClick={() => setActiveTab('FINANCIAL')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center gap-2">
-                      Avançar para Financeiro &rarr;
-                    </button>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
+                     <button onClick={() => setActiveTab('CHECKLIST')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                       &larr; Voltar
+                     </button>
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                       Avançar para Financeiro &rarr;
+                     </button>
                   </div>
                 </>
                 )}
@@ -3011,14 +3011,14 @@ export default function OrdemServicoModule({
                     </div>
                   </section>
                   
-                  <div className="flex justify-between mt-4">
-                    <button onClick={() => setActiveTab('SERVICE')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center gap-2">
-                      &larr; Voltar
-                    </button>
-                    <button onClick={() => setActiveTab('SIGNATURE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center gap-2">
-                      Assinar OS &rarr;
-                    </button>
-                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
+                     <button onClick={() => setActiveTab('SERVICE')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                       &larr; Voltar
+                     </button>
+                     <button onClick={() => setActiveTab('SIGNATURE')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                       Assinar OS &rarr;
+                     </button>
+                   </div>
                 </>
                 )}
 
@@ -3152,12 +3152,12 @@ export default function OrdemServicoModule({
                       )}
                     </section>
                   
-                  <div className="flex flex-col sm:flex-row justify-between items-center mt-6 py-4 border-t border-zinc-800/50 gap-4">
-                    <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                      &larr; Voltar
-                    </button>
-
-                    <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto bg-zinc-900/50 p-1.5 rounded-md border border-white/5">
+                  <div className="flex flex-col sm:flex-row justify-between items-center mt-8 py-4 border-t border-zinc-800/50 gap-6">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                       &larr; Voltar
+                     </button>
+ 
+                     <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto bg-zinc-900/50 p-1.5 rounded-md border border-white/5">
                       {/* Communication Group */}
                       <div className="flex items-center bg-black/40 rounded-sm p-1 border border-white/5 gap-1">
                         <button 
