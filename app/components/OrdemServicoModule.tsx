@@ -2113,7 +2113,7 @@ export default function OrdemServicoModule({
               </div>
 
               {/* Tabs Navigation (Stepper) */}
-              <div ref={tabsScrollRef} className="relative mb-6 overflow-x-auto no-scrollbar -mx-3 sm:mx-0 px-3 sm:px-0">
+              <div ref={tabsScrollRef} className="relative mb-6 overflow-x-auto no-scrollbar">
                  <div className="flex w-full min-w-max sm:min-w-0 gap-2 sm:gap-1 pb-1">
                    {[
                      { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
@@ -2940,7 +2940,7 @@ export default function OrdemServicoModule({
 
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-zinc-400">Status do Pagamento</label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex overflow-x-auto no-scrollbar gap-2 sm:grid sm:grid-cols-3">
                           {['Pendente', 'Parcial', 'Total'].map(status => (
                             <button
                               key={status}
@@ -2955,7 +2955,7 @@ export default function OrdemServicoModule({
                                   amountPaid: newAmountPaid
                                 });
                               }}
-                              className={`py-2 text-xs font-medium rounded-sm border transition-colors ${
+                              className={`flex-1 min-w-[80px] sm:min-w-0 py-2 text-xs font-medium rounded-sm border transition-colors ${
                                 financials.paymentStatus === status 
                                   ? 'bg-[#00E676]/10 border-[#00E676] text-[#00E676]' 
                                   : 'bg-[#0A0A0A] border-zinc-800 text-zinc-400 hover:border-zinc-700'
