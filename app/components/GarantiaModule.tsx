@@ -580,36 +580,14 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                   <>
                     <div className="flex flex-1 gap-2.5">
                       <button 
-                        onClick={() => {
-                           const originalTitle = document.title;
-                           const osNumber = selectedWarranty.os_number.toString().padStart(4, '0');
-                           const companyName = companySettings.name || 'Servyx';
-                           document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
-                           document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty-thermal');
-                           document.body.classList.add('print-warranty');
-                           setTimeout(() => {
-                             window.print();
-                             setTimeout(() => { document.title = originalTitle; }, 100);
-                           }, 500);
-                        }}
+                        onClick={() => setPrintMode('warranty')}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
                         <Printer size={18} className="text-zinc-400" />
                         <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">A4</span>
                       </button>
                       <button 
-                        onClick={() => {
-                           const originalTitle = document.title;
-                           const osNumber = selectedWarranty.os_number.toString().padStart(4, '0');
-                           const companyName = companySettings.name || 'Servyx';
-                           document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
-                           document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty');
-                           document.body.classList.add('print-warranty-thermal');
-                           setTimeout(() => {
-                             window.print();
-                             setTimeout(() => { document.title = originalTitle; }, 100);
-                           }, 500);
-                        }}
+                        onClick={() => setPrintMode('warranty-thermal')}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
                         <Printer size={18} className="text-[#00E676]" />
@@ -680,8 +658,32 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
               />
             </div>
           </>,
-          document.getElementById('print-portal-root') || document.body
+          typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.body) : null as any
         )
+      )}
+
+      {/* Loading de Impressão */}
+      <AnimatePresence>
+        {isPrinting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-t-emerald-500 rounded-full animate-spin"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-white font-black uppercase tracking-widest text-xs">Preparando Documento</p>
+                <p className="text-zinc-500 text-[10px] uppercase mt-1">Aguarde um instante...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       )}
 
     </div>

@@ -1481,8 +1481,11 @@ export default function OrdemServicoModule({
           user: profile.name,
           description: 'Ordem de Serviço criada'
         }],
-        createdAt: now,
-        updatedAt: now
+        createdAt: localOrder?.createdAt || now,
+        updatedAt: now,
+        deliveryForecast,
+        companyId: profile.company_id,
+        scannedOsUrl: localOrder?.scannedOsUrl || null
       } as any;
 
       setOrders(prev => prev.some(o => o.id === orderId) ? prev.map(o => o.id === orderId ? (orderForState || o) : o) : [...prev, orderForState]);
@@ -1590,12 +1593,13 @@ export default function OrdemServicoModule({
   const [isPrinting, setIsPrinting] = useState(false);
 
   const printOrder = useMemo(() => {
-    return localOrder || {
-      id: 'preview',
-      companyId: companySettings?.id || 'default',
-      osNumber: orders.length === 0 ? (osSettings?.nextOsNumber || 1) : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings?.nextOsNumber || 1),
+    // Basic order structure using current state values
+    // This ensures that even when editing, the print/preview reflects what's on screen
+    const currentOrderData: Order = {
+      id: localOrder?.id || 'preview',
+      companyId: profile.company_id,
+      osNumber: localOrder ? localOrder.osNumber : (orders.length === 0 ? (osSettings?.nextOsNumber || 1) : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings?.nextOsNumber || 1)),
       customerId: selectedCustomer?.id || '',
-      signatures: { ...signatures, isManual: signatureMode === 'manual', mode: signatureMode },
       equipment,
       defect,
       service,
@@ -1604,18 +1608,22 @@ export default function OrdemServicoModule({
       checklistNotes,
       technicianNotes,
       financials,
-      status: 'Entrada',
+      signatures: { ...signatures, isManual: signatureMode === 'manual', mode: signatureMode },
+      status: localOrder?.status || 'Entrada',
       priority,
       isVisualChecklist: showVisualChecklist,
-      history: [],
-      createdAt: new Date().toISOString(),
+      deliveryForecast,
+      history: localOrder?.history || [],
+      createdAt: localOrder?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    } as Order;
+    } as any;
+
+    return currentOrderData;
   }, [
-    localOrder, companySettings.id, orders, osSettings.nextOsNumber, 
+    localOrder, profile.company_id, orders, osSettings.nextOsNumber, 
     selectedCustomer?.id, signatures, signatureMode, equipment, defect, 
     service, checklist, checklistNotPossible, checklistNotes, technicianNotes, 
-    financials, priority, showVisualChecklist
+    financials, priority, showVisualChecklist, deliveryForecast
   ]);
 
   const warrantyOrder = useMemo(() => {
@@ -1670,7 +1678,7 @@ export default function OrdemServicoModule({
       clearTimeout(timer);
       setIsPrinting(false);
     };
-  }, [printMode, localOrder, printOrder.osNumber, companySettings.name, signatureMode]);
+  }, [printMode, localOrder, printOrder, companySettings.name, signatureMode]);
 
   return (
     <>
@@ -3213,7 +3221,8 @@ export default function OrdemServicoModule({
                         </button>
                         <button 
                           onClick={() => setPrintMode('a4')}
-                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
+                          disabled={isSaving}
+                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
                           title="Imprimir A4"
                         >
                           <Printer size={14} />
@@ -3221,7 +3230,8 @@ export default function OrdemServicoModule({
                         </button>
                         <button 
                           onClick={() => setPrintMode('thermal')}
-                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
+                          disabled={isSaving}
+                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
                           title="Imprimir Cupom"
                         >
                           <Printer size={14} />
@@ -3355,7 +3365,7 @@ export default function OrdemServicoModule({
             />
           </div>
         </>,
-        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.body) : null as any
+        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.createElement('div')) : null as any
       )}
 
       <AnimatePresence>

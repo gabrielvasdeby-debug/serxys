@@ -397,6 +397,8 @@ export default function StatusOsModule({
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [orderToQuickStatus, setOrderToQuickStatus] = useState<Order | null>(null);
+  const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo' | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Elite Polish: Simulated loading on mount to show skeletons
   useEffect(() => {
@@ -448,6 +450,41 @@ export default function StatusOsModule({
 
     return { potentialRevenue, labLoad, avgTicket, concludedCount: concludedThisMonth.length };
   }, [orders]);
+
+  // Centralized Print Effect
+  useEffect(() => {
+    if (!printMode || !selectedOrder) return;
+
+    const originalTitle = document.title;
+    const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
+    const companyName = companySettings?.name || 'Servyx';
+    const isWarranty = printMode.includes('warranty');
+    const isLaudo = printMode === 'laudo';
+    
+    document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isLaudo ? 'Laudo' : isWarranty ? 'Garantia' : 'OS'}_${osNumber}`;
+    
+    // Limpa classes anteriores
+    document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
+    
+    // Adiciona a classe atual
+    document.body.classList.add(`print-${printMode}`);
+
+    setIsPrinting(true);
+    const timer = setTimeout(() => {
+      window.print();
+      
+      // Limpeza após fechar o diálogo de impressão
+      document.body.classList.remove(`print-${printMode}`);
+      document.title = originalTitle;
+      setPrintMode(null);
+      setIsPrinting(false);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      setIsPrinting(false);
+    };
+  }, [printMode, selectedOrder, companySettings?.name]);
 
   // Payment State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -2452,27 +2489,58 @@ export default function StatusOsModule({
 
                   <div className="flex items-center gap-2 shrink-0 pr-4">
                     {onEdit && (
-                      <button onClick={() => onEdit(selectedOrder)} className="flex items-center gap-2 px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase">
-                        <Pencil size={14} /> Editar
+                      <button 
+                        onClick={() => onEdit(selectedOrder)} 
+                        disabled={isPrinting}
+                        className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase disabled:opacity-30"
+                      >
+                        <Pencil size={14} /> <span className="hidden sm:inline">Editar</span>
                       </button>
                     )}
-                    <button onClick={() => handleViewDocs(selectedOrder)} className="flex items-center gap-2 px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase">
-                      <FileText size={14} /> Docs
+                    <button 
+                      onClick={() => setPrintMode('a4')} 
+                      disabled={isPrinting}
+                      className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-[#00E676]/10 border border-[#00E676]/30 rounded-sm text-[#00E676] hover:bg-[#00E676]/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
+                    >
+                      <Printer size={14} /> <span className="hidden sm:inline">Imprimir A4</span><span className="sm:hidden">A4</span>
                     </button>
-                    <button
+                    <button 
+                      onClick={() => setPrintMode('thermal')} 
+                      disabled={isPrinting}
+                      className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-orange-500/10 border border-orange-500/30 rounded-sm text-orange-400 hover:bg-orange-500/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
+                    >
+                      <Printer size={14} /> <span className="hidden sm:inline">Cupom</span><span className="sm:hidden">Cupom</span>
+                    </button>
+                    <button 
                       onClick={() => {
                         const customer = customers.find(c => c.id === selectedOrder.customerId);
                         if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
                         const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}` : `${window.location.origin}/os/${selectedOrder.id}`;
-                        const template = osSettings.whatsappMessages?.['Entrada Registrada'] || `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\n{link}\n\n{empresa}`;
-                        const message = template.replace(/{cliente}/g, customer.name).replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0')).replace(/{link}/g, portalUrl).replace(/{empresa}/g, companySettings.name || 'Servyx');
-                        let decodedPhone = customer.whatsapp.replace(/\D/g, '');
-                        if (!decodedPhone.startsWith('55')) decodedPhone = `55${decodedPhone}`;
-                        window.open(`https://api.whatsapp.com/send?phone=${decodedPhone}&text=${encodeURIComponent(message)}`, 'wa');
+                        
+                        const message = (osSettings.whatsappEntryTemplate || `Olá [nome_cliente]! Sua OS [numero_os] ([equipamento]) foi registrada com sucesso em nossa assistência. Acompanhe o status pelo link: [link_os]`)
+                          .replace(/\[nome_cliente\]/g, customer.name)
+                          .replace(/\[numero_os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
+                          .replace(/\[equipamento\]/g, `${selectedOrder.equipment.brand} ${selectedOrder.equipment.model}`)
+                          .replace(/\[data_entrada\]/g, new Date().toLocaleDateString('pt-BR'))
+                          .replace(/\[link_os\]/g, portalUrl)
+                          .replace(/{link}/g, portalUrl)
+                          .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
+                          .replace(/{empresa}/g, companySettings.name || 'Servyx');
+
+                        setWhatsappModal({ isOpen: true, message, customerPhone: customer.whatsapp });
                       }}
-                      className="flex items-center gap-2 px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-[#25D366] transition-all text-[10px] font-black uppercase"
+                      disabled={isPrinting}
+                      className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-[#00E676]/10 border border-[#00E676]/30 rounded-sm text-[#00E676] hover:bg-[#00E676]/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
+                      title="Enviar via WhatsApp"
                     >
-                      <MessageCircle size={14} /> WhatsApp
+                      <MessageCircle size={14} /> <span className="hidden sm:inline">WhatsApp</span>
+                    </button>
+                    <button 
+                      onClick={() => handleViewDocs(selectedOrder)} 
+                      disabled={isPrinting}
+                      className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-zinc-900 border border-zinc-800 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase disabled:opacity-30"
+                    >
+                      <FileText size={14} /> <span className="hidden sm:inline">Docs</span><span className="sm:hidden">Docs</span>
                     </button>
                   </div>
                 </div>
@@ -2988,22 +3056,7 @@ export default function StatusOsModule({
                       <div className="flex gap-2 w-full sm:w-auto">
                         {selectedOrder.technicalReport && (
                            <button
-                             onClick={() => {
-                               const originalTitle = document.title;
-                               const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
-                               const companyName = companySettings.name || 'Servyx';
-                               document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Laudo_${osNumber}`;
-                               document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal');
-                               document.body.classList.add('print-laudo');
-                               // Pequeno delay para garantir que o Portal renderizou e o browser processou as classes CSS
-                               setTimeout(() => {
-                                 window.print();
-                                 setTimeout(() => { 
-                                   document.body.classList.remove('print-laudo');
-                                   document.title = originalTitle; 
-                                 }, 100);
-                               }, 500);
-                             }}
+                             onClick={() => setPrintMode('laudo')}
                              className="flex-1 sm:flex-none bg-[#141414] text-white border border-zinc-700 font-black px-4 py-2.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                              translate="no"
                            >
@@ -4208,23 +4261,8 @@ export default function StatusOsModule({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      // Importante: Setar selectedOrder para garantir que o template no fundo do DOM seja renderizado
                       setSelectedOrder(previewOrder);
-                      
-                      const originalTitle = document.title;
-                      const osNumber = previewOrder.osNumber.toString().padStart(4, '0');
-                      const companyName = companySettings?.name || 'Servyx';
-                      document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_OS_${osNumber}`;
-                      
-                      // Pequeno delay para garantir que o React renderizou o componente OrderPrintTemplate no fundo
-                      setTimeout(() => {
-                        document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
-                        document.body.classList.add('print-a4');
-                        window.print();
-                        setTimeout(() => { 
-                          document.title = originalTitle; 
-                        }, 100);
-                      }, 500);
+                      setPrintMode('a4');
                     }}
                     className="p-2.5 bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all border border-emerald-600 flex items-center gap-2 text-xs font-black uppercase tracking-wider shadow-lg shadow-[#00E676]/20 active:scale-95"
                   >
@@ -4302,8 +4340,31 @@ export default function StatusOsModule({
             />
           </div>
         </>,
-        document.getElementById('print-portal-root') || document.body
+        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.createElement('div')) : null as any
       )}
+
+      {/* Loading de Impressão */}
+      <AnimatePresence>
+        {isPrinting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-t-emerald-500 rounded-full animate-spin"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-white font-black uppercase tracking-widest text-xs">Preparando Documento</p>
+                <p className="text-zinc-500 text-[10px] uppercase mt-1">Aguarde um instante...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Document Hub Modal */}
       <AnimatePresence>
@@ -4471,36 +4532,14 @@ export default function StatusOsModule({
 
               <div className="p-6 border-t border-zinc-200 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
-                  onClick={() => {
-                    const originalTitle = document.title;
-                    const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
-                    const companyName = companySettings.name || 'Servyx';
-                    document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_A4_${osNumber}`;
-                    document.body.classList.remove('print-thermal', 'print-a4', 'print-warranty-thermal', 'print-laudo');
-                    document.body.classList.add('print-warranty');
-                    setTimeout(() => {
-                      window.print();
-                      setTimeout(() => { document.title = originalTitle; }, 100);
-                    }, 500);
-                  }}
+                  onClick={() => setPrintMode('warranty')}
                   className="flex-1 py-4 bg-[#2B323D] hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
                   <FileText size={20} />
                   Imprimir A4
                 </button>
                 <button
-                  onClick={() => {
-                    const originalTitle = document.title;
-                    const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
-                    const companyName = companySettings.name || 'Servyx';
-                    document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_Cupom_${osNumber}`;
-                    document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-a4');
-                    document.body.classList.add('print-warranty-thermal');
-                    setTimeout(() => {
-                      window.print();
-                      setTimeout(() => { document.title = originalTitle; }, 100);
-                    }, 500);
-                  }}
+                  onClick={() => setPrintMode('warranty-thermal')}
                   className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   <Printer size={20} />
@@ -4622,28 +4661,7 @@ export default function StatusOsModule({
         )}
       </AnimatePresence>
 
-      {/* HIDDEN PRINT CONTAINERS FOR WARRANTY & LAUDO */}
-      {selectedOrder && (
-        <>
 
-          <div className="print-warranty-container" key={`warranty-${selectedOrder.id}`}>
-            <WarrantyPrintTemplate
-              order={selectedOrder}
-              customer={customers.find(c => c.id === selectedOrder.customerId)}
-              companySettings={companySettings}
-              osSettings={osSettings}
-            />
-          </div>
-          <div className="warranty-thermal-container" key={`warranty-thermal-${selectedOrder.id}`}>
-            <WarrantyThermalTemplate
-              order={selectedOrder}
-              customer={customers.find(c => c.id === selectedOrder.customerId)}
-              companySettings={companySettings}
-              osSettings={osSettings}
-            />
-          </div>
-        </>
-      )}
       {/* Quick Status Picker Modal (Mobile) */}
       <AnimatePresence>
         {orderToQuickStatus && (
