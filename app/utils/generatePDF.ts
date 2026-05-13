@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactElement } from 'react';
+
 /**
  * Converts an oklch() color value to rgb() for html2canvas compatibility.
  * html2canvas does not support modern CSS color spaces like oklch.
@@ -82,7 +84,7 @@ export interface SharePDFOptions {
  * generates a PDF, and shares it via the Web Share API (or downloads as fallback).
  */
 export async function generateAndSharePDF(
-  templateElement: React.ReactElement,
+  templateElement: ReactElement,
   filename: string,
   onShowToast: (msg: string) => void,
   opts: SharePDFOptions = {}
@@ -102,10 +104,7 @@ export async function generateAndSharePDF(
   ].join(';');
   document.body.appendChild(offscreen);
 
-  // Need to import React dynamically to avoid SSR issues when called from a
-  // context that doesn't import React at the top level.
   const { createRoot } = await import('react-dom/client');
-
   const root = createRoot(offscreen);
   root.render(templateElement);
 
