@@ -1682,37 +1682,82 @@ export default function OrdemServicoModule({
   };
 
   // Função para compartilhar o documento via API nativa (Mobile)
-  const handleSharePDF = async () => {
-    const orderId = localOrder?.id;
-    if (!orderId) {
-      onShowToast('Salve a OS primeiro para gerar o link de compartilhamento.');
+  const handleSharePDF = async (mode: 'a4' | 'warranty' = 'a4') => {
+    if (!selectedCustomer) {
+      onShowToast('Selecione um cliente para compartilhar.');
       return;
     }
 
-    const osNumberFormatted = (localOrder?.osNumber || 0).toString().padStart(4, '0');
-    const portalUrl = companySettings.publicSlug 
-      ? `${window.location.origin}/${companySettings.publicSlug}/${orderId}`
-      : `${window.location.origin}/os/${orderId}`;
+    const osNumberFormatted = (printOrder.osNumber || 0).toString().padStart(4, '0');
+    const companyName = companySettings.name || 'Servyx';
+    const isWarranty = mode.includes('warranty');
+    const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isWarranty ? 'Garantia' : 'OS'}_${osNumberFormatted}`;
 
-    if (navigator.share) {
+    // Show loading spinner
+    setIsPrinting(true);
+
+    // Prepare DOM
+    document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
+    document.body.classList.add(`print-${mode}`);
+    window.scrollTo(0, 0);
+    void document.body.offsetHeight;
+
+    // Timeout to allow DOM/CSS to settle
+    setTimeout(async () => {
       try {
-        await navigator.share({
-          title: `OS ${osNumberFormatted} - ${companySettings.name}`,
-          text: `Confira o documento da Ordem de Serviço ${osNumberFormatted}:`,
-          url: portalUrl,
+        const container = document.querySelector(`.print-${mode}-container`) as HTMLElement;
+        if (!container) throw new Error("Template container not found");
+        
+        // Use html2canvas to capture the DOM
+        const { default: html2canvas } = await import('html2canvas');
+        const canvas = await html2canvas(container, {
+            scale: 2, // High resolution
+            useCORS: true,
+            logging: false,
+            windowWidth: 794, // Simulate A4 width in px (210mm at 96 DPI)
         });
-      } catch (err) {
-        console.error('Erro ao compartilhar:', err);
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        const { jsPDF } = await import('jspdf');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        
+        const pdfBlob = pdf.output('blob');
+        const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: filename,
+                text: `Segue o documento: ${filename}`
+            });
+        } else {
+            // Se o navegador não suportar envio de arquivo via Share API, faz o download nativo
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+            onShowToast('PDF baixado. O navegador não suporta compartilhamento direto.');
+        }
+      } catch (error) {
+        console.error('Erro ao gerar/compartilhar PDF:', error);
+        onShowToast('Erro ao gerar o PDF. Tente imprimir.');
+      } finally {
+        document.body.classList.remove(`print-${mode}`);
+        setIsPrinting(false);
       }
-    } else {
-      // Fallback: Copiar para área de transferência
-      try {
-        await navigator.clipboard.writeText(portalUrl);
-        onShowToast('Link do documento copiado para a área de transferência!');
-      } catch (err) {
-        onShowToast('Não foi possível compartilhar ou copiar o link.');
-      }
-    }
+    }, 400);
   };
 
   return (
