@@ -120,7 +120,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
             <div className="flex items-center gap-3">
               <div className="w-auto max-w-[240px] h-16 flex items-center justify-start shrink-0 pr-4 overflow-hidden">
                 {companySettings?.logoUrl ? (
-                  <img src={companySettings.logoUrl} alt="Logo" className="max-w-full max-h-full object-contain object-left" />
+                  <img src={companySettings.logoUrl} crossOrigin="anonymous" alt="Logo" className="max-w-full max-h-full object-contain object-left" />
                 ) : (
                   <div className="w-14 h-14 rounded-lg bg-[#2B323D] flex items-center justify-center shrink-0 text-white font-black text-2xl w-full">
                     {(companySettings?.name || 'SY').substring(0,2).toUpperCase()}
@@ -276,7 +276,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
              <div className="w-64 flex flex-col items-center">
                   <div className="h-16 w-full border-b border-slate-800 flex items-center justify-center mb-1">
                       {(order?.completionData?.signatures?.technician || order?.signatures?.technician) ? (
-                          <img src={(order?.completionData?.signatures?.technician || order?.signatures?.technician) || undefined} alt="Sig Técnico" className="max-h-full mix-blend-multiply" />
+                          <img src={(order?.completionData?.signatures?.technician || order?.signatures?.technician) || undefined} crossOrigin="anonymous" alt="Sig Técnico" className="max-h-full mix-blend-multiply" />
                       ) : (
                           <span className="text-[7.5px] text-slate-300 font-bold uppercase tracking-widest text-center">Responsável Técnico / Assistência</span>
                       )}

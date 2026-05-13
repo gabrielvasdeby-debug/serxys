@@ -106,7 +106,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
             <div className="flex items-center gap-3">
               <div className="w-auto max-w-[240px] h-16 flex items-center justify-start shrink-0 pr-4 overflow-hidden">
                 {companySettings?.logoUrl ? (
-                  <img src={companySettings.logoUrl} alt="Logo" className="max-w-full max-h-full object-contain object-left" />
+                  <img src={companySettings.logoUrl} crossOrigin="anonymous" alt="Logo" className="max-w-full max-h-full object-contain object-left" />
                 ) : (
                   <div className="w-14 h-14 rounded-lg bg-[#2B323D] flex items-center justify-center shrink-0 text-white font-black text-2xl w-full">
                     {(companySettings?.name || 'SY').substring(0,2).toUpperCase()}
@@ -300,7 +300,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
                     <span className="text-[8px] uppercase tracking-widest">Toque para Assinar</span>
                  </div>
               ) : (clientSignatureOverride || (order.signatures?.client && !order.signatures?.isManual)) && (
-                <img src={(clientSignatureOverride || order.signatures?.client) as string} alt="Assinatura" className="max-h-full w-auto max-w-full object-contain mix-blend-multiply scale-110" />
+                <img src={(clientSignatureOverride || order.signatures?.client) as string} crossOrigin="anonymous" alt="Assinatura" className="max-h-full w-auto max-w-full object-contain mix-blend-multiply scale-110" />
               )}
             </div>
             <span className="text-[9px] uppercase font-black text-slate-500 tracking-tighter">Assinatura do Cliente</span>
@@ -308,7 +308,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
           <div className="flex flex-col items-center w-[45%]">
             <div className="w-full border-b border-slate-800 mb-2 h-16 flex items-center justify-center relative">
               {!order.signatures?.isManual && order.signatures?.technician && (
-                <img src={order.signatures.technician} alt="Tecnico" className="max-h-full w-auto max-w-full object-contain mix-blend-multiply scale-110" />
+                <img src={order.signatures.technician} crossOrigin="anonymous" alt="Tecnico" className="max-h-full w-auto max-w-full object-contain mix-blend-multiply scale-110" />
               )}
             </div>
             <span className="text-[9px] uppercase font-black text-slate-500 tracking-tighter">Responsável Técnico</span>

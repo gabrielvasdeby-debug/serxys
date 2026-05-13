@@ -29,6 +29,7 @@ export default function ThermalReceiptTemplate({
           <div className="flex justify-center mb-1">
             <img 
               src={companySettings.logoUrl} 
+              crossOrigin="anonymous"
               alt="Logo" 
               className="max-w-[150px] max-h-[60px] object-contain grayscale"
               style={{ filter: 'contrast(150%) brightness(0.8)' }}

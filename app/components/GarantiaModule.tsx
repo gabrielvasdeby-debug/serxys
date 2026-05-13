@@ -305,13 +305,13 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         // Use html2canvas to capture the DOM
         const { default: html2canvas } = await import('html2canvas');
         const canvas = await html2canvas(container, {
-            scale: 2, // High resolution
+            scale: 1.5,
             useCORS: true,
+            allowTaint: false,
             logging: false,
-            windowWidth: 794, // Simulate A4 width in px
         });
         
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
         
         const { jsPDF } = await import('jspdf');
         const pdf = new jsPDF({
@@ -320,11 +320,8 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
             format: 'a4'
         });
         
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
-        if (!isFinite(pdfHeight) || pdfHeight === 0) {
-           throw new Error("Invalid canvas height");
+        if (!isFinite(pdfHeight) || pdfHeight <= 0) {
+           throw new Error("Tamanho de imagem inválido");
         }
         
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
@@ -332,25 +329,35 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         const pdfBlob = pdf.output('blob');
         const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
         
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: filename,
-                text: `Segue o termo de garantia: ${filename}`
-            });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                  files: [file],
+                  title: filename,
+                  text: `Segue o termo de garantia: ${filename}`
+              });
+            } catch (shareError: any) {
+              if (shareError.name !== 'AbortError') {
+                 throw shareError;
+              }
+            }
         } else {
-            // Se o navegador não suportar envio de arquivo via Share API, faz o download nativo
             const url = URL.createObjectURL(pdfBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `${filename}.pdf`;
             a.click();
             URL.revokeObjectURL(url);
-            onShowToast('PDF baixado. O navegador não suporta compartilhamento direto.');
+            onShowToast('Compartilhamento não suportado. PDF baixado.');
         }
-      } catch (error) {
-        console.error('Erro ao gerar/compartilhar PDF:', error);
-        onShowToast('Erro ao gerar o PDF. Tente imprimir.');
+      } catch (error: any) {
+        console.error('Erro PDF:', error);
+        const errorMsg = error.message || 'Erro desconhecido';
+        if (errorMsg.includes('SecurityError') || errorMsg.includes('tainted')) {
+           onShowToast('Erro de permissão nas imagens (CORS). Tente imprimir.');
+        } else {
+           onShowToast(`Erro ao gerar PDF: ${errorMsg.substring(0, 30)}`);
+        }
       } finally {
         document.body.classList.remove('pdf-exporting', `print-${mode}`);
         setIsPrinting(false);

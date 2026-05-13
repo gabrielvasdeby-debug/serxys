@@ -1711,13 +1711,14 @@ export default function OrdemServicoModule({
         // Use html2canvas to capture the DOM
         const { default: html2canvas } = await import('html2canvas');
         const canvas = await html2canvas(container, {
-            scale: 2, // High resolution
+            scale: 1.5, // Reduced scale for mobile memory stability
             useCORS: true,
+            allowTaint: false, // Explicitly false to avoid SecurityError later
             logging: false,
-            windowWidth: 794, // Simulate A4 width in px (210mm at 96 DPI)
+            // Remove windowWidth to let it use the element's natural 794px width
         });
         
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgData = canvas.toDataURL('image/jpeg', 0.85); // Reduced quality for memory
         
         const { jsPDF } = await import('jspdf');
         const pdf = new jsPDF({
@@ -1729,8 +1730,8 @@ export default function OrdemServicoModule({
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         
-        if (!isFinite(pdfHeight) || pdfHeight === 0) {
-           throw new Error("Invalid canvas height");
+        if (!isFinite(pdfHeight) || pdfHeight <= 0) {
+           throw new Error("Tamanho de imagem inválido");
         }
         
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
@@ -1738,25 +1739,40 @@ export default function OrdemServicoModule({
         const pdfBlob = pdf.output('blob');
         const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
         
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: filename,
-                text: `Segue o documento: ${filename}`
-            });
+        // No mobile, navigator.share com arquivos pode ser restritivo.
+        // Verificamos suporte e tentamos compartilhar.
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                  files: [file],
+                  title: filename,
+                  text: `Segue o documento: ${filename}`
+              });
+            } catch (shareError: any) {
+              // Se o usuário cancelar ou houver erro no compartilhamento
+              if (shareError.name !== 'AbortError') {
+                 throw shareError;
+              }
+            }
         } else {
-            // Se o navegador não suportar envio de arquivo via Share API, faz o download nativo
+            // Fallback: Download
             const url = URL.createObjectURL(pdfBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `${filename}.pdf`;
             a.click();
             URL.revokeObjectURL(url);
-            onShowToast('PDF baixado. O navegador não suporta compartilhamento direto.');
+            onShowToast('Compartilhamento não suportado. PDF baixado.');
         }
-      } catch (error) {
-        console.error('Erro ao gerar/compartilhar PDF:', error);
-        onShowToast('Erro ao gerar o PDF. Tente imprimir.');
+      } catch (error: any) {
+        console.error('Erro PDF:', error);
+        // Mostrar erro mais amigável ou o próprio erro para depuração
+        const errorMsg = error.message || 'Erro desconhecido';
+        if (errorMsg.includes('SecurityError') || errorMsg.includes('tainted')) {
+           onShowToast('Erro de permissão nas imagens (CORS). Tente imprimir.');
+        } else {
+           onShowToast(`Erro ao gerar PDF: ${errorMsg.substring(0, 30)}`);
+        }
       } finally {
         document.body.classList.remove('pdf-exporting', `print-${mode}`);
         setIsPrinting(false);
