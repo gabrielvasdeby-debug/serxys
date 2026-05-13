@@ -1587,6 +1587,8 @@ export default function OrdemServicoModule({
     setWhatsappPrompt({ isOpen: false, newStatus: '' });
   };
 
+  const [isPrinting, setIsPrinting] = useState(false);
+
   const printOrder = useMemo(() => {
     return localOrder || {
       id: 'preview',
@@ -1649,6 +1651,7 @@ export default function OrdemServicoModule({
     document.body.classList.add(`print-${printMode}`);
 
     // Pequeno delay para garantir que o Portal renderizou e o browser processou as classes CSS
+    setIsPrinting(true);
     const timer = setTimeout(() => {
       window.print();
       
@@ -1656,18 +1659,44 @@ export default function OrdemServicoModule({
       document.body.classList.remove(`print-${printMode}`);
       document.title = originalTitle;
       setPrintMode(null);
+      setIsPrinting(false);
       
       if (signatureMode === 'manual' && (printMode === 'a4' || printMode === 'thermal')) {
         setTimeout(() => setIsScanReminderOpen(true), 1000);
       }
-    }, 500);
+    }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      setIsPrinting(false);
+    };
   }, [printMode, localOrder, printOrder.osNumber, companySettings.name, signatureMode]);
 
   return (
     <>
       <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50 no-print">
+        {/* Loading de Impressão */}
+        <AnimatePresence>
+          {isPrinting && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-16 h-16">
+                  <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-t-emerald-500 rounded-full animate-spin"></div>
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-black uppercase tracking-widest text-xs">Preparando Documento</p>
+                  <p className="text-zinc-500 text-[10px] uppercase mt-1">Aguarde um instante...</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div className="nova-os-ui flex flex-col flex-1 h-full w-full overflow-hidden">
         {/* Header */}
       <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
@@ -3326,7 +3355,7 @@ export default function OrdemServicoModule({
             />
           </div>
         </>,
-        document.getElementById('print-portal-root') || document.body
+        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.body) : null as any
       )}
 
       <AnimatePresence>
