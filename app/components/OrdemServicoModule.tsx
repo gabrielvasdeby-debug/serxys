@@ -738,7 +738,10 @@ export default function OrdemServicoModule({
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isScanReminderOpen, setIsScanReminderOpen] = useState(false);
-  const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | null>(null);
+  const [orderToQuickStatus, setOrderToQuickStatus] = useState<Order | null>(null);
+  const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo' | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [persistedPrintData, setPersistedPrintData] = useState<{ order: Order, customer: any } | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const tabsScrollRef = useRef<HTMLDivElement>(null);
@@ -1590,8 +1593,6 @@ export default function OrdemServicoModule({
     setWhatsappPrompt({ isOpen: false, newStatus: '' });
   };
 
-  const [isPrinting, setIsPrinting] = useState(false);
-
   const printOrder = useMemo(() => {
     // Basic order structure using current state values
     // This ensures that even when editing, the print/preview reflects what's on screen
@@ -1641,44 +1642,53 @@ export default function OrdemServicoModule({
     } as Order;
   }, [printOrder, localOrder, service, checklist, osSettings.printTerms]);
 
-  // Efeito para gerenciar a impressão com delay para estabilidade
+  // Mantém os dados de impressão sempre atualizados e no DOM, para evitar atrasos na renderização no Mobile
   useEffect(() => {
-    if (!printMode) return;
+    if (selectedCustomer && printOrder) {
+      setPersistedPrintData({ order: { ...printOrder }, customer: { ...selectedCustomer } });
+    }
+  }, [printOrder, selectedCustomer]);
+
+  // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
+  const triggerPrint = (mode: 'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo') => {
+    if (!persistedPrintData) {
+      onShowToast('Dados insuficientes para impressão.');
+      return;
+    }
 
     const originalTitle = document.title;
-    const osNumber = (localOrder ? localOrder.osNumber : printOrder.osNumber).toString().padStart(4, '0');
+    const osNumber = (persistedPrintData.order.osNumber || 0).toString().padStart(4, '0');
     const companyName = companySettings.name || 'Servyx';
-    const isWarranty = printMode.includes('warranty');
+    const isWarranty = mode.includes('warranty');
     
     document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isWarranty ? 'Garantia' : 'OS'}_${osNumber}`;
     
     // Limpa classes anteriores
-    document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal');
+    document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
     
     // Adiciona a classe atual
-    document.body.classList.add(`print-${printMode}`);
+    document.body.classList.add(`print-${mode}`);
 
-    // Pequeno delay para garantir que o Portal renderizou e o browser processou as classes CSS
+    // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
+    window.scrollTo(0, 0);
+
     setIsPrinting(true);
-    const timer = setTimeout(() => {
+    
+    // Timeout ultra curto (150ms) apenas para o navegador aplicar a classe CSS
+    // Isso é vital para o iOS/Safari não bloquear o window.print()
+    setTimeout(() => {
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
-      document.body.classList.remove(`print-${printMode}`);
+      document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-      setPrintMode(null);
       setIsPrinting(false);
       
-      if (signatureMode === 'manual' && (printMode === 'a4' || printMode === 'thermal')) {
+      if (signatureMode === 'manual' && (mode === 'a4' || mode === 'thermal')) {
         setTimeout(() => setIsScanReminderOpen(true), 1000);
       }
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-      setIsPrinting(false);
-    };
-  }, [printMode, localOrder, printOrder, companySettings.name, signatureMode]);
+    }, 150);
+  };
 
   return (
     <>
@@ -3220,7 +3230,7 @@ export default function OrdemServicoModule({
                           <span className="sm:hidden">WhatsApp</span>
                         </button>
                         <button 
-                          onClick={() => setPrintMode('a4')}
+                          onClick={() => triggerPrint('a4')}
                           disabled={isSaving}
                           className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
                           title="Imprimir A4"
@@ -3229,7 +3239,7 @@ export default function OrdemServicoModule({
                           <span className="sm:hidden">A4</span>
                         </button>
                         <button 
-                          onClick={() => setPrintMode('thermal')}
+                          onClick={() => triggerPrint('thermal')}
                           disabled={isSaving}
                           className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
                           title="Imprimir Cupom"
@@ -3328,44 +3338,44 @@ export default function OrdemServicoModule({
 
       {/* ===== CONTAINERS DE IMPRESSÃO ===== */}
       {/* Usamos Portal para que fiquem fora da estrutura principal do app e não sejam ocultados pelo display:none do CSS de impressão */}
-      {selectedCustomer && typeof document !== 'undefined' && createPortal(
+      {persistedPrintData && typeof document !== 'undefined' && createPortal(
         <>
-          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}`}>
+          <div className="print-a4-container" key={`nova-os-a4-${persistedPrintData.customer.id}`}>
             <OrderPrintTemplate 
-              order={printOrder}
-              customer={selectedCustomer}
+              order={persistedPrintData.order}
+              customer={persistedPrintData.customer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
 
-          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}`}>
+          <div className="print-thermal-container" key={`nova-os-thermal-${persistedPrintData.customer.id}`}>
             <ThermalReceiptTemplate 
-              order={printOrder}
-              customer={selectedCustomer}
+              order={persistedPrintData.order}
+              customer={persistedPrintData.customer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
 
-          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}`}>
+          <div className="print-warranty-container" key={`nova-os-warranty-${persistedPrintData.customer.id}`}>
             <WarrantyPrintTemplate 
-              order={warrantyOrder}
-              customer={selectedCustomer}
+              order={persistedPrintData.order}
+              customer={persistedPrintData.customer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
-          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}`}>
+          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${persistedPrintData.customer.id}`}>
             <WarrantyThermalTemplate 
-              order={warrantyOrder}
-              customer={selectedCustomer}
+              order={persistedPrintData.order}
+              customer={persistedPrintData.customer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
         </>,
-        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.createElement('div')) : null as any
+        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.body) : null as any
       )}
 
       <AnimatePresence>

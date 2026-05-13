@@ -451,15 +451,18 @@ export default function StatusOsModule({
     return { potentialRevenue, labLoad, avgTicket, concludedCount: concludedThisMonth.length };
   }, [orders]);
 
-  // Centralized Print Effect
-  useEffect(() => {
-    if (!printMode || !selectedOrder) return;
+  // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
+  const triggerPrint = (mode: 'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo') => {
+    if (!selectedOrder) {
+      onShowToast('Nenhuma OS selecionada.');
+      return;
+    }
 
     const originalTitle = document.title;
     const osNumber = selectedOrder.osNumber.toString().padStart(4, '0');
     const companyName = companySettings?.name || 'Servyx';
-    const isWarranty = printMode.includes('warranty');
-    const isLaudo = printMode === 'laudo';
+    const isWarranty = mode.includes('warranty');
+    const isLaudo = mode === 'laudo';
     
     document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isLaudo ? 'Laudo' : isWarranty ? 'Garantia' : 'OS'}_${osNumber}`;
     
@@ -467,24 +470,24 @@ export default function StatusOsModule({
     document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
     
     // Adiciona a classe atual
-    document.body.classList.add(`print-${printMode}`);
+    document.body.classList.add(`print-${mode}`);
+
+    // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
+    window.scrollTo(0, 0);
 
     setIsPrinting(true);
-    const timer = setTimeout(() => {
+    
+    // Timeout ultra curto (150ms) apenas para o navegador aplicar a classe CSS
+    // Isso é vital para o iOS/Safari não bloquear o window.print()
+    setTimeout(() => {
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
-      document.body.classList.remove(`print-${printMode}`);
+      document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-      setPrintMode(null);
       setIsPrinting(false);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-      setIsPrinting(false);
-    };
-  }, [printMode, selectedOrder, companySettings?.name]);
+    }, 150);
+  };
 
   // Payment State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -2498,14 +2501,14 @@ export default function StatusOsModule({
                       </button>
                     )}
                     <button 
-                      onClick={() => setPrintMode('a4')} 
+                      onClick={() => triggerPrint('a4')} 
                       disabled={isPrinting}
                       className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-[#00E676]/10 border border-[#00E676]/30 rounded-sm text-[#00E676] hover:bg-[#00E676]/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
                     >
                       <Printer size={14} /> <span className="hidden sm:inline">Imprimir A4</span><span className="sm:hidden">A4</span>
                     </button>
                     <button 
-                      onClick={() => setPrintMode('thermal')} 
+                      onClick={() => triggerPrint('thermal')} 
                       disabled={isPrinting}
                       className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-orange-500/10 border border-orange-500/30 rounded-sm text-orange-400 hover:bg-orange-500/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
                     >
@@ -3056,7 +3059,7 @@ export default function StatusOsModule({
                       <div className="flex gap-2 w-full sm:w-auto">
                         {selectedOrder.technicalReport && (
                            <button
-                             onClick={() => setPrintMode('laudo')}
+                             onClick={() => triggerPrint('laudo')}
                              className="flex-1 sm:flex-none bg-[#141414] text-white border border-zinc-700 font-black px-4 py-2.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                              translate="no"
                            >
@@ -4262,7 +4265,7 @@ export default function StatusOsModule({
                   <button
                     onClick={() => {
                       setSelectedOrder(previewOrder);
-                      setPrintMode('a4');
+                      triggerPrint('a4');
                     }}
                     className="p-2.5 bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all border border-emerald-600 flex items-center gap-2 text-xs font-black uppercase tracking-wider shadow-lg shadow-[#00E676]/20 active:scale-95"
                   >
@@ -4340,7 +4343,7 @@ export default function StatusOsModule({
             />
           </div>
         </>,
-        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.createElement('div')) : null as any
+        typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.body) : null as any
       )}
 
       {/* Loading de Impressão */}
@@ -4532,14 +4535,14 @@ export default function StatusOsModule({
 
               <div className="p-6 border-t border-zinc-200 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
-                  onClick={() => setPrintMode('warranty')}
+                  onClick={() => triggerPrint('warranty')}
                   className="flex-1 py-4 bg-[#2B323D] hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
                   <FileText size={20} />
                   Imprimir A4
                 </button>
                 <button
-                  onClick={() => setPrintMode('warranty-thermal')}
+                  onClick={() => triggerPrint('warranty-thermal')}
                   className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   <Printer size={20} />

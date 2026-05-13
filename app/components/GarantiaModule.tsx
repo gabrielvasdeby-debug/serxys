@@ -240,9 +240,12 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     });
   }, [warranties, searchQuery, statusFilter]);
 
-  // Centralized Print Effect
-  useEffect(() => {
-    if (!printMode || !selectedWarranty) return;
+  // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
+  const triggerPrint = (mode: 'warranty' | 'warranty-thermal') => {
+    if (!selectedWarranty) {
+      onShowToast('Nenhuma garantia selecionada.');
+      return;
+    }
 
     const originalTitle = document.title;
     const osNumber = selectedWarranty.os_number.toString().padStart(4, '0');
@@ -254,24 +257,23 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     document.body.classList.remove('print-warranty', 'print-warranty-thermal');
     
     // Adiciona a classe atual
-    document.body.classList.add(`print-${printMode}`);
+    document.body.classList.add(`print-${mode}`);
+    
+    // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
+    window.scrollTo(0, 0);
 
     setIsPrinting(true);
-    const timer = setTimeout(() => {
+    
+    // Timeout ultra curto (150ms)
+    setTimeout(() => {
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
-      document.body.classList.remove(`print-${printMode}`);
+      document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-      setPrintMode(null);
       setIsPrinting(false);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-      setIsPrinting(false);
-    };
-  }, [printMode, selectedWarranty, companySettings?.name]);
+    }, 150);
+  };
 
   const stats = useMemo(() => {
     return {
@@ -615,14 +617,14 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                   <>
                     <div className="flex flex-1 gap-2.5">
                       <button 
-                        onClick={() => setPrintMode('warranty')}
+                        onClick={() => triggerPrint('warranty')}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
                         <Printer size={18} className="text-zinc-400" />
                         <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">A4</span>
                       </button>
                       <button 
-                        onClick={() => setPrintMode('warranty-thermal')}
+                        onClick={() => triggerPrint('warranty-thermal')}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
                         <Printer size={18} className="text-[#00E676]" />
