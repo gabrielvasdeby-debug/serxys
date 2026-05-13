@@ -433,7 +433,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm no-print"
           >
             <motion.div
               initial={{ scale: 0.98, opacity: 0, y: 10 }}
@@ -587,8 +587,10 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                            document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
                            document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty-thermal');
                            document.body.classList.add('print-warranty');
-                           window.print();
-                           setTimeout(() => { document.title = originalTitle; }, 100);
+                           setTimeout(() => {
+                             window.print();
+                             setTimeout(() => { document.title = originalTitle; }, 100);
+                           }, 500);
                         }}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
@@ -603,8 +605,10 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                            document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
                            document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty');
                            document.body.classList.add('print-warranty-thermal');
-                           window.print();
-                           setTimeout(() => { document.title = originalTitle; }, 100);
+                           setTimeout(() => {
+                             window.print();
+                             setTimeout(() => { document.title = originalTitle; }, 100);
+                           }, 500);
                         }}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
@@ -676,31 +680,10 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
               />
             </div>
           </>,
-          document.body
+          document.getElementById('print-portal-root') || document.body
         )
       )}
 
-      <style jsx global>{`
-        @media print {
-          body.print-warranty, body.print-warranty-thermal {
-            visibility: hidden !important;
-            background: white !important;
-          }
-          body.print-warranty .print-warranty-container,
-          body.print-warranty .print-warranty-container *,
-          body.print-warranty-thermal .warranty-thermal-container,
-          body.print-warranty-thermal .warranty-thermal-container * {
-            visibility: visible !important;
-          }
-          .print-warranty-container, .warranty-thermal-container {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-          }
-          .print-warranty-container { width: 100% !important; }
-          .warranty-thermal-container { width: 80mm !important; }
-        }
-      `}</style>
     </div>
   );
 }

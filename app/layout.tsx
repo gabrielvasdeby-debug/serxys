@@ -37,7 +37,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>{children}</body>
+      <body className={inter.className} suppressHydrationWarning>
+        {children}
+        <div id="print-portal-root" className="print-portal-root"></div>
+      </body>
     </html>
   );
 }

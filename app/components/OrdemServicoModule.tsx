@@ -1660,14 +1660,14 @@ export default function OrdemServicoModule({
       if (signatureMode === 'manual' && (printMode === 'a4' || printMode === 'thermal')) {
         setTimeout(() => setIsScanReminderOpen(true), 1000);
       }
-    }, 150);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [printMode, localOrder, printOrder.osNumber, companySettings.name, signatureMode]);
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50">
+      <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50 no-print">
         <div className="nova-os-ui flex flex-col flex-1 h-full w-full overflow-hidden">
         {/* Header */}
       <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
@@ -2103,83 +2103,48 @@ export default function OrdemServicoModule({
                 </div>
               </div>
 
-              {/* Tabs Navigation */}
-              {/* MOBILE: scrollable pills (no clip-path, no negative margins) */}
-              <div ref={tabsScrollRef} className="sm:hidden relative mb-6 w-full overflow-x-auto no-scrollbar">
-                <div className="flex gap-2 pb-1 w-max">
+              {/* Unified Stepper Navigation (Responsive) */}
+              <div ref={tabsScrollRef} className="relative mb-6 w-full overflow-x-auto no-scrollbar pb-1">
+                <div className="flex gap-1 min-w-max sm:min-w-0 sm:w-full">
                   {[
                     { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
                     { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
                     { id: 'SERVICE', label: 'Serviço', icon: FileText },
                     { id: 'FINANCIAL', label: 'Financeiro', icon: Banknote },
                     { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
-                  ].map((tab) => {
+                  ].map((tab, idx, arr) => {
                     const isSelected = activeTab === tab.id;
                     return (
                       <button
                         key={tab.id}
                         data-selected={isSelected}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex flex-col items-center justify-center gap-1 h-14 px-4 rounded-md border transition-all duration-200 shrink-0 ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 h-10 sm:h-12 px-4 sm:px-0 relative ${idx !== 0 ? '-ml-3 sm:-ml-4' : ''} transition-all duration-300 group ${
                           isSelected
-                            ? 'bg-[#00E676]/20 border-[#00E676]/60 text-[#00E676] shadow-[0_0_12px_rgba(0,230,118,0.15)]'
-                            : 'bg-[#141414] border-zinc-800 text-zinc-500'
+                            ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]'
+                            : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
                         }`}
+                        style={{
+                          clipPath: idx === 0
+                            ? 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 0% 50%)'
+                            : idx === arr.length - 1
+                              ? 'polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 10px 50%)'
+                              : 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%)',
+                          zIndex: isSelected ? 50 : arr.length - idx
+                        }}
                       >
-                        <tab.icon size={15} />
-                        <span className="text-[9px] font-black uppercase tracking-wider whitespace-nowrap">{tab.label}</span>
-                        {isSelected && (
-                          <motion.div
-                            layoutId="activeTabIndicatorMobile"
-                            className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#00E676] rounded-full"
-                          />
-                        )}
+                        <div className={`transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                          <tab.icon size={14} className="sm:w-4 sm:h-4" />
+                        </div>
+                        <span className={`text-[8px] sm:text-[10px] uppercase font-black tracking-widest transition-colors ${
+                          isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
+                        }`}>
+                          {tab.label}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
-
-              {/* DESKTOP: stepper with clip-path */}
-              <div className="hidden sm:flex relative mb-6 gap-1 pb-1">
-                {[
-                  { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
-                  { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
-                  { id: 'SERVICE', label: 'Serviço', icon: FileText },
-                  { id: 'FINANCIAL', label: 'Financeiro', icon: Banknote },
-                  { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
-                ].map((tab, idx, arr) => {
-                  const isSelected = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      data-selected={isSelected}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex-1 flex flex-row items-center justify-center gap-2 h-12 relative ${idx !== 0 ? '-ml-4' : ''} transition-all duration-300 group ${
-                        isSelected
-                          ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]'
-                          : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
-                      }`}
-                      style={{
-                        clipPath: idx === 0
-                          ? 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 0% 50%)'
-                          : idx === arr.length - 1
-                            ? 'polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 10px 50%)'
-                            : 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%)',
-                        zIndex: isSelected ? 50 : arr.length - idx
-                      }}
-                    >
-                      <div className={`transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                        <tab.icon size={16} />
-                      </div>
-                      <span className={`text-[10px] uppercase font-black tracking-widest transition-colors ${
-                        isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
-                      }`}>
-                        {tab.label}
-                      </span>
-                    </button>
-                  );
-                })}
               </div>
 
               <div className="space-y-4 sm:space-y-6">
@@ -2911,12 +2876,12 @@ export default function OrdemServicoModule({
                   </section>
 
 
-                  <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
-                     <button onClick={() => setActiveTab('CHECKLIST')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                  <div className="flex justify-between gap-3 mt-6">
+                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-4 sm:px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                       Avançar para Financeiro &rarr;
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-4 sm:px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                       Avançar &rarr;
                      </button>
                   </div>
                 </>
@@ -3168,15 +3133,15 @@ export default function OrdemServicoModule({
                         </div>
                       )}
                     </section>
-                  
-                  <div className="flex flex-col sm:flex-row justify-between items-center mt-8 py-4 border-t border-zinc-800/50 gap-6">
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+
+                    <div className="flex flex-col sm:flex-row justify-between items-center mt-8 py-6 border-t border-zinc-800/50 gap-6">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3.5 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
  
-                     <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto bg-zinc-900/50 p-1.5 rounded-md border border-white/5">
-                      {/* Communication Group */}
-                      <div className="flex items-center bg-black/40 rounded-sm p-1 border border-white/5 gap-1">
+                     <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
+                      {/* Secondary Actions Group */}
+                      <div className="flex items-center justify-center bg-zinc-900/50 p-1.5 rounded-md border border-white/5 gap-1 w-full sm:w-auto">
                         <button 
                           onClick={() => {
                             if (!selectedCustomer?.whatsapp) {
@@ -3211,78 +3176,45 @@ export default function OrdemServicoModule({
 
                             setWhatsappModal({ isOpen: true, message, customerPhone: selectedCustomer.whatsapp });
                           }}
-                          className="px-3 h-8 flex items-center gap-2 rounded-sm text-emerald-400 hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
+                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-emerald-400 hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
+                          title="Enviar via WhatsApp"
                         >
                           <MessageCircle size={14} />
-                          WhatsApp
+                          <span className="sm:hidden">WhatsApp</span>
                         </button>
-                        <button 
-                          onClick={() => {
-                            if (!selectedCustomer?.email) {
-                              onShowToast('Cliente sem email cadastrado');
-                              return;
-                            }
-                            window.location.href = `mailto:${selectedCustomer.email}`;
-                          }}
-                          className="px-3 h-8 flex items-center gap-2 rounded-sm text-blue-400 hover:bg-blue-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
-                        >
-                          <Mail size={14} />
-                          Email
-                        </button>
-                      </div>
-
-                      {/* Printing Group */}
-                      <div className="flex items-center bg-black/40 rounded-sm p-1 border border-white/5 gap-1">
                         <button 
                           onClick={() => setPrintMode('a4')}
-                          className="px-3 h-8 flex items-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
+                          title="Imprimir A4"
                         >
                           <Printer size={14} />
-                          A4
+                          <span className="sm:hidden">A4</span>
                         </button>
                         <button 
                           onClick={() => setPrintMode('thermal')}
-                          className="px-3 h-8 flex items-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
+                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
+                          title="Imprimir Cupom"
                         >
                           <Printer size={14} />
-                          Cupom
+                          <span className="sm:hidden">Cupom</span>
                         </button>
                       </div>
-
-                      {localOrder && ['Pronto', 'Entregue'].includes(localOrder.status) && (
-                        <div className="flex items-center bg-black/40 rounded-sm p-1 border border-white/5 gap-1">
-                          <button 
-                            onClick={() => setPrintMode('warranty')}
-                            className="px-3 h-8 flex items-center gap-2 rounded-sm text-emerald-500 hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
-                          >
-                            <ShieldCheck size={14} />
-                            Garantia A4
-                          </button>
-                          <button 
-                            onClick={() => setPrintMode('warranty-thermal')}
-                            className="px-3 h-8 flex items-center gap-2 rounded-sm text-[#00E676] hover:bg-[#00E676]/10 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5"
-                          >
-                            <ShieldCheck size={14} />
-                            Garantia Cupom
-                          </button>
-                        </div>
-                      )}
 
                       <button 
                         onClick={() => handleSaveOS()}
                         disabled={isSaving}
-                        className="px-8 h-10 rounded-sm bg-[#00E676] hover:bg-[#00C853] text-black font-black text-[11px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full sm:w-auto px-10 h-12 rounded-sm bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Salvar OS
+                        {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                        Finalizar OS
                       </button>
                     </div>
                   </div>
-                </>
+                  </>
+                </div>
               )}
 
               <div className="pb-32 sm:pb-8" />
-            </div>
           </motion.div>
         )}
       </div>
@@ -3394,7 +3326,7 @@ export default function OrdemServicoModule({
             />
           </div>
         </>,
-        document.body
+        document.getElementById('print-portal-root') || document.body
       )}
 
       <AnimatePresence>
@@ -3491,7 +3423,7 @@ export default function OrdemServicoModule({
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
       </div>
     </>
   );

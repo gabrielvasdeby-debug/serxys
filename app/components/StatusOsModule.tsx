@@ -2995,8 +2995,14 @@ export default function StatusOsModule({
                                document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Laudo_${osNumber}`;
                                document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal');
                                document.body.classList.add('print-laudo');
-                               window.print();
-                               setTimeout(() => { document.title = originalTitle; }, 100);
+                               // Pequeno delay para garantir que o Portal renderizou e o browser processou as classes CSS
+                               setTimeout(() => {
+                                 window.print();
+                                 setTimeout(() => { 
+                                   document.body.classList.remove('print-laudo');
+                                   document.title = originalTitle; 
+                                 }, 100);
+                               }, 500);
                              }}
                              className="flex-1 sm:flex-none bg-[#141414] text-white border border-zinc-700 font-black px-4 py-2.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                              translate="no"
@@ -4218,7 +4224,7 @@ export default function StatusOsModule({
                         setTimeout(() => { 
                           document.title = originalTitle; 
                         }, 100);
-                      }, 150);
+                      }, 500);
                     }}
                     className="p-2.5 bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all border border-emerald-600 flex items-center gap-2 text-xs font-black uppercase tracking-wider shadow-lg shadow-[#00E676]/20 active:scale-95"
                   >
@@ -4296,7 +4302,7 @@ export default function StatusOsModule({
             />
           </div>
         </>,
-        document.body
+        document.getElementById('print-portal-root') || document.body
       )}
 
       {/* Document Hub Modal */}
@@ -4472,8 +4478,10 @@ export default function StatusOsModule({
                     document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_A4_${osNumber}`;
                     document.body.classList.remove('print-thermal', 'print-a4', 'print-warranty-thermal', 'print-laudo');
                     document.body.classList.add('print-warranty');
-                    window.print();
-                    setTimeout(() => { document.title = originalTitle; }, 100);
+                    setTimeout(() => {
+                      window.print();
+                      setTimeout(() => { document.title = originalTitle; }, 100);
+                    }, 500);
                   }}
                   className="flex-1 py-4 bg-[#2B323D] hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
@@ -4488,8 +4496,10 @@ export default function StatusOsModule({
                     document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_Cupom_${osNumber}`;
                     document.body.classList.remove('print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-a4');
                     document.body.classList.add('print-warranty-thermal');
-                    window.print();
-                    setTimeout(() => { document.title = originalTitle; }, 100);
+                    setTimeout(() => {
+                      window.print();
+                      setTimeout(() => { document.title = originalTitle; }, 100);
+                    }, 500);
                   }}
                   className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
