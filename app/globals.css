@@ -374,6 +374,50 @@ textarea {
   }
 }
 
+/* ──────────────────────────────────────────
+   PDF EXPORTING (Same as print but active for JS html2canvas)
+────────────────────────────────────────── */
+body.pdf-exporting > *:not(.print-portal-root) {
+  display: none !important;
+}
+
+body.pdf-exporting {
+  background: white !important;
+  color: black !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+body.pdf-exporting .print-portal-root {
+  display: block !important;
+  visibility: visible !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  z-index: 99999 !important;
+}
+
+body.pdf-exporting .print-portal-root > div {
+  display: none !important;
+}
+
+body.pdf-exporting.print-a4 .print-a4-container,
+body.pdf-exporting.print-thermal .print-thermal-container,
+body.pdf-exporting.print-warranty .print-warranty-container,
+body.pdf-exporting.print-warranty-thermal .warranty-thermal-container,
+body.pdf-exporting.print-laudo .print-laudo-container {
+  display: block !important;
+  visibility: visible !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.pdf-exporting .print-portal-root * {
+  visibility: visible !important;
+}
+
 @page standard-a4 {
   size: A4;
   margin: 0;

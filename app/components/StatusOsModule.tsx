@@ -508,7 +508,7 @@ export default function StatusOsModule({
 
     // Prepare DOM
     document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
-    document.body.classList.add(`print-${mode}`);
+    document.body.classList.add('pdf-exporting', `print-${mode}`);
     window.scrollTo(0, 0);
     void document.body.offsetHeight;
 
@@ -539,6 +539,10 @@ export default function StatusOsModule({
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         
+        if (!isFinite(pdfHeight) || pdfHeight === 0) {
+           throw new Error("Invalid canvas height");
+        }
+        
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         
         const pdfBlob = pdf.output('blob');
@@ -564,7 +568,7 @@ export default function StatusOsModule({
         console.error('Erro ao gerar/compartilhar PDF:', error);
         onShowToast('Erro ao gerar o PDF. Tente imprimir.');
       } finally {
-        document.body.classList.remove(`print-${mode}`);
+        document.body.classList.remove('pdf-exporting', `print-${mode}`);
         setIsPrinting(false);
       }
     }, 400);
