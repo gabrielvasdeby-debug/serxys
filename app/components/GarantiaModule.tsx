@@ -320,6 +320,9 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
             format: 'a4'
         });
         
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
         if (!isFinite(pdfHeight) || pdfHeight <= 0) {
            throw new Error("Tamanho de imagem inválido");
         }

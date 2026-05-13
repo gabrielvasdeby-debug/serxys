@@ -539,8 +539,8 @@ export default function StatusOsModule({
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         
-        if (!isFinite(pdfHeight) || pdfHeight === 0) {
-           throw new Error("Invalid canvas height");
+        if (!isFinite(pdfHeight) || pdfHeight <= 0) {
+           throw new Error("Tamanho de imagem inválido");
         }
         
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
