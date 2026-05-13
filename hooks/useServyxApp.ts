@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '../app/supabase';
 import { 
   View, 
@@ -22,6 +22,8 @@ export function useServyxApp() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const isPopState = useRef(false);
+
   
   // Auto-clear toast messages after 4 seconds
   useEffect(() => {
@@ -51,6 +53,67 @@ export function useServyxApp() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cashSessionsCount, setCashSessionsCount] = useState(0);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  // Synchronize state with Browser History (Back Button Support)
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.view) {
+        isPopState.current = true;
+        setView(event.state.view);
+        if (event.state.settingsSection !== undefined) setSettingsRedirectSection(event.state.settingsSection);
+        if (event.state.caixaView !== undefined) setCaixaInitialView(event.state.caixaView);
+        if (event.state.orderId !== undefined) setInitialOrderId(event.state.orderId);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // Initial state setup to prevent "exiting the site" on first back button press
+    const initialState = window.history.state;
+    if (initialState && initialState.view) {
+      // If we have a state from a previous session (refresh), we might want to restore it
+      // but only after auth is ready. For now, let's just make sure we don't overwrite it.
+    } else {
+      window.history.replaceState({ view: 'LOGIN' }, '');
+    }
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (isPopState.current) {
+      isPopState.current = false;
+      return;
+    }
+
+    const currentState = window.history.state;
+    if (currentState?.view === view && 
+        currentState?.settingsSection === settingsRedirectSection &&
+        currentState?.caixaView === caixaInitialView &&
+        currentState?.orderId === initialOrderId) {
+      return;
+    }
+
+    const state = { 
+      view, 
+      settingsSection: settingsRedirectSection,
+      caixaView: caixaInitialView,
+      orderId: initialOrderId
+    };
+
+    // Decide whether to push a new entry or replace the current one
+    // We push for modules and sub-views to allow "going back"
+    // We replace for transitional views like LOGIN/PROFILES to avoid cluttering history
+    const isTransitional = ['LOGIN', 'REGISTER', 'PROFILES', 'PIN_ENTRY', 'DASHBOARD'].includes(view);
+    
+    if (isTransitional) {
+      // If we are moving between transitional views, we replace
+      // This ensures that LOGIN -> PROFILES -> DASHBOARD only results in ONE history entry
+      window.history.replaceState(state, '');
+    } else {
+      window.history.pushState(state, '');
+    }
+  }, [view, settingsRedirectSection, caixaInitialView, initialOrderId]);
 
   const unreadNotificationsCount = useMemo(() => notifications.filter(n => !n.isRead).length, [notifications]);
 
