@@ -277,7 +277,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   };
 
   // Função para compartilhar o documento via API nativa (Mobile)
-  const handleSharePDF = async (mode: 'warranty' = 'warranty') => {
+  const handleSharePDF = async () => {
     if (!selectedWarranty || !selectedWarrantyData) {
       onShowToast('Selecione uma garantia primeiro.');
       return;
@@ -288,24 +288,9 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumberFormatted}`;
 
     setIsPrinting(true);
-
     try {
-      // 1. Create off-screen container visible to html2canvas
-      const offscreen = document.createElement('div');
-      offscreen.style.cssText = `
-        position: fixed;
-        left: -9999px;
-        top: 0;
-        width: 794px;
-        background: white;
-        z-index: -1;
-        overflow: visible;
-      `;
-      document.body.appendChild(offscreen);
-
-      // 2. Render template
-      const { createRoot } = await import('react-dom/client');
       const React = await import('react');
+      const { generateAndSharePDF } = await import('../utils/generatePDF');
       const { default: WarrantyPrintTemplate } = await import('./WarrantyPrintTemplate');
 
       const templateElement = React.createElement(WarrantyPrintTemplate, {
@@ -316,53 +301,10 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         isPreview: false,
       });
 
-      const root = createRoot(offscreen);
-      root.render(templateElement);
-
-      // 3. Wait for React to fully render
-      await new Promise<void>(resolve => setTimeout(resolve, 800));
-
-      // 4. Capture with html2canvas
-      const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(offscreen, {
-        scale: 1.5, useCORS: true, allowTaint: false, logging: false,
-        width: 794, backgroundColor: '#ffffff',
-      });
-
-      // 5. Cleanup
-      root.unmount();
-      document.body.removeChild(offscreen);
-
-      // 6. Generate PDF
-      const imgData = canvas.toDataURL('image/jpeg', 0.85);
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      if (!isFinite(pdfHeight) || pdfHeight <= 0) throw new Error('Tamanho de imagem inválido');
-
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      const pdfBlob = pdf.output('blob');
-      const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
-
-      // 7. Share or download
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: filename, text: `Segue o termo de garantia: ${filename}` });
-        } catch (shareError: any) {
-          if (shareError.name !== 'AbortError') throw shareError;
-        }
-      } else {
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `${filename}.pdf`; a.click();
-        URL.revokeObjectURL(url);
-        onShowToast('PDF baixado com sucesso!');
-      }
+      await generateAndSharePDF(templateElement, filename, onShowToast);
     } catch (error: any) {
       console.error('Erro PDF:', error);
-      onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 40)}`);
+      onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
     } finally {
       setIsPrinting(false);
     }
