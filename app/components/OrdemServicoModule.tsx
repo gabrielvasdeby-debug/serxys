@@ -3211,8 +3211,8 @@ export default function OrdemServicoModule({
                     </div>
                   </div>
                   </React.Fragment>
-                </div>
-              )}
+                )}
+              </div>
 
               <div className="pb-32 sm:pb-8" />
           </motion.div>
