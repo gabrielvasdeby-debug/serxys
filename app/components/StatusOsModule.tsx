@@ -475,6 +475,9 @@ export default function StatusOsModule({
     // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
     window.scrollTo(0, 0);
 
+    // Força o navegador a recalcular o layout (ajuda no Mobile Chrome/Safari a aplicar o CSS display:block antes do print)
+    void document.body.offsetHeight;
+
     // Evita re-render massivo do React antes da impressão
     // Timeout otimizado (400ms)
     setTimeout(() => {

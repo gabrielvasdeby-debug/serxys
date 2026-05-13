@@ -741,7 +741,6 @@ export default function OrdemServicoModule({
   const [orderToQuickStatus, setOrderToQuickStatus] = useState<Order | null>(null);
   const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo' | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
-  const [persistedPrintData, setPersistedPrintData] = useState<{ order: Order, customer: any } | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const tabsScrollRef = useRef<HTMLDivElement>(null);
@@ -1642,22 +1641,15 @@ export default function OrdemServicoModule({
     } as Order;
   }, [printOrder, localOrder, service, checklist, osSettings.printTerms]);
 
-  // Mantém os dados de impressão sempre atualizados e no DOM, para evitar atrasos na renderização no Mobile
-  useEffect(() => {
-    if (selectedCustomer && printOrder) {
-      setPersistedPrintData({ order: { ...printOrder }, customer: { ...selectedCustomer } });
-    }
-  }, [printOrder, selectedCustomer]);
-
   // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
   const triggerPrint = (mode: 'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo') => {
-    if (!persistedPrintData) {
-      onShowToast('Dados insuficientes para impressão.');
+    if (!selectedCustomer) {
+      onShowToast('Selecione um cliente para imprimir.');
       return;
     }
 
     const originalTitle = document.title;
-    const osNumber = (persistedPrintData.order.osNumber || 0).toString().padStart(4, '0');
+    const osNumber = (printOrder.osNumber || 0).toString().padStart(4, '0');
     const companyName = companySettings.name || 'Servyx';
     const isWarranty = mode.includes('warranty');
     
@@ -1672,11 +1664,10 @@ export default function OrdemServicoModule({
     // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
     window.scrollTo(0, 0);
 
-    // Evitamos setIsPrinting(true) ANTES do timeout no Mobile para não causar um re-render massivo do React
-    // que pode bloquear a main thread e atrasar a aplicação do CSS do Portal
-    
-    // Timeout otimizado (400ms): Dá tempo suficiente para o navegador recalcular o layout CSS 
-    // do Portal oculto, mas se mantém dentro do limite seguro de "user gesture" do Safari (~1000ms)
+    // Força o navegador a recalcular o layout (ajuda no Mobile Chrome/Safari a aplicar o CSS display:block antes do print)
+    void document.body.offsetHeight;
+
+    // Timeout otimizado (400ms): Dá tempo suficiente para o navegador renderizar o Portal
     setTimeout(() => {
       window.print();
       
@@ -3338,38 +3329,38 @@ export default function OrdemServicoModule({
 
       {/* ===== CONTAINERS DE IMPRESSÃO ===== */}
       {/* Usamos Portal para que fiquem fora da estrutura principal do app e não sejam ocultados pelo display:none do CSS de impressão */}
-      {persistedPrintData && typeof document !== 'undefined' && createPortal(
+      {selectedCustomer && typeof document !== 'undefined' && createPortal(
         <>
-          <div className="print-a4-container" key={`nova-os-a4-${persistedPrintData.customer.id}`}>
+          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}`}>
             <OrderPrintTemplate 
-              order={persistedPrintData.order}
-              customer={persistedPrintData.customer}
+              order={printOrder}
+              customer={selectedCustomer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
 
-          <div className="print-thermal-container" key={`nova-os-thermal-${persistedPrintData.customer.id}`}>
+          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}`}>
             <ThermalReceiptTemplate 
-              order={persistedPrintData.order}
-              customer={persistedPrintData.customer}
+              order={printOrder}
+              customer={selectedCustomer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
 
-          <div className="print-warranty-container" key={`nova-os-warranty-${persistedPrintData.customer.id}`}>
+          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}`}>
             <WarrantyPrintTemplate 
-              order={persistedPrintData.order}
-              customer={persistedPrintData.customer}
+              order={warrantyOrder}
+              customer={selectedCustomer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
           </div>
-          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${persistedPrintData.customer.id}`}>
+          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}`}>
             <WarrantyThermalTemplate 
-              order={persistedPrintData.order}
-              customer={persistedPrintData.customer}
+              order={warrantyOrder}
+              customer={selectedCustomer}
               companySettings={companySettings}
               osSettings={osSettings}
             />
