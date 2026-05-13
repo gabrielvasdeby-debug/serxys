@@ -53,16 +53,28 @@ export function useServyxApp() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cashSessionsCount, setCashSessionsCount] = useState(0);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const authStateRef = useRef({ selectedProfile, isAuthReady });
+
+  useEffect(() => {
+    authStateRef.current = { selectedProfile, isAuthReady };
+  }, [selectedProfile, isAuthReady]);
 
   // Synchronize state with Browser History (Back Button Support)
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
+      const { selectedProfile: currentProfile, isAuthReady: currentAuth } = authStateRef.current;
+
+      // If we have state, restore it. If not, it means we went back to the initial entry.
       if (event.state && event.state.view) {
         isPopState.current = true;
         setView(event.state.view);
         if (event.state.settingsSection !== undefined) setSettingsRedirectSection(event.state.settingsSection);
         if (event.state.caixaView !== undefined) setCaixaInitialView(event.state.caixaView);
         if (event.state.orderId !== undefined) setInitialOrderId(event.state.orderId);
+      } else if (currentAuth) {
+        // Fallback to Dashboard if we go back beyond our pushed states but are still authenticated
+        isPopState.current = true;
+        setView(currentProfile ? 'DASHBOARD' : 'LOGIN');
       }
     };
 
@@ -74,7 +86,7 @@ export function useServyxApp() {
       // If we have a state from a previous session (refresh), we might want to restore it
       // but only after auth is ready. For now, let's just make sure we don't overwrite it.
     } else {
-      window.history.replaceState({ view: 'LOGIN' }, '');
+      window.history.replaceState({ view: 'LOGIN' }, '', window.location.href);
     }
 
     return () => window.removeEventListener('popstate', handlePopState);
@@ -109,9 +121,9 @@ export function useServyxApp() {
     if (isTransitional) {
       // If we are moving between transitional views, we replace
       // This ensures that LOGIN -> PROFILES -> DASHBOARD only results in ONE history entry
-      window.history.replaceState(state, '');
+      window.history.replaceState(state, '', window.location.href);
     } else {
-      window.history.pushState(state, '');
+      window.history.pushState(state, '', window.location.href);
     }
   }, [view, settingsRedirectSection, caixaInitialView, initialOrderId]);
 
