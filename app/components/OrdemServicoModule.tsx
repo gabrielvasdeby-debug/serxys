@@ -6,7 +6,7 @@ import {
   ArrowLeft, Search, Plus, User, Smartphone, 
   CheckCircle2, AlertCircle, AlertTriangle, Save, Printer, MessageCircle,
   Check, X, Banknote, FileText, PenTool, Grid, Eye, Trash2, Camera, UploadCloud, Loader2, ShieldCheck, Mail, Pencil,
-  Shield, Hash, Key, Lock, Home, ChevronLeft
+  Shield, Hash, Key, Lock, Home, ChevronLeft, Share2
 } from 'lucide-react';
 import { Customer, DeviceType } from './ClientesModule';
 import { Transaction } from './CaixaModule';
@@ -1681,6 +1681,40 @@ export default function OrdemServicoModule({
     }, 400);
   };
 
+  // Função para compartilhar o documento via API nativa (Mobile)
+  const handleSharePDF = async () => {
+    const orderId = localOrder?.id;
+    if (!orderId) {
+      onShowToast('Salve a OS primeiro para gerar o link de compartilhamento.');
+      return;
+    }
+
+    const osNumberFormatted = (localOrder?.osNumber || 0).toString().padStart(4, '0');
+    const portalUrl = companySettings.publicSlug 
+      ? `${window.location.origin}/${companySettings.publicSlug}/${orderId}`
+      : `${window.location.origin}/os/${orderId}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `OS ${osNumberFormatted} - ${companySettings.name}`,
+          text: `Confira o documento da Ordem de Serviço ${osNumberFormatted}:`,
+          url: portalUrl,
+        });
+      } catch (err) {
+        console.error('Erro ao compartilhar:', err);
+      }
+    } else {
+      // Fallback: Copiar para área de transferência
+      try {
+        await navigator.clipboard.writeText(portalUrl);
+        onShowToast('Link do documento copiado para a área de transferência!');
+      } catch (err) {
+        onShowToast('Não foi possível compartilhar ou copiar o link.');
+      }
+    }
+  };
+
   return (
     <>
       <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50 no-print">
@@ -3221,13 +3255,19 @@ export default function OrdemServicoModule({
                           <span className="sm:hidden">WhatsApp</span>
                         </button>
                         <button 
-                          onClick={() => triggerPrint('a4')}
+                          onClick={() => {
+                            if (window.innerWidth < 640) {
+                              handleSharePDF();
+                            } else {
+                              triggerPrint('a4');
+                            }
+                          }}
                           disabled={isSaving}
                           className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
-                          title="Imprimir A4"
+                          title={window.innerWidth < 640 ? "Compartilhar PDF" : "Imprimir A4"}
                         >
-                          <Printer size={14} />
-                          <span className="sm:hidden">A4</span>
+                          {window.innerWidth < 640 ? <Share2 size={14} /> : <Printer size={14} />}
+                          <span className="sm:hidden">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
                         </button>
                         <button 
                           onClick={() => triggerPrint('thermal')}

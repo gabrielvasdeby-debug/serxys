@@ -9,7 +9,7 @@ import {
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
-  Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight
+  Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight, Share2
 } from 'lucide-react';
 import { Customer } from './ClientesModule';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData, BudgetData, BudgetItem, Product } from '../types';
@@ -487,6 +487,39 @@ export default function StatusOsModule({
       document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
     }, 400);
+  };
+
+  // Função para compartilhar o documento via API nativa (Mobile)
+  const handleSharePDF = async () => {
+    if (!selectedOrder) {
+      onShowToast('Selecione uma OS primeiro.');
+      return;
+    }
+
+    const osNumberFormatted = selectedOrder.osNumber.toString().padStart(4, '0');
+    const portalUrl = companySettings.publicSlug 
+      ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}`
+      : `${window.location.origin}/os/${selectedOrder.id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `OS ${osNumberFormatted} - ${companySettings.name}`,
+          text: `Confira o documento da Ordem de Serviço ${osNumberFormatted}:`,
+          url: portalUrl,
+        });
+      } catch (err) {
+        console.error('Erro ao compartilhar:', err);
+      }
+    } else {
+      // Fallback: Copiar para área de transferência
+      try {
+        await navigator.clipboard.writeText(portalUrl);
+        onShowToast('Link do documento copiado para a área de transferência!');
+      } catch (err) {
+        onShowToast('Não foi possível compartilhar ou copiar o link.');
+      }
+    }
   };
 
   // Payment State
@@ -3058,13 +3091,18 @@ export default function StatusOsModule({
                       </div>
                       <div className="flex gap-2 w-full sm:w-auto">
                         {selectedOrder.technicalReport && (
-                           <button
-                             onClick={() => triggerPrint('laudo')}
-                             className="flex-1 sm:flex-none bg-[#141414] text-white border border-zinc-700 font-black px-4 py-2.5 rounded-sm text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
-                             translate="no"
+                           <button 
+                             onClick={() => {
+                               if (window.innerWidth < 640) {
+                                 handleSharePDF();
+                               } else {
+                                 triggerPrint('a4');
+                               }
+                             }} 
+                             className="flex-1 py-3 bg-[#141414] hover:bg-zinc-800 text-white rounded-sm border border-zinc-800 transition-all flex items-center justify-center gap-2 group"
                            >
-                             <Printer size={14} />
-                             <span>PDF</span>
+                             {window.innerWidth < 640 ? <Share2 size={16} className="text-zinc-400 group-hover:text-white transition-colors" /> : <Printer size={16} className="text-zinc-400 group-hover:text-white transition-colors" />}
+                             <span className="text-[10px] font-black uppercase tracking-widest">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
                            </button>
                         )}
                         <button
@@ -4265,12 +4303,16 @@ export default function StatusOsModule({
                   <button
                     onClick={() => {
                       setSelectedOrder(previewOrder);
-                      triggerPrint('a4');
+                      if (window.innerWidth < 640) {
+                        handleSharePDF();
+                      } else {
+                        triggerPrint('a4');
+                      }
                     }}
                     className="p-2.5 bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all border border-emerald-600 flex items-center gap-2 text-xs font-black uppercase tracking-wider shadow-lg shadow-[#00E676]/20 active:scale-95"
                   >
-                    <Printer size={18} />
-                    Imprimir Documento
+                    {window.innerWidth < 640 ? <Share2 size={18} /> : <Printer size={18} />}
+                    {window.innerWidth < 640 ? "Compartilhar PDF" : "Imprimir Documento"}
                   </button>
                   <button onClick={() => setIsPreviewModalOpen(false)} className="p-2.5 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 border border-zinc-800">
                     <X size={20} />

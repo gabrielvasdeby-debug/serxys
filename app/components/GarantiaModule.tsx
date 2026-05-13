@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Search, ShieldCheck, ShieldAlert, Filter, 
   Calendar, User, Smartphone, FileText, CheckCircle2, XCircle, 
-  Eye, Printer, MessageCircle, Clock, Save, ChevronDown, Wrench, X
+  Eye, Printer, MessageCircle, Clock, Save, ChevronDown, Wrench, X, Share2
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { format, isAfter, isBefore, addDays, parseISO } from 'date-fns';
@@ -274,6 +274,39 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
       document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
     }, 400);
+  };
+
+  // Função para compartilhar o documento via API nativa (Mobile)
+  const handleSharePDF = async () => {
+    if (!selectedWarranty) {
+      onShowToast('Selecione uma garantia primeiro.');
+      return;
+    }
+
+    const osNumberFormatted = selectedWarranty.os_number.toString().padStart(4, '0');
+    const portalUrl = companySettings.publicSlug 
+      ? `${window.location.origin}/${companySettings.publicSlug}/${selectedWarranty.os_id}`
+      : `${window.location.origin}/os/${selectedWarranty.os_id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Garantia OS ${osNumberFormatted} - ${companySettings.name}`,
+          text: `Confira o termo de garantia da Ordem de Serviço ${osNumberFormatted}:`,
+          url: portalUrl,
+        });
+      } catch (err) {
+        console.error('Erro ao compartilhar:', err);
+      }
+    } else {
+      // Fallback: Copiar para área de transferência
+      try {
+        await navigator.clipboard.writeText(portalUrl);
+        onShowToast('Link da garantia copiado para a área de transferência!');
+      } catch (err) {
+        onShowToast('Não foi possível compartilhar ou copiar o link.');
+      }
+    }
   };
 
   const stats = useMemo(() => {
@@ -618,11 +651,17 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                   <>
                     <div className="flex flex-1 gap-2.5">
                       <button 
-                        onClick={() => triggerPrint('warranty')}
+                        onClick={() => {
+                          if (window.innerWidth < 640) {
+                            handleSharePDF();
+                          } else {
+                            triggerPrint('warranty');
+                          }
+                        }}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
-                        <Printer size={18} className="text-zinc-400" />
-                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">A4</span>
+                        {window.innerWidth < 640 ? <Share2 size={18} className="text-zinc-400" /> : <Printer size={18} className="text-zinc-400" />}
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
                       </button>
                       <button 
                         onClick={() => triggerPrint('warranty-thermal')}
