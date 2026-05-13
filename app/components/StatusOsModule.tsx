@@ -475,18 +475,15 @@ export default function StatusOsModule({
     // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
     window.scrollTo(0, 0);
 
-    setIsPrinting(true);
-    
-    // Timeout ultra curto (150ms) apenas para o navegador aplicar a classe CSS
-    // Isso é vital para o iOS/Safari não bloquear o window.print()
+    // Evita re-render massivo do React antes da impressão
+    // Timeout otimizado (400ms)
     setTimeout(() => {
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
       document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-      setIsPrinting(false);
-    }, 150);
+    }, 400);
   };
 
   // Payment State

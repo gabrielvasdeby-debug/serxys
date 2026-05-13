@@ -262,17 +262,15 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
     window.scrollTo(0, 0);
 
-    setIsPrinting(true);
-    
-    // Timeout ultra curto (150ms)
+    // Evita re-render massivo do React antes da impressão
+    // Timeout otimizado (400ms)
     setTimeout(() => {
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
       document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-      setIsPrinting(false);
-    }, 150);
+    }, 400);
   };
 
   const stats = useMemo(() => {

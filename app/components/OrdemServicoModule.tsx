@@ -1672,22 +1672,22 @@ export default function OrdemServicoModule({
     // Mobile Fix: Forçar o scroll do body para o topo para garantir que o absolute da portal-root funcione
     window.scrollTo(0, 0);
 
-    setIsPrinting(true);
+    // Evitamos setIsPrinting(true) ANTES do timeout no Mobile para não causar um re-render massivo do React
+    // que pode bloquear a main thread e atrasar a aplicação do CSS do Portal
     
-    // Timeout ultra curto (150ms) apenas para o navegador aplicar a classe CSS
-    // Isso é vital para o iOS/Safari não bloquear o window.print()
+    // Timeout otimizado (400ms): Dá tempo suficiente para o navegador recalcular o layout CSS 
+    // do Portal oculto, mas se mantém dentro do limite seguro de "user gesture" do Safari (~1000ms)
     setTimeout(() => {
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
       document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-      setIsPrinting(false);
       
       if (signatureMode === 'manual' && (mode === 'a4' || mode === 'thermal')) {
         setTimeout(() => setIsScanReminderOpen(true), 1000);
       }
-    }, 150);
+    }, 400);
   };
 
   return (
