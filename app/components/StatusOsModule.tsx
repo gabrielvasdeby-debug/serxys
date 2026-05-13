@@ -502,86 +502,96 @@ export default function StatusOsModule({
     const isLaudo = mode === 'laudo';
     const docType = isLaudo ? 'Laudo' : isWarranty ? 'Garantia' : 'OS';
     const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${docType}_${osNumberFormatted}`;
+    const orderCustomer = customers.find(c => c.id === selectedOrder.customerId);
 
-    // Show loading spinner
     setIsPrinting(true);
 
-    // Prepare DOM
-    document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
-    document.body.classList.add('pdf-exporting', `print-${mode}`);
-    window.scrollTo(0, 0);
-    void document.body.offsetHeight;
+    try {
+      // 1. Create off-screen container visible to html2canvas
+      const offscreen = document.createElement('div');
+      offscreen.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 794px;
+        background: white;
+        z-index: -1;
+        overflow: visible;
+      `;
+      document.body.appendChild(offscreen);
 
-    // Timeout to allow DOM/CSS to settle
-    setTimeout(async () => {
-      try {
-        const container = document.querySelector(`.print-${mode}-container`) as HTMLElement;
-        if (!container) throw new Error("Template container not found");
-        
-        // Use html2canvas to capture the DOM
-        const { default: html2canvas } = await import('html2canvas');
-        const canvas = await html2canvas(container, {
-            scale: 1.5,
-            useCORS: true,
-            allowTaint: false,
-            logging: false,
+      // 2. Render the appropriate template
+      const { createRoot } = await import('react-dom/client');
+      const React = await import('react');
+
+      let templateElement: React.ReactElement;
+      if (isLaudo) {
+        const { default: TechnicalReportPrintTemplate } = await import('./TechnicalReportPrintTemplate');
+        templateElement = React.createElement(TechnicalReportPrintTemplate, {
+          order: selectedOrder, customer: orderCustomer, companySettings, isPreview: false,
         });
-        
-        const imgData = canvas.toDataURL('image/jpeg', 0.85);
-        
-        const { jsPDF } = await import('jspdf');
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
+      } else if (isWarranty) {
+        const { default: WarrantyPrintTemplate } = await import('./WarrantyPrintTemplate');
+        templateElement = React.createElement(WarrantyPrintTemplate, {
+          order: selectedOrder, customer: orderCustomer, companySettings, osSettings, isPreview: false,
         });
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
-        if (!isFinite(pdfHeight) || pdfHeight <= 0) {
-           throw new Error("Tamanho de imagem inválido");
-        }
-        
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        
-        const pdfBlob = pdf.output('blob');
-        const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
-        
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                  files: [file],
-                  title: filename,
-                  text: `Segue o documento: ${filename}`
-              });
-            } catch (shareError: any) {
-              if (shareError.name !== 'AbortError') {
-                 throw shareError;
-              }
-            }
-        } else {
-            const url = URL.createObjectURL(pdfBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${filename}.pdf`;
-            a.click();
-            URL.revokeObjectURL(url);
-            onShowToast('Compartilhamento não suportado. PDF baixado.');
-        }
-      } catch (error: any) {
-        console.error('Erro PDF:', error);
-        const errorMsg = error.message || 'Erro desconhecido';
-        if (errorMsg.includes('SecurityError') || errorMsg.includes('tainted')) {
-           onShowToast('Erro de permissão nas imagens (CORS). Tente imprimir.');
-        } else {
-           onShowToast(`Erro ao gerar PDF: ${errorMsg.substring(0, 30)}`);
-        }
-      } finally {
-        document.body.classList.remove('pdf-exporting', `print-${mode}`);
-        setIsPrinting(false);
+      } else {
+        const { default: OrderPrintTemplate } = await import('./OrderPrintTemplate');
+        templateElement = React.createElement(OrderPrintTemplate, {
+          order: selectedOrder, customer: orderCustomer, companySettings, osSettings, isPreview: false,
+        });
       }
-    }, 400);
+
+      const root = createRoot(offscreen);
+      root.render(templateElement);
+
+      // 3. Wait for React to fully render
+      await new Promise<void>(resolve => setTimeout(resolve, 800));
+
+      // 4. Capture with html2canvas
+      const { default: html2canvas } = await import('html2canvas');
+      const canvas = await html2canvas(offscreen, {
+        scale: 1.5, useCORS: true, allowTaint: false, logging: false,
+        width: 794, backgroundColor: '#ffffff',
+      });
+
+      // 5. Cleanup
+      root.unmount();
+      document.body.removeChild(offscreen);
+
+      // 6. Generate PDF
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      if (!isFinite(pdfHeight) || pdfHeight <= 0) throw new Error('Tamanho de imagem inválido');
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      const pdfBlob = pdf.output('blob');
+      const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
+
+      // 7. Share or download
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename, text: `Segue o documento: ${filename}` });
+        } catch (shareError: any) {
+          if (shareError.name !== 'AbortError') throw shareError;
+        }
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${filename}.pdf`; a.click();
+        URL.revokeObjectURL(url);
+        onShowToast('PDF baixado com sucesso!');
+      }
+    } catch (error: any) {
+      console.error('Erro PDF:', error);
+      onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 40)}`);
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   // Payment State
