@@ -113,10 +113,10 @@ export function useServyxApp() {
       orderId: initialOrderId
     };
 
-    // Decide whether to push a new entry or replace the current one
-    // We push for modules and sub-views to allow "going back"
     // We replace for transitional views like LOGIN/PROFILES to avoid cluttering history
-    const isTransitional = ['LOGIN', 'REGISTER', 'PROFILES', 'PIN_ENTRY', 'DASHBOARD'].includes(view);
+    // DASHBOARD is now removed from this list so that it creates a history entry, 
+    // allowing users to go back TO the dashboard from modules.
+    const isTransitional = ['LOGIN', 'REGISTER', 'PROFILES', 'PIN_ENTRY'].includes(view);
     
     if (isTransitional) {
       // If we are moving between transitional views, we replace
@@ -455,11 +455,28 @@ export function useServyxApp() {
         setCompanyName('');
         loadDataFromSupabase().then((loadedProfiles: Profile[]) => {
           if (mounted) {
-            if (loadedProfiles.length === 1) {
-              setSelectedProfile(loadedProfiles[0]);
-              setView('DASHBOARD');
+            // Restore view from history if possible, otherwise use defaults
+            const historyState = window.history.state;
+            if (historyState && historyState.view && !['LOGIN', 'REGISTER', 'PROFILES'].includes(historyState.view)) {
+              isPopState.current = true;
+              setView(historyState.view);
+              if (historyState.settingsSection !== undefined) setSettingsRedirectSection(historyState.settingsSection);
+              if (historyState.caixaView !== undefined) setCaixaInitialView(historyState.caixaView);
+              if (historyState.orderId !== undefined) setInitialOrderId(historyState.orderId);
+              
+              // Still need to select the profile if it was already selected
+              if (loadedProfiles.length > 0) {
+                // For simplicity, we assume the first profile or we'd need to store profileId in state too
+                // But for now, ensuring the view is restored is the priority.
+                setSelectedProfile(loadedProfiles[0]); 
+              }
             } else {
-              setView('PROFILES');
+              if (loadedProfiles.length === 1) {
+                setSelectedProfile(loadedProfiles[0]);
+                setView('DASHBOARD');
+              } else {
+                setView('PROFILES');
+              }
             }
             setIsAuthReady(true);
           }
