@@ -3006,7 +3006,7 @@ export default function OrdemServicoModule({
 
                 {/* SIGNATURE TAB */}
                 {activeTab === 'SIGNATURE' && (
-                  <>
+                  <React.Fragment>
                   {/* Signatures */}
                   <section className="w-full bg-[#141414] border border-zinc-800 rounded-md p-3 sm:p-6 shadow-sm overflow-hidden">
                     <div className="flex items-center gap-3 mb-6">
@@ -3210,7 +3210,7 @@ export default function OrdemServicoModule({
                       </button>
                     </div>
                   </div>
-                  </>
+                  </React.Fragment>
                 </div>
               )}
 
