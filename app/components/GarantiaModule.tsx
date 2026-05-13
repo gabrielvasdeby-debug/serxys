@@ -52,6 +52,8 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   const [editForm, setEditForm] = useState<Partial<Warranty>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [relatedOrder, setRelatedOrder] = useState<any>(null);
+  const [printMode, setPrintMode] = useState<'warranty' | 'warranty-thermal' | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const selectedWarrantyData = useMemo(() => {
     if (!selectedWarranty) return null;
@@ -237,6 +239,39 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
       return matchesSearch && matchesStatus;
     });
   }, [warranties, searchQuery, statusFilter]);
+
+  // Centralized Print Effect
+  useEffect(() => {
+    if (!printMode || !selectedWarranty) return;
+
+    const originalTitle = document.title;
+    const osNumber = selectedWarranty.os_number.toString().padStart(4, '0');
+    const companyName = companySettings?.name || 'Servyx';
+    
+    document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
+    
+    // Limpa classes anteriores
+    document.body.classList.remove('print-warranty', 'print-warranty-thermal');
+    
+    // Adiciona a classe atual
+    document.body.classList.add(`print-${printMode}`);
+
+    setIsPrinting(true);
+    const timer = setTimeout(() => {
+      window.print();
+      
+      // Limpeza após fechar o diálogo de impressão
+      document.body.classList.remove(`print-${printMode}`);
+      document.title = originalTitle;
+      setPrintMode(null);
+      setIsPrinting(false);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      setIsPrinting(false);
+    };
+  }, [printMode, selectedWarranty, companySettings?.name]);
 
   const stats = useMemo(() => {
     return {
@@ -684,7 +719,6 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
           </motion.div>
         )}
       </AnimatePresence>
-      )}
 
     </div>
   );
