@@ -7,10 +7,18 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "SERVYX - Gestão de Serviços",
   description: "Sistema de gestão para prestadores de serviços",
+  applicationName: "SERVYX",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "SERVYX",
+    startupImage: "/logo.png",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    apple: "/logo.png",
   },
 };
 
