@@ -287,7 +287,6 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     const companyName = companySettings.name || 'Servyx';
     const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumberFormatted}`;
 
-    setIsPrinting(true);
     try {
       const React = await import('react');
       const { generateAndSharePDF } = await import('../utils/generatePDF');
@@ -305,8 +304,6 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
-    } finally {
-      setIsPrinting(false);
     }
   };
 

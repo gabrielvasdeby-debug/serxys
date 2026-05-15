@@ -15,7 +15,7 @@ export async function generateAndSharePDF(
   onShowToast: (msg: string) => void,
   opts: SharePDFOptions = {}
 ): Promise<void> {
-  const { width = 794, scale = 1.5, renderDelay = 1200, forceShowOnly = true } = opts;
+  const { width = 794, scale = 1.5, renderDelay = 100, forceShowOnly = true } = opts;
 
   // 1. Off-screen container (On-screen but hidden behind content to prevent mobile viewport culling)
   const offscreen = document.createElement('div');

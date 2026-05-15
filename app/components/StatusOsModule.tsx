@@ -504,7 +504,6 @@ export default function StatusOsModule({
     const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${docType}_${osNumberFormatted}`;
     const orderCustomer = customers.find(c => c.id === selectedOrder.customerId);
 
-    setIsPrinting(true);
     try {
       const React = await import('react');
       const { generateAndSharePDF } = await import('../utils/generatePDF');
@@ -531,8 +530,6 @@ export default function StatusOsModule({
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
-    } finally {
-      setIsPrinting(false);
     }
   };
 

@@ -1693,7 +1693,6 @@ export default function OrdemServicoModule({
     const isWarranty = mode.includes('warranty');
     const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isWarranty ? 'Garantia' : 'OS'}_${osNumberFormatted}`;
 
-    setIsPrinting(true);
     try {
       const React = await import('react');
       const { generateAndSharePDF } = await import('../utils/generatePDF');
@@ -1715,8 +1714,6 @@ export default function OrdemServicoModule({
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
-    } finally {
-      setIsPrinting(false);
     }
   };
 
