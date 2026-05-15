@@ -3070,11 +3070,11 @@ export default function OrdemServicoModule({
                     </div>
                   </section>
                   
-                  <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
-                     <button onClick={() => setActiveTab('SERVICE')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                  <div className="flex flex-row gap-3 mt-6">
+                     <button onClick={() => setActiveTab('SERVICE')} className="flex-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-4 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('SIGNATURE')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SIGNATURE')} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black px-4 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        Assinar OS &rarr;
                      </button>
                    </div>
