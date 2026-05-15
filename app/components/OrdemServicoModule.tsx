@@ -3077,7 +3077,29 @@ export default function OrdemServicoModule({
                     
                       {/* Signature Mode Selection */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {/* 1 - Digital */}
+                        {/* 1 - Manual */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSignatureMode('manual');
+                            setSignatures(prev => ({ ...prev, mode: 'manual', isManual: true }));
+                          }}
+                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+                            signatureMode === 'manual'
+                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
+                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                          }`}
+                        >
+                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-zinc-900 text-blue-400 shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                              <Pencil size={20} />
+                           </div>
+                           <div className="text-center relative z-10">
+                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'manual' ? 'text-white' : 'text-zinc-500'}`}>Manual</h4>
+                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Papel Físico</p>
+                           </div>
+                        </button>
+
+                        {/* 2 - Digital */}
                         <button
                           type="button"
                           onClick={() => {
@@ -3099,14 +3121,12 @@ export default function OrdemServicoModule({
                            </div>
                         </button>
 
-                        {/* 2 - Via Link (WhatsApp) */}
+                        {/* 3 - Via Link (WhatsApp) */}
                         <button
                           type="button"
                           onClick={() => {
                             setSignatureMode('remote');
                             setSignatures(prev => ({ ...prev, mode: 'remote', isManual: false }));
-                            // Prompt for technician signature immediately as requested
-                            // This will be handled by the effect or conditional rendering below
                           }}
                           className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
                             signatureMode === 'remote'
@@ -3120,28 +3140,6 @@ export default function OrdemServicoModule({
                            <div className="text-center relative z-10">
                               <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'remote' ? 'text-white' : 'text-zinc-500'}`}>Via WhatsApp</h4>
                               <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Link Remoto</p>
-                           </div>
-                        </button>
-
-                        {/* 3 - Manual */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSignatureMode('manual');
-                            setSignatures(prev => ({ ...prev, mode: 'manual', isManual: true }));
-                          }}
-                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
-                            signatureMode === 'manual'
-                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
-                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
-                          }`}
-                        >
-                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-zinc-900 text-blue-400 shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
-                              <Pencil size={20} />
-                           </div>
-                           <div className="text-center relative z-10">
-                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'manual' ? 'text-white' : 'text-zinc-500'}`}>Manual</h4>
-                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Papel Físico</p>
                            </div>
                         </button>
                       </div>
