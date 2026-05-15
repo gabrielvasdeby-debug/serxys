@@ -30,17 +30,15 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
             status === 'broken' ? 'bg-red-500 border-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 
             'bg-[#050505]/95 border-zinc-700 text-transparent hover:border-[#00E676] hover:bg-zinc-800'}
         `}>
-          {status === 'works' && <Check size={size * 0.55} strokeWidth={3} />}
-          {status === 'broken' && <X size={size * 0.55} strokeWidth={3} />}
+          {status === 'works' && <Check size={size * 0.6} strokeWidth={3.5} />}
+          {status === 'broken' && <X size={size * 0.6} strokeWidth={3.5} />}
           
-          {/* Tooltip desktop only */}
           <div className="hidden sm:block absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[#00E676] border border-[#00E676]/30 rounded shadow-2xl text-[10px] font-black uppercase whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-30 transform group-hover:-translate-y-1">
             {label}
           </div>
         </div>
         
-        {/* Label mobile - muito pequeno e discreto */}
-        <span className="sm:hidden mt-[2px] text-[5px] font-bold text-zinc-700 uppercase whitespace-nowrap leading-none">
+        <span className="sm:hidden mt-[2px] text-[4.5px] font-bold text-zinc-600 uppercase whitespace-nowrap leading-none opacity-50">
           {label.split(' ')[0]}
         </span>
       </button>
@@ -48,10 +46,9 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
   };
 
   return (
-    <div className="w-full bg-[#080808] rounded-xl sm:rounded-[2rem] py-4 px-2 sm:p-4 border border-zinc-900 shadow-2xl overflow-hidden">
-      {/* Controller wrapper - fills container without overflow */}
-      <div className="w-full mx-auto">
-        <div className="relative w-full" style={{ paddingBottom: '68%' }}>
+    <div className="w-full bg-[#080808] rounded-xl sm:rounded-[2rem] py-6 px-0 sm:p-4 border border-zinc-900 shadow-2xl overflow-hidden">
+      <div className="w-full mx-auto px-1 sm:px-0">
+        <div className="relative w-full scale-[1.12] sm:scale-100 origin-center" style={{ paddingBottom: '68%' }}>
           {/* Controller SVG */}
           <svg
             viewBox="0 0 500 350"
@@ -81,66 +78,58 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
             <circle cx="250" cy="210" r="6" fill="#0D0D0D" stroke="#1A1A1A" strokeWidth="1" />
           </svg>
 
-          {/* Buttons overlay — same coordinate system as SVG using % */}
+          {/* Buttons overlay */}
           <div className="absolute inset-0 pointer-events-none">
 
-            {/* L2 / L1 */}
-            <ButtonSpot id="L2" label="L2" style={{ left: '15%', top: '1%' }} size={34} />
-            <ButtonSpot id="L1" label="L1" style={{ left: '15%', top: '13%' }} size={34} />
+            {/* SHOULDERS */}
+            <ButtonSpot id="L2" label="L2" style={{ left: '16%', top: '2%' }} size={32} />
+            <ButtonSpot id="L1" label="L1" style={{ left: '18%', top: '12%' }} size={32} />
+            <ButtonSpot id="R2" label="R2" style={{ right: '16%', top: '2%' }} size={32} />
+            <ButtonSpot id="R1" label="R1" style={{ right: '18%', top: '12%' }} size={32} />
 
-            {/* R2 / R1 */}
-            <ButtonSpot id="R2" label="R2" style={{ right: '15%', top: '1%' }} size={34} />
-            <ButtonSpot id="R1" label="R1" style={{ right: '15%', top: '13%' }} size={34} />
+            {/* D-PAD (Aligned with left face area) */}
+            <ButtonSpot id="D-Pad Cima"     label="↑" style={{ left: '17%', top: '23%' }} size={34} />
+            <ButtonSpot id="D-Pad Baixo"    label="↓" style={{ left: '17%', top: '48%' }} size={34} />
+            <ButtonSpot id="D-Pad Esquerda" label="←" style={{ left: '8%',  top: '35.5%' }} size={34} />
+            <ButtonSpot id="D-Pad Direita"  label="→" style={{ left: '26%', top: '35.5%' }} size={34} />
 
-            {/* D-PAD — well spread */}
-            <ButtonSpot id="D-Pad Cima"     label="↑" style={{ left: '22%', top: '17%' }} size={30} />
-            <ButtonSpot id="D-Pad Baixo"    label="↓" style={{ left: '22%', top: '48%' }} size={30} />
-            <ButtonSpot id="D-Pad Esquerda" label="←" style={{ left: '9%',  top: '33%' }} size={30} />
-            <ButtonSpot id="D-Pad Direita"  label="→" style={{ left: '35%', top: '33%' }} size={30} />
+            {/* FACE BUTTONS (Aligned with right face area) */}
+            <ButtonSpot id="Triângulo"  label="▲" style={{ right: '17%', top: '23%' }} size={34} />
+            <ButtonSpot id="Cross / X"  label="✖" style={{ right: '17%', top: '48%' }} size={34} />
+            <ButtonSpot id="Quadrado"   label="■" style={{ right: '26%', top: '35.5%' }} size={34} />
+            <ButtonSpot id="Círculo"    label="●" style={{ right: '8%',  top: '35.5%' }} size={34} />
 
-            {/* FACE BUTTONS — well spread */}
-            <ButtonSpot id="Triângulo"  label="▲" style={{ right: '22%', top: '17%' }} size={30} />
-            <ButtonSpot id="Cross / X"  label="✖" style={{ right: '22%', top: '48%' }} size={30} />
-            <ButtonSpot id="Quadrado"   label="■" style={{ right: '9%',  top: '33%' }} size={30} />
-            <ButtonSpot id="Círculo"    label="●" style={{ right: '35%', top: '33%' }} size={30} />
-
-            {/* ANALOG STICKS */}
-            <ButtonSpot id="L3 (Analógico)" label="L3" style={{ left: '31%',  top: '53%' }} size={36} />
-            <ButtonSpot id="R3 (Analógico)" label="R3" style={{ right: '31%', top: '53%' }} size={36} />
+            {/* ANALOG STICKS (Aligned with L3/R3 circles) */}
+            <ButtonSpot id="L3 (Analógico)" label="L3" style={{ left: '33.4%',  top: '51.5%' }} size={38} />
+            <ButtonSpot id="R3 (Analógico)" label="R3" style={{ right: '33.4%', top: '51.5%' }} size={38} />
 
             {/* UTILITY */}
-            <ButtonSpot id="PS Button" label="Home" style={{ left: '50%', top: '53%', transform: 'translateX(-50%)' }} size={30} />
-            <ButtonSpot id="Touchpad"  label="TPAD" style={{ left: '50%', top: '22%', transform: 'translateX(-50%)' }} size={34} />
-            <ButtonSpot id="Create"    label="SHRE" style={{ left: '31%', top: '20%' }} size={24} />
-            <ButtonSpot id="Options"   label="OPTS" style={{ right: '31%', top: '20%' }} size={24} />
+            <ButtonSpot id="PS Button" label="Home" style={{ left: '50%', top: '56%', transform: 'translateX(-50%)' }} size={32} />
+            <ButtonSpot id="Touchpad"  label="TPAD" style={{ left: '50%', top: '24%', transform: 'translateX(-50%)' }} size={38} />
+            <ButtonSpot id="Create"    label="SHRE" style={{ left: '32%', top: '19%' }} size={24} />
+            <ButtonSpot id="Options"   label="OPTS" style={{ right: '32%', top: '19%' }} size={24} />
 
-            {/* CONECTOR CARGA */}
-            <ButtonSpot id="Conector Carga"  label="CRGA" style={{ left: '50%', top: '0%', transform: 'translateX(-50%)' }} size={30} />
-
-            {/* ENTRADA FONE P2 */}
-            <ButtonSpot id="Entrada Fone P2" label="FONE" style={{ left: '50%', top: '66%', transform: 'translateX(-50%)' }} size={30} />
+            {/* PORTS */}
+            <ButtonSpot id="Conector Carga"  label="CRGA" style={{ left: '50%', top: '2%', transform: 'translateX(-50%)' }} size={32} />
+            <ButtonSpot id="Entrada Fone P2" label="FONE" style={{ left: '50%', top: '68%', transform: 'translateX(-50%)' }} size={32} />
           </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-between gap-4 mt-3 px-3 border-t border-zinc-900/50 pt-3">
-        <div className="flex gap-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded bg-[#00E676]" />
-            <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">OK</span>
+      <div className="flex items-center justify-between gap-4 mt-6 px-3 border-t border-zinc-900/50 pt-3">
+        <div className="flex gap-3">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded bg-[#00E676]" />
+            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider">OK</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded bg-red-500" />
-            <span className="text-[9px] text-red-500 font-bold uppercase tracking-wider">Falha</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded bg-zinc-800 border border-zinc-700" />
-            <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider">N/T</span>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded bg-red-500" />
+            <span className="text-[8px] text-red-500 font-bold uppercase tracking-wider">Falha</span>
           </div>
         </div>
-        <div className="text-[9px] text-zinc-600 italic">
-          Toque para alternar estado
+        <div className="text-[8px] text-zinc-600 font-medium uppercase tracking-tighter">
+          Checklist Visual Interativo
         </div>
       </div>
     </div>
