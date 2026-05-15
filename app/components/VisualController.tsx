@@ -46,8 +46,8 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
   };
 
   return (
-    <div className="w-full bg-[#080808] rounded-[1.5rem] sm:rounded-[2rem] p-8 sm:p-4 border border-zinc-900 shadow-3xl overflow-hidden">
-      <div className="w-full max-w-4xl sm:max-w-2xl mx-auto overflow-visible mt-12 sm:mt-4 scale-[1.3] sm:scale-[0.8] origin-top transition-transform">
+    <div className="w-full bg-[#080808] rounded-[1.5rem] sm:rounded-[2rem] px-0 py-16 sm:p-4 border border-zinc-900 shadow-3xl overflow-hidden">
+      <div className="w-full max-w-4xl sm:max-w-2xl mx-auto overflow-visible mt-16 sm:mt-4 scale-[1.45] sm:scale-[0.8] origin-top transition-transform">
         <div className="relative aspect-[1.35/1] w-full select-none pointer-events-none">
           {/* Sharper Professional Symmetric Controller SVG */}
           <svg viewBox="0 0 500 350" className="w-full h-full drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
@@ -89,16 +89,16 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
           <ButtonSpot id="R1" label="R1" style={{ right: '16.5%', top: '10%' }} size={44} />
 
           {/* D-PAD */}
-          <ButtonSpot id="D-Pad Cima" label="DPAD ↑" style={{ left: '22%', top: '24%' }} size={40} />
-          <ButtonSpot id="D-Pad Baixo" label="DPAD ↓" style={{ left: '22%', top: '42%' }} size={40} />
-          <ButtonSpot id="D-Pad Esquerda" label="DPAD ←" style={{ left: '14%', top: '33%' }} size={40} />
-          <ButtonSpot id="D-Pad Direita" label="DPAD →" style={{ left: '30%', top: '33%' }} size={40} />
+          <ButtonSpot id="D-Pad Cima" label="DPAD ↑" style={{ left: '22%', top: '18%' }} size={40} />
+          <ButtonSpot id="D-Pad Baixo" label="DPAD ↓" style={{ left: '22%', top: '48%' }} size={40} />
+          <ButtonSpot id="D-Pad Esquerda" label="DPAD ←" style={{ left: '8%', top: '33%' }} size={40} />
+          <ButtonSpot id="D-Pad Direita" label="DPAD →" style={{ left: '36%', top: '33%' }} size={40} />
 
           {/* FACE BUTTONS */}
-          <ButtonSpot id="Triângulo" label="▲" style={{ right: '22%', top: '24%' }} size={40} />
-          <ButtonSpot id="Cross / X" label="✖" style={{ right: '22%', top: '42%' }} size={40} />
-          <ButtonSpot id="Quadrado" label="■" style={{ right: '30%', top: '33%' }} size={40} />
-          <ButtonSpot id="Círculo" label="●" style={{ right: '14%', top: '33%' }} size={40} />
+          <ButtonSpot id="Triângulo" label="▲" style={{ right: '22%', top: '18%' }} size={40} />
+          <ButtonSpot id="Cross / X" label="✖" style={{ right: '22%', top: '48%' }} size={40} />
+          <ButtonSpot id="Quadrado" label="■" style={{ right: '36%', top: '33%' }} size={40} />
+          <ButtonSpot id="Círculo" label="●" style={{ right: '8%', top: '33%' }} size={40} />
 
           {/* STICKS */}
           <ButtonSpot id="L3 (Analógico)" label="L3" style={{ left: '32.5%', top: '53%' }} size={48} />
@@ -114,7 +114,7 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
           <ButtonSpot id="Conector Carga" label="CRGA" style={{ left: '50%', top: '0%', transform: 'translateX(-50%)' }} size={40} />
           
           {/* ENTRADA FONE / P2 (New - at BOTTOM as requested) */}
-          <ButtonSpot id="Entrada Fone P2" label="FONE" style={{ left: '50%', top: '63.5%', transform: 'translateX(-50%)' }} size={40} />
+          <ButtonSpot id="Entrada Fone P2" label="FONE" style={{ left: '50%', top: '65%', transform: 'translateX(-50%)' }} size={40} />
         </div>
       </div>
 
