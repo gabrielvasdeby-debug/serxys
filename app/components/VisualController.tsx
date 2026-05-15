@@ -38,7 +38,7 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
           </div>
         </div>
         
-        <span className="sm:hidden mt-0.5 text-[6.5px] font-black text-zinc-600 uppercase whitespace-nowrap scale-[0.85]">
+        <span className="sm:hidden mt-0.5 text-[5px] font-black text-zinc-600 uppercase whitespace-nowrap opacity-70">
           {label.split(' ')[0]}
         </span>
       </button>
@@ -46,8 +46,8 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
   };
 
   return (
-    <div className="w-full bg-[#080808] rounded-[1rem] sm:rounded-[2rem] p-0 sm:p-4 border border-zinc-900 shadow-3xl overflow-hidden">
-      <div className="w-full max-w-4xl sm:max-w-2xl mx-auto overflow-visible mt-12 sm:mt-4 scale-[1.2] sm:scale-[0.8] origin-top transition-transform">
+    <div className="w-full bg-[#080808] rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-4 border border-zinc-900 shadow-3xl overflow-hidden">
+      <div className="w-full max-w-4xl sm:max-w-2xl mx-auto overflow-visible mt-8 sm:mt-4 scale-[1.1] sm:scale-[0.8] origin-top transition-transform">
         <div className="relative aspect-[1.35/1] w-full select-none pointer-events-none">
           {/* Sharper Professional Symmetric Controller SVG */}
           <svg viewBox="0 0 500 350" className="w-full h-full drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
@@ -118,7 +118,7 @@ const VisualController: React.FC<VisualControllerProps> = ({ checklist, onChange
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-12 px-2 border-t border-zinc-900/50 pt-8">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2 border-t border-zinc-900/50 pt-6">
         <div className="flex gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-[#00E676]" />
