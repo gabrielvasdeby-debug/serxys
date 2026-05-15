@@ -1817,7 +1817,7 @@ export default function OrdemServicoModule({
                       }
                       setIsCreatingCustomer(!isCreatingCustomer);
                     }}
-                    className={`flex items-center justify-center gap-2 px-6 py-3 rounded-md font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${
+                    className={`flex items-center justify-center gap-2 px-8 h-[60px] sm:h-[54px] rounded-md font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${
                       isCreatingCustomer 
                         ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700' 
                         : 'bg-[#00E676] text-black hover:bg-[#00C853] shadow-lg shadow-[#00E676]/20'
@@ -2039,11 +2039,11 @@ export default function OrdemServicoModule({
                       />
                     </div>
 
-                    <div className="flex justify-end pt-2">
+                    <div className="flex justify-end pt-4">
                       <button
                         type="submit"
                         disabled={isSavingCustomer}
-                        className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-2.5 rounded-sm font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[60px] sm:h-[54px] rounded-md font-black text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
                       >
                         {isSavingCustomer ? (
                           <>
@@ -2669,10 +2669,10 @@ export default function OrdemServicoModule({
                   </section>
                   
                   <div className="flex justify-between mt-4">
-                    <button onClick={() => setActiveTab('EQUIPMENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center gap-2">
+                    <button onClick={() => setActiveTab('EQUIPMENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[60px] sm:h-[54px] rounded-md font-black transition-all text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                       &larr; Voltar
                     </button>
-                    <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center gap-2">
+                    <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[60px] sm:h-[54px] rounded-md font-black transition-all shadow-lg text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                       Avançar para Serviço &rarr;
                     </button>
                   </div>
@@ -2951,10 +2951,10 @@ export default function OrdemServicoModule({
 
 
                   <div className="flex justify-between gap-3 mt-6">
-                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-4 sm:px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-4 sm:px-8 h-[60px] sm:h-[54px] rounded-md font-black transition-all text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-4 sm:px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-4 sm:px-8 h-[60px] sm:h-[54px] rounded-md font-black transition-all shadow-lg text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                        Avançar &rarr;
                      </button>
                   </div>
@@ -3068,10 +3068,10 @@ export default function OrdemServicoModule({
                   </section>
                   
                   <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
-                     <button onClick={() => setActiveTab('SERVICE')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SERVICE')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[60px] sm:h-[54px] rounded-md font-black transition-all text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('SIGNATURE')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-6 py-3 rounded-sm font-bold transition-all shadow-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SIGNATURE')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[60px] sm:h-[54px] rounded-md font-black transition-all shadow-lg text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                        Assinar OS &rarr;
                      </button>
                    </div>
@@ -3209,7 +3209,7 @@ export default function OrdemServicoModule({
                     </section>
 
                     <div className="flex flex-col sm:flex-row justify-between items-center mt-8 py-6 border-t border-zinc-800/50 gap-6">
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 py-3.5 rounded-sm font-bold transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[60px] sm:h-[54px] rounded-md font-black transition-all text-xs sm:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
  
@@ -3285,7 +3285,7 @@ export default function OrdemServicoModule({
                       <button 
                         onClick={() => handleSaveOS()}
                         disabled={isSaving}
-                        className="w-full sm:w-auto px-10 h-12 rounded-sm bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full sm:w-auto px-12 h-[64px] sm:h-[60px] rounded-md bg-[#00E676] hover:bg-[#00C853] text-black font-black text-sm sm:text-base uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                         Finalizar OS
