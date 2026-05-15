@@ -1847,7 +1847,7 @@ export default function OrdemServicoModule({
                           required
                           value={newCustomer.name}
                           onChange={e => setNewCustomer({...newCustomer, name: capFirst(e.target.value)})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="Ex: João da Silva"
                         />
                       </div>
@@ -1859,7 +1859,7 @@ export default function OrdemServicoModule({
                             type="tel"
                             value={newCustomer.whatsapp}
                             onChange={e => setNewCustomer({...newCustomer, whatsapp: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
-                            className="flex-1 bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="flex-1 bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="(00) 00000-0000"
                           />
                         </div>
@@ -1872,7 +1872,7 @@ export default function OrdemServicoModule({
                             type="tel"
                             value={newCustomer.phone}
                             onChange={e => setNewCustomer({...newCustomer, phone: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
-                            className="flex-1 bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="flex-1 bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="(00) 0000-0000"
                           />
                         </div>
@@ -1883,7 +1883,7 @@ export default function OrdemServicoModule({
                           type="tel"
                           value={newCustomer.document}
                           onChange={e => setNewCustomer({...newCustomer, document: applyMaskWithCursor(e.target as HTMLInputElement, 'document')})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="000.000.000-00"
                         />
                       </div>
@@ -1893,7 +1893,7 @@ export default function OrdemServicoModule({
                           type="email"
                           value={newCustomer.email}
                           onChange={e => setNewCustomer({...newCustomer, email: e.target.value})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="email@exemplo.com"
                         />
                       </div>
@@ -1903,7 +1903,7 @@ export default function OrdemServicoModule({
                           type="tel"
                           value={newCustomer.displayBirthDate}
                           onChange={e => setNewCustomer({...newCustomer, displayBirthDate: applyMaskWithCursor(e.target as HTMLInputElement, 'date')})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="DD/MM/AAAA"
                         />
                       </div>
@@ -1912,7 +1912,7 @@ export default function OrdemServicoModule({
                         <select 
                           value={newCustomer.customer_origin}
                           onChange={e => setNewCustomer({...newCustomer, customer_origin: e.target.value})}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
                         >
                           <option value="">Selecione a origem</option>
                           {['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'].map(opt => (
@@ -1981,7 +1981,7 @@ export default function OrdemServicoModule({
                                 onShowToast('Erro ao consultar o CEP. Verifique sua conexão.');
                               }
                             }}
-                            className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="00000-000"
                           />
                         </div>
@@ -1991,7 +1991,7 @@ export default function OrdemServicoModule({
                             type="text"
                             value={newCustomer.address.street}
                             onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, street: capFirst(e.target.value)}})}
-                            className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="Nome da rua"
                           />
                         </div>
@@ -2001,7 +2001,7 @@ export default function OrdemServicoModule({
                             type="text"
                             value={newCustomer.address.number}
                             onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, number: e.target.value}})}
-                            className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="123"
                           />
                         </div>
@@ -2011,7 +2011,7 @@ export default function OrdemServicoModule({
                             type="text"
                             value={newCustomer.address.neighborhood}
                             onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, neighborhood: capFirst(e.target.value)}})}
-                            className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="Bairro"
                           />
                         </div>
@@ -2021,7 +2021,7 @@ export default function OrdemServicoModule({
                             type="text"
                             value={newCustomer.address.city}
                             onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, city: capFirst(e.target.value)}})}
-                            className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                             placeholder="Cidade"
                           />
                         </div>
@@ -2034,7 +2034,7 @@ export default function OrdemServicoModule({
                         value={newCustomer.notes}
                         onChange={e => setNewCustomer({...newCustomer, notes: capFirst(e.target.value)})}
                         rows={3}
-                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors resize-none"
+                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors resize-none"
                         placeholder="Informações adicionais..."
                       />
                     </div>
@@ -2065,7 +2065,7 @@ export default function OrdemServicoModule({
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar por nome, CPF ou WhatsApp..."
-                        className="w-full bg-[#0A0A0A] border-2 border-zinc-800/50 rounded-[22px] pl-14 pr-6 py-5 text-base text-white focus:outline-none focus:border-[#00E676] transition-all shadow-xl placeholder:text-zinc-600"
+                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border-2 border-zinc-800/50 rounded-[22px] pl-14 pr-6 py-5 text-base text-white focus:outline-none focus:border-[#00E676] transition-all shadow-xl placeholder:text-zinc-600"
                       />
                     </div>
                     
@@ -2442,7 +2442,7 @@ export default function OrdemServicoModule({
                                 type="text"
                                 value={equipment.passwordValue}
                                 onChange={e => setEquipment({...equipment, passwordValue: e.target.value})}
-                                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all font-mono tracking-widest"
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all font-mono tracking-widest"
                                 placeholder="****"
                               />
                             </div>
@@ -2678,7 +2678,7 @@ export default function OrdemServicoModule({
                           <div className="flex flex-col sm:flex-row gap-2 mb-4">
                             <div className="flex-1 space-y-2">
                               {Object.keys(checklist).slice(0, Math.ceil(Object.keys(checklist).length / 2)).map(item => (
-                                <div key={item} className="bg-[#0A0A0A] border border-zinc-800 rounded-sm p-2.5 flex items-center justify-between">
+                                <div key={item} className="bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm p-2.5 flex items-center justify-between">
                                   <span className="text-[13px] text-zinc-300 font-medium truncate pr-2">{item}</span>
                                   <div className="flex items-center gap-1 bg-[#141414] rounded-sm p-0.5 border border-zinc-800">
                                     <button
@@ -2708,7 +2708,7 @@ export default function OrdemServicoModule({
                             </div>
                             <div className="flex-1 space-y-2">
                               {Object.keys(checklist).slice(Math.ceil(Object.keys(checklist).length / 2)).map(item => (
-                                <div key={item} className="bg-[#0A0A0A] border border-zinc-800 rounded-sm p-2.5 flex items-center justify-between">
+                                <div key={item} className="bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm p-2.5 flex items-center justify-between">
                                   <span className="text-[13px] text-zinc-300 font-medium truncate pr-2">{item}</span>
                                   <div className="flex items-center gap-1 bg-[#141414] rounded-sm p-0.5 border border-zinc-800">
                                     <button
@@ -2747,7 +2747,7 @@ export default function OrdemServicoModule({
                         type="text"
                         value={checklistNotes}
                         onChange={e => setChecklistNotes(capFirst(e.target.value))}
-                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                         placeholder="Ex: Tela já possui trincado no canto superior direito"
                       />
                     </div>
@@ -2777,7 +2777,7 @@ export default function OrdemServicoModule({
                     <textarea
                       value={defect}
                       onChange={e => setDefect(capFirst(e.target.value))}
-                      className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
+                      className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
                       placeholder="Descreva detalhadamente o problema relatado..."
                     />
                   </section>
@@ -2811,7 +2811,7 @@ export default function OrdemServicoModule({
                                   setFinancials(prev => ({ ...prev, totalValue: Number(svc.default_value) }));
                                 }
                               }}
-                              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
+                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
                             >
                               <option value="">Selecione um serviço cadastrado...</option>
                               {displaySvcs.map(s => (
@@ -2827,7 +2827,7 @@ export default function OrdemServicoModule({
                         <textarea
                           value={service}
                           onChange={e => setService(capFirst(e.target.value))}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
                           placeholder="Descrição do serviço contratado..."
                         />
                       </div>
@@ -2857,7 +2857,7 @@ export default function OrdemServicoModule({
                             const time = deliveryForecast ? (deliveryForecast.split('T')[1] || '09:00:00') : '09:00:00';
                             setDeliveryForecast(e.target.value ? `${e.target.value}T${time}` : '');
                           }}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
                         />
                       </div>
 
@@ -2870,7 +2870,7 @@ export default function OrdemServicoModule({
                             const date = deliveryForecast ? deliveryForecast.split('T')[0] : new Date().toISOString().split('T')[0];
                             setDeliveryForecast(e.target.value ? `${date}T${e.target.value}:00` : '');
                           }}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
                         />
                       </div>
                     </div>
@@ -2928,7 +2928,7 @@ export default function OrdemServicoModule({
                       <textarea
                         value={technicianNotes}
                         onChange={e => setTechnicianNotes(capFirst(e.target.value))}
-                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] resize-y"
+                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] resize-y"
                         placeholder="Anotações visíveis apenas para a equipe técnica..."
                       />
                     </section>
@@ -2973,7 +2973,7 @@ export default function OrdemServicoModule({
                               amountPaid: financials.paymentStatus === 'Total' ? newTotal : financials.amountPaid
                             });
                           }}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-lg font-semibold text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-lg font-semibold text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="0,00"
                         />
                       </div>
@@ -3018,7 +3018,7 @@ export default function OrdemServicoModule({
                                 step="0.01"
                                 value={financials.amountPaid || ''}
                                 onChange={e => setFinancials({...financials, amountPaid: parseFloat(e.target.value) || 0})}
-                                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                                 placeholder="0,00"
                               />
                               <div className="text-xs text-zinc-500 mt-1 flex justify-between">
@@ -3035,7 +3035,7 @@ export default function OrdemServicoModule({
                             <select
                               value={financials.paymentType}
                               onChange={e => setFinancials({...financials, paymentType: e.target.value as Order['financials']['paymentType']})}
-                              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
                             >
                               <option value="">Selecione...</option>
                               <option value="Dinheiro">Dinheiro</option>
@@ -3463,7 +3463,7 @@ export default function OrdemServicoModule({
                 <textarea
                   value={whatsappModal.message}
                   onChange={(e) => setWhatsappModal(prev => ({ ...prev, message: e.target.value }))}
-                  className="w-full h-48 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-4 text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                  className="w-full h-48 bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm p-4 text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none"
                 />
               </div>
               <div className="p-6 border-t border-zinc-800 bg-[#0A0A0A]">
