@@ -49,12 +49,12 @@ interface OrdemServicoModuleProps {
 }
 
 // Signature Pad Component
-const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onSave: (dataUrl: string) => void, onClear: () => void, autoOpen?: boolean }) => {
+const SignaturePad = ({ title, onSave, onClear, autoOpen, initialValue }: { title: string, onSave: (dataUrl: string) => void, onClear: () => void, autoOpen?: boolean, initialValue?: string | null }) => {
   const sigCanvas = useRef<SignatureCanvas>(null);
-  const [isConfirmed, setIsConfirmed] = useState(false);
-  const [hasDrawing, setHasDrawing] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(!!initialValue);
+  const [hasDrawing, setHasDrawing] = useState(!!initialValue);
   const [isOpen, setIsOpen] = useState(autoOpen || false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialValue || null);
   const [isOrientationPromptDismissed, setIsOrientationPromptDismissed] = useState(false);
 
   // Re-open if autoOpen changes
@@ -190,9 +190,9 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen }: { title: string, onS
           </div>
         </div>
 
-        {isConfirmed && previewUrl && (
-          <div className="h-10 w-16 sm:w-24 shrink-0 bg-white/5 rounded-sm overflow-hidden border border-white/5 p-1 flex items-center justify-center grayscale opacity-60">
-             <img src={previewUrl} alt="Preview" className="max-h-full max-w-full object-contain invert" />
+        {previewUrl && (
+          <div className="h-10 w-16 sm:w-24 shrink-0 bg-white rounded-sm overflow-hidden border border-white/20 p-1 flex items-center justify-center shadow-lg">
+             <img src={previewUrl} alt="Preview" className="max-h-full max-w-full object-contain mix-blend-multiply" />
           </div>
         )}
 
@@ -3148,11 +3148,13 @@ export default function OrdemServicoModule({
                         <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                           <SignaturePad 
                             title="Assinatura do Técnico" 
+                            initialValue={signatures.technician}
                             onSave={(dataUrl) => setSignatures(prev => ({ ...prev, technician: dataUrl }))}
                             onClear={() => setSignatures(prev => ({ ...prev, technician: null }))}
                           />
                           <SignaturePad 
                             title="Assinatura do Cliente" 
+                            initialValue={signatures.client}
                             onSave={(dataUrl) => setSignatures(prev => ({ ...prev, client: dataUrl }))}
                             onClear={() => setSignatures(prev => ({ ...prev, client: null }))}
                           />
@@ -3165,6 +3167,7 @@ export default function OrdemServicoModule({
                             </p>
                             <SignaturePad 
                               title="Assinatura do Técnico" 
+                              initialValue={signatures.technician}
                               autoOpen={signatureMode === 'remote' && !signatures.technician}
                               onSave={(dataUrl) => {
                                 const updatedSigs = { ...signatures, technician: dataUrl };
