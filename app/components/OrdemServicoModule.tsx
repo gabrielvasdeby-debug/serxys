@@ -3269,9 +3269,9 @@ export default function OrdemServicoModule({
                           }}
                           disabled={isSaving}
                           className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
-                          title={window.innerWidth < 640 ? "Compartilhar PDF" : "Imprimir A4"}
+                          title={window.innerWidth < 640 ? "Visualizar PDF" : "Imprimir A4"}
                         >
-                          {window.innerWidth < 640 ? <Share2 size={14} /> : <Printer size={14} />}
+                          {window.innerWidth < 640 ? <FileText size={14} /> : <Printer size={14} />}
                           <span className="sm:hidden">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
                         </button>
                         <button 

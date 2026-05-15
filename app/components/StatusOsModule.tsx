@@ -3115,7 +3115,7 @@ export default function StatusOsModule({
                              }} 
                              className="flex-1 py-3 bg-[#141414] hover:bg-zinc-800 text-white rounded-sm border border-zinc-800 transition-all flex items-center justify-center gap-2 group"
                            >
-                             {window.innerWidth < 640 ? <Share2 size={16} className="text-zinc-400 group-hover:text-white transition-colors" /> : <Printer size={16} className="text-zinc-400 group-hover:text-white transition-colors" />}
+                             {window.innerWidth < 640 ? <FileText size={16} className="text-zinc-400 group-hover:text-white transition-colors" /> : <Printer size={16} className="text-zinc-400 group-hover:text-white transition-colors" />}
                              <span className="text-[10px] font-black uppercase tracking-widest">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
                            </button>
                         )}
@@ -4325,8 +4325,8 @@ export default function StatusOsModule({
                     }}
                     className="p-2.5 bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all border border-emerald-600 flex items-center gap-2 text-xs font-black uppercase tracking-wider shadow-lg shadow-[#00E676]/20 active:scale-95"
                   >
-                    {window.innerWidth < 640 ? <Share2 size={18} /> : <Printer size={18} />}
-                    {window.innerWidth < 640 ? "Compartilhar PDF" : "Imprimir Documento"}
+                    {window.innerWidth < 640 ? <FileText size={18} /> : <Printer size={18} />}
+                    {window.innerWidth < 640 ? "Visualizar PDF" : "Imprimir Documento"}
                   </button>
                   <button onClick={() => setIsPreviewModalOpen(false)} className="p-2.5 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 border border-zinc-800">
                     <X size={20} />

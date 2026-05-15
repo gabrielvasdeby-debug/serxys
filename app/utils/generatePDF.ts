@@ -33,6 +33,9 @@ function oklchToRgbString(l: number, c: number, h: number, alpha?: number): stri
 }
 
 function convertOklchInString(str: string): string {
+  if (!str || typeof str !== 'string') return str;
+  if (!str.includes('oklch')) return str;
+
   return str.replace(
     /oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/g,
     (_m, l, c, h, alpha) => {
@@ -52,8 +55,6 @@ function convertOklchInString(str: string): string {
 }
 
 // ─── Pre-process ALL document stylesheets before html2canvas sees them ────────
-// This approach reads CSS text from every <style> tag and replaces oklch with
-// rgb BEFORE the browser can return oklch from getComputedStyle.
 
 function buildOklchOverrideStyle(): HTMLStyleElement | null {
   const lines: string[] = [];
@@ -62,9 +63,8 @@ function buildOklchOverrideStyle(): HTMLStyleElement | null {
     Array.from(document.styleSheets).forEach((sheet) => {
       try {
         Array.from(sheet.cssRules).forEach((rule) => {
-          const text = rule.cssText;
-          if (text.includes('oklch')) {
-            lines.push(convertOklchInString(text));
+          if (rule.cssText.includes('oklch')) {
+            lines.push(convertOklchInString(rule.cssText));
           }
         });
       } catch (_e) {
@@ -86,9 +86,25 @@ function buildOklchOverrideStyle(): HTMLStyleElement | null {
 // ─── html2canvas onclone fallback (also fixes cloned doc) ────────────────────
 
 function fixOklchInClone(clonedDoc: Document) {
+  // 1. Fix all style tags in the clone
   clonedDoc.querySelectorAll('style').forEach((el) => {
     if (el.textContent?.includes('oklch')) {
       el.textContent = convertOklchInString(el.textContent);
+    }
+  });
+
+  // 2. Force-replace oklch in all element inline styles in the clone
+  const all = clonedDoc.querySelectorAll('*');
+  all.forEach((el) => {
+    const htmlEl = el as HTMLElement;
+    if (htmlEl.style) {
+      for (let i = 0; i < htmlEl.style.length; i++) {
+        const prop = htmlEl.style[i];
+        const val = htmlEl.style.getPropertyValue(prop);
+        if (val && val.includes('oklch')) {
+          htmlEl.style.setProperty(prop, convertOklchInString(val));
+        }
+      }
     }
   });
 }
@@ -99,6 +115,7 @@ export interface SharePDFOptions {
   width?: number;
   scale?: number;
   renderDelay?: number;
+  forceShowOnly?: boolean;
 }
 
 export async function generateAndSharePDF(
@@ -107,28 +124,26 @@ export async function generateAndSharePDF(
   onShowToast: (msg: string) => void,
   opts: SharePDFOptions = {}
 ): Promise<void> {
-  const { width = 794, scale = 1.5, renderDelay = 800 } = opts;
+  const { width = 794, scale = 1.5, renderDelay = 1200, forceShowOnly = true } = opts;
 
-  // 1. Off-screen container — fixed off-screen, always visible to html2canvas
+  // 1. Off-screen container
   const offscreen = document.createElement('div');
   offscreen.style.cssText = `position:fixed;left:-9999px;top:0;width:${width}px;background:#ffffff;z-index:-1;overflow:visible;`;
   document.body.appendChild(offscreen);
 
-  // 2. Inject override <style> into document <head> that replaces oklch vars
-  //    BEFORE rendering, so getComputedStyle() never returns oklch values
+  // 2. Inject override style to document head
   const overrideStyle = buildOklchOverrideStyle();
   if (overrideStyle) document.head.appendChild(overrideStyle);
 
   try {
-    // 3. Render the React template into the off-screen div
     const { createRoot } = await import('react-dom/client');
     const root = createRoot(offscreen);
     root.render(templateElement);
 
-    // 4. Wait for React + images to fully paint
+    // Wait for rendering and images
     await new Promise<void>((resolve) => setTimeout(resolve, renderDelay));
 
-    // 5. Capture with html2canvas
+    // 3. Capture with html2canvas
     const { default: html2canvas } = await import('html2canvas');
     const canvas = await html2canvas(offscreen, {
       scale,
@@ -140,11 +155,10 @@ export async function generateAndSharePDF(
       onclone: (clonedDoc) => fixOklchInClone(clonedDoc),
     });
 
-    // 6. Cleanup renderer
     root.unmount();
 
-    // 7. Build PDF
-    const imgData = canvas.toDataURL('image/jpeg', 0.85);
+    // 4. Build PDF
+    const imgData = canvas.toDataURL('image/jpeg', 0.9);
     const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -154,26 +168,39 @@ export async function generateAndSharePDF(
 
     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
     const pdfBlob = pdf.output('blob');
-    const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
+    const url = URL.createObjectURL(pdfBlob);
 
-    // 8. Share or download
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    // 5. Action: Show or Share
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile && forceShowOnly) {
+      // Open in new tab/window
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.click();
+      onShowToast('PDF aberto com sucesso!');
+    } else if (!isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' })] })) {
+      const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
       try {
         await navigator.share({ files: [file], title: filename, text: `Segue o documento: ${filename}` });
       } catch (shareError: any) {
-        if (shareError.name !== 'AbortError') throw shareError;
+        if (shareError.name !== 'AbortError') {
+          window.open(url, '_blank');
+        }
       }
     } else {
-      const url = URL.createObjectURL(pdfBlob);
+      // Fallback: Download/Open
       const a = document.createElement('a');
       a.href = url;
       a.download = `${filename}.pdf`;
       a.click();
-      URL.revokeObjectURL(url);
-      onShowToast('PDF baixado com sucesso!');
+      onShowToast('PDF gerado com sucesso!');
     }
+  } catch (error: any) {
+    console.error('Erro na geração do PDF:', error);
+    throw error;
   } finally {
-    // Always clean up both elements
     if (document.body.contains(offscreen)) document.body.removeChild(offscreen);
     if (overrideStyle && document.head.contains(overrideStyle)) document.head.removeChild(overrideStyle);
   }

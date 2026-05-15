@@ -661,7 +661,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                         }}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
                       >
-                        {window.innerWidth < 640 ? <Share2 size={18} className="text-zinc-400" /> : <Printer size={18} className="text-zinc-400" />}
+                        {window.innerWidth < 640 ? <FileText size={18} className="text-zinc-400" /> : <Printer size={18} className="text-zinc-400" />}
                         <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
                       </button>
                       <button 
