@@ -3359,7 +3359,7 @@ export default function OrdemServicoModule({
       {/* Usamos Portal para que fiquem fora da estrutura principal do app e não sejam ocultados pelo display:none do CSS de impressão */}
       {selectedCustomer && typeof document !== 'undefined' && createPortal(
         <>
-          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}`}>
+          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
             <OrderPrintTemplate 
               order={printOrder}
               customer={selectedCustomer}
@@ -3368,7 +3368,7 @@ export default function OrdemServicoModule({
             />
           </div>
 
-          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}`}>
+          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
             <ThermalReceiptTemplate 
               order={printOrder}
               customer={selectedCustomer}
@@ -3377,7 +3377,7 @@ export default function OrdemServicoModule({
             />
           </div>
 
-          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}`}>
+          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
             <WarrantyPrintTemplate 
               order={warrantyOrder}
               customer={selectedCustomer}
@@ -3385,7 +3385,7 @@ export default function OrdemServicoModule({
               osSettings={osSettings}
             />
           </div>
-          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}`}>
+          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
             <WarrantyThermalTemplate 
               order={warrantyOrder}
               customer={selectedCustomer}

@@ -299,7 +299,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
                     <Pencil size={18} className="animate-bounce" />
                     <span className="text-[8px] uppercase tracking-widest">Toque para Assinar</span>
                  </div>
-              ) : (clientSignatureOverride || (order.signatures?.client && !order.signatures?.isManual)) && (
+              ) : (clientSignatureOverride || order.signatures?.client) && (
                 <img src={(clientSignatureOverride || order.signatures?.client) as string} alt="Assinatura" className="max-h-full w-auto max-w-full object-contain scale-110" />
               )}
             </div>
@@ -307,7 +307,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
           </div>
           <div className="flex flex-col items-center w-[45%]">
             <div className="w-full border-b border-slate-800 mb-2 h-16 flex items-center justify-center relative">
-              {!order.signatures?.isManual && order.signatures?.technician && (
+              {order.signatures?.technician && (
                 <img src={order.signatures.technician} alt="Tecnico" className="max-h-full w-auto max-w-full object-contain scale-110" />
               )}
             </div>

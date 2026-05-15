@@ -276,7 +276,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
              <div className="w-64 flex flex-col items-center">
                   <div className="h-16 w-full border-b border-slate-800 flex items-center justify-center mb-1">
                       {(order?.completionData?.signatures?.technician || order?.signatures?.technician) ? (
-                          <img src={(order?.completionData?.signatures?.technician || order?.signatures?.technician) || undefined} crossOrigin="anonymous" alt="Sig Técnico" className="max-h-full mix-blend-multiply" />
+                          <img src={(order?.completionData?.signatures?.technician || order?.signatures?.technician) || undefined} alt="Sig Técnico" className="max-h-full" />
                       ) : (
                           <span className="text-[7.5px] text-slate-300 font-bold uppercase tracking-widest text-center">Responsável Técnico / Assistência</span>
                       )}
