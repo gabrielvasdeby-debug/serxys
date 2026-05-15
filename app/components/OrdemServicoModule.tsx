@@ -2492,10 +2492,10 @@ export default function OrdemServicoModule({
                     )}
                     
                     <div className="flex justify-between mt-6">
-                      <button onClick={() => setStep('CLIENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[52px] sm:h-[46px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                      <button onClick={() => setStep('CLIENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                         &larr; Voltar
                       </button>
-                      <button onClick={() => setActiveTab('CHECKLIST')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[52px] sm:h-[46px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                      <button onClick={() => setActiveTab('CHECKLIST')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                         Avançar para Checklist &rarr;
                       </button>
                     </div>
@@ -2672,10 +2672,10 @@ export default function OrdemServicoModule({
                   </section>
                   
                   <div className="flex justify-between mt-6">
-                    <button onClick={() => setActiveTab('EQUIPMENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[52px] sm:h-[46px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                    <button onClick={() => setActiveTab('EQUIPMENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                       &larr; Voltar
                     </button>
-                    <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[52px] sm:h-[46px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                    <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                       Avançar para Serviço &rarr;
                     </button>
                   </div>
@@ -2954,10 +2954,10 @@ export default function OrdemServicoModule({
 
 
                   <div className="flex justify-between gap-3 mt-6">
-                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[52px] sm:h-[46px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[52px] sm:h-[46px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        Avançar &rarr;
                      </button>
                   </div>
@@ -3071,10 +3071,10 @@ export default function OrdemServicoModule({
                   </section>
                   
                   <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
-                     <button onClick={() => setActiveTab('SERVICE')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[52px] sm:h-[46px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SERVICE')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('SIGNATURE')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[52px] sm:h-[46px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SIGNATURE')} className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        Assinar OS &rarr;
                      </button>
                    </div>
@@ -3212,7 +3212,7 @@ export default function OrdemServicoModule({
                     </section>
 
                     <div className="flex flex-col sm:flex-row justify-between items-center mt-8 py-6 border-t border-zinc-800/50 gap-6">
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[52px] sm:h-[46px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
  
@@ -3288,7 +3288,7 @@ export default function OrdemServicoModule({
                       <button 
                         onClick={() => handleSaveOS()}
                         disabled={isSaving}
-                        className="w-full sm:w-auto px-12 h-[58px] sm:h-[52px] rounded-md bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs sm:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full sm:w-auto px-12 h-[54px] sm:h-[48px] rounded-md bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs sm:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                         Finalizar OS
