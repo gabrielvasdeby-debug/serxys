@@ -2515,6 +2515,88 @@ export default function OrdemServicoModule({
                   {/* Checklist */}
                   {activeTab === 'CHECKLIST' && (
                     <>
+                    {/* Fotos de Entrada (Moved from Service) */}
+                    <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm mb-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => cameraInputRef.current?.click()}
+                            className={`w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] hover:bg-zinc-700 transition-all ${isUploading ? 'opacity-50' : ''}`}
+                            disabled={isUploading}
+                          >
+                            <Camera size={16} />
+                          </button>
+                          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Fotos de Entrada</h3>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 uppercase font-black">Portal do Cliente</p>
+                      </div>
+  
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {entryPhotos.map((url, index) => (
+                            <div key={index} className="relative group aspect-square rounded-sm overflow-hidden border border-zinc-800 bg-black">
+                              <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-contain" />
+                              <button
+                                onClick={() => setEntryPhotos(entryPhotos.filter((_, i) => i !== index))}
+                                className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                          
+                          {entryPhotos.length < 8 && (
+                            <>
+                              {/* Option: Upload File/Gallery */}
+                              <label className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center cursor-pointer gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={handleUploadPhotos}
+                                  disabled={isUploading}
+                                />
+                                {isUploading ? (
+                                  <Loader2 size={24} className="text-[#00E676] animate-spin" />
+                                ) : (
+                                  <>
+                                    <Plus size={24} className="text-zinc-600" />
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase">Galeria</span>
+                                  </>
+                                )}
+                              </label>
+  
+                              {/* Option: Camera Direct (Native) */}
+                              <button 
+                                onClick={() => cameraInputRef.current?.click()}
+                                className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
+                                disabled={isUploading}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="environment"
+                                  className="hidden"
+                                  ref={cameraInputRef}
+                                  onChange={handleNativeCameraCapture}
+                                />
+                                {isUploading ? (
+                                  <Loader2 size={24} className="text-[#00E676] animate-spin" />
+                                ) : (
+                                  <>
+                                    <Camera size={24} className="text-zinc-600" />
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase">Câmera</span>
+                                  </>
+                                )}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-zinc-600">Máximo de 8 fotos. Formatos: JPG, PNG.</p>
+                      </div>
+                    </section>
+  
                     <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                       <div className="flex items-center gap-3">
@@ -2677,281 +2759,175 @@ export default function OrdemServicoModule({
                     </button>
                     <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                       Avançar para Serviço &rarr;
-                    </button>
-                  </div>
-                </>
-                )}
-
-                {/* SERVICE TAB */}
                 {activeTab === 'SERVICE' && (
                   <>
-                  {/* Fotos de Entrada */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                      <div className="flex items-center gap-3">
-                        <button 
-                          onClick={() => cameraInputRef.current?.click()}
-                          className={`w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] hover:bg-zinc-700 transition-all ${isUploading ? 'opacity-50' : ''}`}
-                          disabled={isUploading}
-                        >
-                          <Camera size={16} />
-                        </button>
-                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">Fotos de Entrada</h3>
+                  {/* 1. Defeito Relatado */}
+                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-amber-500">
+                         <AlertTriangle size={16} />
                       </div>
-                      <p className="text-[10px] text-zinc-500 uppercase font-black">Portal do Cliente</p>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-widest">Defeito Relatado *</h3>
                     </div>
+                    <textarea
+                      value={defect}
+                      onChange={e => setDefect(capFirst(e.target.value))}
+                      className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
+                      placeholder="Descreva detalhadamente o problema relatado..."
+                    />
+                  </section>
 
+                  {/* 2. Serviço Contratado */}
+                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-6">
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {entryPhotos.map((url, index) => (
-                          <div key={index} className="relative group aspect-square rounded-sm overflow-hidden border border-zinc-800 bg-black">
-                            <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-contain" />
-                            <button
-                              onClick={() => setEntryPhotos(entryPhotos.filter((_, i) => i !== index))}
-                              className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        ))}
-                        
-                        {entryPhotos.length < 8 && (
-                          <>
-                            {/* Option: Upload File/Gallery */}
-                            <label className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center cursor-pointer gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                className="hidden"
-                                onChange={handleUploadPhotos}
-                                disabled={isUploading}
-                              />
-                              {isUploading ? (
-                                <Loader2 size={24} className="text-[#00E676] animate-spin" />
-                              ) : (
-                                <>
-                                  <Plus size={24} className="text-zinc-600" />
-                                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Galeria</span>
-                                </>
-                              )}
-                            </label>
-
-                            {/* Option: Camera Direct (Native) */}
-                            <button 
-                              onClick={() => cameraInputRef.current?.click()}
-                              className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
-                              disabled={isUploading}
-                            >
-                              <input
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                className="hidden"
-                                ref={cameraInputRef}
-                                onChange={handleNativeCameraCapture}
-                              />
-                              {isUploading ? (
-                                <Loader2 size={24} className="text-[#00E676] animate-spin" />
-                              ) : (
-                                <>
-                                  <Camera size={24} className="text-zinc-600" />
-                                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Câmera</span>
-                                </>
-                              )}
-                            </button>
-                          </>
-                        )}
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
+                           <FileText size={16} />
+                        </div>
+                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">Serviço a Executar</h3>
                       </div>
-                      <p className="text-[10px] text-zinc-600">Máximo de 8 fotos. Formatos: JPG, PNG.</p>
+                      
+                      {availableServices.length > 0 && (() => {
+                        const displaySvcs = equipment.type
+                          ? availableServices.filter(s => s.category === equipment.type).length > 0
+                            ? availableServices.filter(s => s.category === equipment.type)
+                            : availableServices
+                          : availableServices;
+                        return (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between ml-1 mb-1">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Selecionar do Catálogo</label>
+                            </div>
+                            <select
+                              onChange={(e) => {
+                                const svc = availableServices.find(s => s.id === e.target.value);
+                                if (svc) {
+                                  setService(svc.name + (svc.description ? ` - ${svc.description}` : ''));
+                                  setFinancials(prev => ({ ...prev, totalValue: Number(svc.default_value) }));
+                                }
+                              }}
+                              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
+                            >
+                              <option value="">Selecione um serviço cadastrado...</option>
+                              {displaySvcs.map(s => (
+                                <option key={s.id} value={s.id}>{s.name} — R$ {Number(s.default_value).toFixed(2)}</option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })()}
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Descrição do Serviço</label>
+                        <textarea
+                          value={service}
+                          onChange={e => setService(capFirst(e.target.value))}
+                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
+                          placeholder="Descrição do serviço contratado..."
+                        />
+                      </div>
                     </div>
                   </section>
 
-                  {/* Defect & Notes */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-6">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-blue-500">
-                           <AlertCircle size={16} />
-                        </div>
-                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">Prioridade</h3>
+                  {/* 3. Previsão de Entrega */}
+                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm overflow-hidden relative group/forecast">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E676]/[0.02] blur-3xl rounded-full pointer-events-none group-hover/forecast:bg-[#00E676]/[0.05] transition-all duration-700"></div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] shadow-inner">
+                         <Grid size={16} />
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {(['Baixa', 'Média', 'Alta', 'Urgente'] as OrderPriority[]).map(p => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => setPriority(p)}
-                            className={`px-3 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
-                              priority === p 
-                                ? p === 'Baixa' ? 'bg-zinc-800 border-zinc-700 text-white shadow-lg'
-                                : p === 'Média' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-lg shadow-blue-500/10'
-                                : p === 'Alta' ? 'bg-orange-500/20 border-orange-500/50 text-orange-400 shadow-lg shadow-orange-500/10'
-                                : 'bg-red-500/20 border-red-500/50 text-red-400 shadow-lg shadow-red-500/10'
-                                : 'bg-black border-zinc-800 text-zinc-500 hover:border-zinc-700 active:scale-95'
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        ))}
+                      <div>
+                        <h3 className="text-sm font-bold text-white uppercase tracking-widest italic leading-none">Previsão de Entrega</h3>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Opcional • Alerta de atraso automático</p>
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-amber-500">
-                           <AlertTriangle size={16} />
-                        </div>
-                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">Defeito Relatado *</h3>
-                      </div>
-                      <textarea
-                        value={defect}
-                        onChange={e => setDefect(capFirst(e.target.value))}
-                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
-                        placeholder="Descreva detalhadamente o problema relatado..."
-                      />
-                    </div>
-
-                    {profile.role !== 'attendant' && (
-                      <div className="space-y-2">
-                        <h2 className="text-sm font-semibold flex items-center gap-2 text-white">
-                          <PenTool size={16} className="text-blue-400" />
-                          Observações Técnicas (Interno)
-                        </h2>
-                        <textarea
-                          value={technicianNotes}
-                          onChange={e => setTechnicianNotes(capFirst(e.target.value))}
-                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] resize-y"
-                          placeholder="Anotações visíveis apenas para a equipe técnica..."
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Data Prevista</label>
+                        <input
+                          type="date"
+                          value={deliveryForecast ? deliveryForecast.split('T')[0] : ''}
+                          onChange={(e) => {
+                            const time = deliveryForecast ? (deliveryForecast.split('T')[1] || '09:00:00') : '09:00:00';
+                            setDeliveryForecast(e.target.value ? `${e.target.value}T${time}` : '');
+                          }}
+                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
                         />
                       </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Hora Prevista</label>
+                        <input
+                          type="time"
+                          value={deliveryForecast && deliveryForecast.includes('T') ? deliveryForecast.split('T')[1].substring(0, 5) : ''}
+                          onChange={(e) => {
+                            const date = deliveryForecast ? deliveryForecast.split('T')[0] : new Date().toISOString().split('T')[0];
+                            setDeliveryForecast(e.target.value ? `${date}T${e.target.value}:00` : '');
+                          }}
+                          className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+                    
+                    {deliveryForecast && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="mt-4 flex items-center gap-3 p-3 bg-[#00E676]/5 border border-[#00E676]/20 rounded-sm"
+                      >
+                        <AlertCircle size={14} className="text-[#00E676]" />
+                        <p className="text-[10px] font-bold text-[#00E676] uppercase tracking-wider">
+                          Monitoramento de prazo ativado.
+                        </p>
+                      </motion.div>
                     )}
                   </section>
 
-                  
-                  {/* Service Details */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
-                         <FileText size={16} />
+                  {/* 4. Prioridade */}
+                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-blue-500">
+                         <AlertCircle size={16} />
                       </div>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-widest">Serviço a Executar</h3>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-widest">Prioridade</h3>
                     </div>
-                    
-                    {availableServices.length > 0 && (() => {
-                      // Map equipment.type to service category
-                      const filteredSvcs = equipment.type
-                        ? availableServices.filter(s => s.category === equipment.type || s.category === 'Outro')
-                        : availableServices;
-                      const exactMatch = equipment.type
-                        ? availableServices.filter(s => s.category === equipment.type)
-                        : availableServices;
-                      const displaySvcs = exactMatch.length > 0 ? exactMatch : availableServices;
-                      return (
-                        <div className="mb-4 space-y-1">
-                          <div className="flex items-center justify-between ml-1 mb-1">
-                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Selecionar do Catálogo</label>
-                            {equipment.type && (
-                              <span className="text-[9px] text-[#00E676] font-bold uppercase tracking-widest">
-                                {displaySvcs.length} serviço{displaySvcs.length !== 1 ? 's' : ''} para {equipment.type}
-                              </span>
-                            )}
-                          </div>
-                          <select
-                            onChange={(e) => {
-                              const svc = availableServices.find(s => s.id === e.target.value);
-                              if (svc) {
-                                setService(svc.name + (svc.description ? ` - ${svc.description}` : ''));
-                                setFinancials(prev => ({ ...prev, totalValue: Number(svc.default_value) }));
-                              }
-                            }}
-                            className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
-                          >
-                            <option value="">
-                              {equipment.type
-                                ? displaySvcs.length > 0
-                                  ? `Serviços para ${equipment.type}...`
-                                  : 'Nenhum serviço cadastrado para este equipamento'
-                                : 'Selecione um serviço cadastrado...'}
-                            </option>
-                            {displaySvcs.map(s => (
-                              <option key={s.id} value={s.id}>{s.name} — R$ {Number(s.default_value).toFixed(2)}</option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Delivery Forecast Section */}
-                    <div className="pt-4 border-t border-zinc-800/50 mt-6 overflow-hidden relative group/forecast">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E676]/[0.02] blur-3xl rounded-full pointer-events-none group-hover/forecast:bg-[#00E676]/[0.05] transition-all duration-700"></div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] shadow-inner">
-                           <Grid size={16} />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-bold text-white uppercase tracking-widest italic leading-none">Previsão de Entrega</h3>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Opcional • Alerta de atraso automático</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Data Prevista</label>
-                          <div className="relative group/input">
-                            <input
-                              type="date"
-                              value={deliveryForecast ? deliveryForecast.split('T')[0] : ''}
-                              onChange={(e) => {
-                                const time = deliveryForecast ? (deliveryForecast.split('T')[1] || '09:00:00') : '09:00:00';
-                                setDeliveryForecast(e.target.value ? `${e.target.value}T${time}` : '');
-                              }}
-                              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Hora Prevista</label>
-                          <div className="relative group/input">
-                            <input
-                              type="time"
-                              value={deliveryForecast && deliveryForecast.includes('T') ? deliveryForecast.split('T')[1].substring(0, 5) : ''}
-                              onChange={(e) => {
-                                const date = deliveryForecast ? deliveryForecast.split('T')[0] : new Date().toISOString().split('T')[0];
-                                setDeliveryForecast(e.target.value ? `${date}T${e.target.value}:00` : '');
-                              }}
-                              className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {deliveryForecast && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="mt-4 flex items-center gap-3 p-3 bg-[#00E676]/5 border border-[#00E676]/20 rounded-sm"
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {(['Baixa', 'Média', 'Alta', 'Urgente'] as OrderPriority[]).map(p => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPriority(p)}
+                          className={`px-3 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+                            priority === p 
+                              ? p === 'Baixa' ? 'bg-zinc-800 border-zinc-700 text-white shadow-lg'
+                              : p === 'Média' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-lg shadow-blue-500/10'
+                              : p === 'Alta' ? 'bg-orange-500/20 border-orange-500/50 text-orange-400 shadow-lg shadow-orange-500/10'
+                              : 'bg-red-500/20 border-red-500/50 text-red-400 shadow-lg shadow-red-500/10'
+                              : 'bg-black border-zinc-800 text-zinc-500 hover:border-zinc-700 active:scale-95'
+                          }`}
                         >
-                          <AlertCircle size={14} className="text-[#00E676]" />
-                          <p className="text-[10px] font-bold text-[#00E676] uppercase tracking-wider">
-                            O sistema monitorará este prazo. Em caso de atraso, a prioridade subirá para ALTA automaticamente.
-                          </p>
-                        </motion.div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 mt-6">
-                      <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Descrição do Serviço</label>
-                      <textarea
-                        value={service}
-                        onChange={e => setService(capFirst(e.target.value))}
-                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
-                        placeholder="Descrição do serviço contratado..."
-                      />
+                          {p}
+                        </button>
+                      ))}
                     </div>
                   </section>
 
+                  {/* 5. Observações Técnicas */}
+                  {profile.role !== 'attendant' && (
+                    <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-2">
+                      <h2 className="text-sm font-semibold flex items-center gap-2 text-white">
+                        <PenTool size={16} className="text-blue-400" />
+                        Observações Técnicas (Interno)
+                      </h2>
+                      <textarea
+                        value={technicianNotes}
+                        onChange={e => setTechnicianNotes(capFirst(e.target.value))}
+                        className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] resize-y"
+                        placeholder="Anotações visíveis apenas para a equipe técnica..."
+                      />
+                    </section>
+                  )}
 
                   <div className="flex justify-between gap-3 mt-6">
                      <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
