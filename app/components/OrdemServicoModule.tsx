@@ -2193,7 +2193,7 @@ export default function OrdemServicoModule({
                         key={tab.id}
                         data-selected={isSelected}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 h-14 sm:h-12 px-5 sm:px-0 relative ${idx !== 0 ? '-ml-3 sm:-ml-4' : ''} transition-all duration-300 group ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 h-12 sm:h-12 px-2 sm:px-0 relative ${idx !== 0 ? '-ml-3 sm:-ml-4' : ''} transition-all duration-300 group ${
                           isSelected
                             ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]'
                             : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
@@ -2207,10 +2207,10 @@ export default function OrdemServicoModule({
                           zIndex: isSelected ? 50 : arr.length - idx
                         }}
                       >
-                        <div className={`transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                        <div className={`hidden sm:flex transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
                           <tab.icon size={18} className="sm:w-4 sm:h-4" />
                         </div>
-                        <span className={`text-[9px] sm:text-[10px] uppercase font-black tracking-widest transition-colors ${
+                        <span className={`text-[8.5px] sm:text-[10px] uppercase font-black tracking-tighter sm:tracking-widest transition-colors whitespace-nowrap ${
                           isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
                         }`}>
                           {tab.label}
