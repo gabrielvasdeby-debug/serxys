@@ -17,9 +17,9 @@ export async function generateAndSharePDF(
 ): Promise<void> {
   const { width = 794, scale = 1.5, renderDelay = 1200, forceShowOnly = true } = opts;
 
-  // 1. Off-screen container
+  // 1. Off-screen container (On-screen but hidden behind content to prevent mobile viewport culling)
   const offscreen = document.createElement('div');
-  offscreen.style.cssText = `position:fixed;left:-9999px;top:0;width:${width}px;background:#ffffff;z-index:-1;overflow:visible;`;
+  offscreen.style.cssText = `position:absolute;top:0;left:0;width:${width}px;background:#ffffff;z-index:-9999;pointer-events:none;overflow:hidden;`;
   document.body.appendChild(offscreen);
 
   try {
@@ -30,7 +30,7 @@ export async function generateAndSharePDF(
     // Wait for rendering and images to fully paint
     await new Promise<void>((resolve) => setTimeout(resolve, renderDelay));
 
-    // 2. Capture with html-to-image (faster, native browser rendering)
+    // 2. Capture with html-to-image
     const { toJpeg } = await import('html-to-image');
     
     const imgData = await toJpeg(offscreen, {
@@ -38,8 +38,11 @@ export async function generateAndSharePDF(
       backgroundColor: '#ffffff',
       width: width,
       pixelRatio: scale,
-      // We skip fonts to prevent some cross-origin issues, or we let it inline them.
-      // Often, skipFonts is unnecessary unless there are CORS errors.
+      skipFonts: true, // Prevents hanging on font CORS issues
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left'
+      }
     });
 
     root.unmount();
