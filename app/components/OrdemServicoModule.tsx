@@ -2759,6 +2759,11 @@ export default function OrdemServicoModule({
                     </button>
                     <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                       Avançar para Serviço &rarr;
+                    </button>
+                  </div>
+                </>
+                )}
+
                 {activeTab === 'SERVICE' && (
                   <>
                   {/* 1. Defeito Relatado */}
