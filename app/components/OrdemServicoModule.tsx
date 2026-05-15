@@ -2515,88 +2515,7 @@ export default function OrdemServicoModule({
                   {/* Checklist */}
                   {activeTab === 'CHECKLIST' && (
                     <>
-                    {/* Fotos de Entrada (Moved from Service) */}
-                    <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm mb-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                        <div className="flex items-center gap-3">
-                          <button 
-                            onClick={() => cameraInputRef.current?.click()}
-                            className={`w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] hover:bg-zinc-700 transition-all ${isUploading ? 'opacity-50' : ''}`}
-                            disabled={isUploading}
-                          >
-                            <Camera size={16} />
-                          </button>
-                          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Fotos de Entrada</h3>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 uppercase font-black">Portal do Cliente</p>
-                      </div>
-  
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {entryPhotos.map((url, index) => (
-                            <div key={index} className="relative group aspect-square rounded-sm overflow-hidden border border-zinc-800 bg-black">
-                              <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-contain" />
-                              <button
-                                onClick={() => setEntryPhotos(entryPhotos.filter((_, i) => i !== index))}
-                                className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          ))}
-                          
-                          {entryPhotos.length < 8 && (
-                            <>
-                              {/* Option: Upload File/Gallery */}
-                              <label className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center cursor-pointer gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  multiple
-                                  className="hidden"
-                                  onChange={handleUploadPhotos}
-                                  disabled={isUploading}
-                                />
-                                {isUploading ? (
-                                  <Loader2 size={24} className="text-[#00E676] animate-spin" />
-                                ) : (
-                                  <>
-                                    <Plus size={24} className="text-zinc-600" />
-                                    <span className="text-[10px] font-bold text-zinc-500 uppercase">Galeria</span>
-                                  </>
-                                )}
-                              </label>
-  
-                              {/* Option: Camera Direct (Native) */}
-                              <button 
-                                onClick={() => cameraInputRef.current?.click()}
-                                className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
-                                disabled={isUploading}
-                              >
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  capture="environment"
-                                  className="hidden"
-                                  ref={cameraInputRef}
-                                  onChange={handleNativeCameraCapture}
-                                />
-                                {isUploading ? (
-                                  <Loader2 size={24} className="text-[#00E676] animate-spin" />
-                                ) : (
-                                  <>
-                                    <Camera size={24} className="text-zinc-600" />
-                                    <span className="text-[10px] font-bold text-zinc-500 uppercase">Câmera</span>
-                                  </>
-                                )}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-zinc-600">Máximo de 8 fotos. Formatos: JPG, PNG.</p>
-                      </div>
-                    </section>
-  
+
                     <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                       <div className="flex items-center gap-3">
@@ -2750,6 +2669,88 @@ export default function OrdemServicoModule({
                         className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                         placeholder="Ex: Tela já possui trincado no canto superior direito"
                       />
+                    </div>
+                  </section>
+
+                  {/* Fotos de Entrada (Moved below Checklist) */}
+                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm mt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => cameraInputRef.current?.click()}
+                          className={`w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] hover:bg-zinc-700 transition-all ${isUploading ? 'opacity-50' : ''}`}
+                          disabled={isUploading}
+                        >
+                          <Camera size={16} />
+                        </button>
+                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">Fotos de Entrada</h3>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 uppercase font-black">Portal do Cliente</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {entryPhotos.map((url, index) => (
+                          <div key={index} className="relative group aspect-square rounded-sm overflow-hidden border border-zinc-800 bg-black">
+                            <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-contain" />
+                            <button
+                              onClick={() => setEntryPhotos(entryPhotos.filter((_, i) => i !== index))}
+                              className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {entryPhotos.length < 8 && (
+                          <>
+                            {/* Option: Upload File/Gallery */}
+                            <label className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center cursor-pointer gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={handleUploadPhotos}
+                                disabled={isUploading}
+                              />
+                              {isUploading ? (
+                                <Loader2 size={24} className="text-[#00E676] animate-spin" />
+                              ) : (
+                                <>
+                                  <Plus size={24} className="text-zinc-600" />
+                                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Galeria</span>
+                                </>
+                              )}
+                            </label>
+
+                            {/* Option: Camera Direct (Native) */}
+                            <button 
+                              onClick={() => cameraInputRef.current?.click()}
+                              className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
+                              disabled={isUploading}
+                            >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                ref={cameraInputRef}
+                                onChange={handleNativeCameraCapture}
+                              />
+                              {isUploading ? (
+                                <Loader2 size={24} className="text-[#00E676] animate-spin" />
+                              ) : (
+                                <>
+                                  <Camera size={24} className="text-zinc-600" />
+                                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Câmera</span>
+                                </>
+                              )}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-zinc-600">Máximo de 8 fotos. Formatos: JPG, PNG.</p>
                     </div>
                   </section>
                   
