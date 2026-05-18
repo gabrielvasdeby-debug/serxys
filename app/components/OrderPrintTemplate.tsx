@@ -204,7 +204,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
               <div className="p-2 text-[9.5px] bg-white space-y-2 flex-1 flex flex-col justify-center">
                 <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.totalValue || 0)}</span></div>
                 <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.amountPaid || 0)}</span></div>
-                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((order.financials?.totalValue || 0) - (order.financials?.amountPaid || 0))}</span></div>
+                <div className="flex justify-between"><span>Restante a Pagar:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((order.financials?.totalValue || 0) - (order.financials?.amountPaid || 0))}</span></div>
                 <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials?.paymentType || 'A combinar'}</span></div>
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
               <div className="p-2 text-[9.5px] bg-white space-y-2 flex-1 flex flex-col justify-center">
                 <div className="flex justify-between"><span>Serviço:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.totalValue || 0)}</span></div>
                 <div className="flex justify-between"><span>Entrada:</span><span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.amountPaid || 0)}</span></div>
-                <div className="flex justify-between"><span>Saldo:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((order.financials?.totalValue || 0) - (order.financials?.amountPaid || 0))}</span></div>
+                <div className="flex justify-between"><span>Restante a Pagar:</span><span className="font-bold text-red-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((order.financials?.totalValue || 0) - (order.financials?.amountPaid || 0))}</span></div>
                 <div className="flex justify-between pt-1 border-t"><span>Pagamento realizado:</span><span className="font-bold">{order.financials?.paymentType || 'A combinar'}</span></div>
               </div>
             </div>

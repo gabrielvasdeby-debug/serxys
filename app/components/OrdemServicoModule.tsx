@@ -3184,7 +3184,7 @@ export default function OrdemServicoModule({
                             <div className="flex justify-between text-xs">
                               {financials.totalValue - financials.amountPaid > 0 ? (
                                 <>
-                                  <span className="font-bold text-orange-400 uppercase tracking-wider text-[10px]">A Pagar (Saldo):</span>
+                                  <span className="font-bold text-orange-400 uppercase tracking-wider text-[10px]">Restante a Pagar:</span>
                                   <span className="font-black text-orange-400">R$ {(financials.totalValue - financials.amountPaid).toFixed(2)}</span>
                                 </>
                               ) : financials.totalValue - financials.amountPaid < 0 ? (
