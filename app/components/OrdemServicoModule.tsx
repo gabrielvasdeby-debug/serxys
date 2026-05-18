@@ -750,12 +750,73 @@ export default function OrdemServicoModule({
     // Scroll monitoring for actions is no longer needed as they are in the header
   };
   
-  const [financials, setFinancials] = useState<Order['financials']>({
+  const [financials, setFinancials] = useState<any>({
     totalValue: 0,
     paymentType: '',
     paymentStatus: 'Pendente',
-    amountPaid: 0
+    amountPaid: 0,
+    paymentMethods: []
   });
+
+  const [tempMethod, setTempMethod] = useState<'Dinheiro' | 'PIX' | 'Débito' | 'Crédito' | 'Link' | 'Outro'>('Dinheiro');
+  const [tempAmount, setTempAmount] = useState<string>('');
+
+  const handleAddPaymentMethod = (method: string, amount: number) => {
+    if (!method) {
+      onShowToast('Selecione o meio de recebimento');
+      return;
+    }
+    if (amount <= 0) {
+      onShowToast('Insira um valor válido');
+      return;
+    }
+
+    const currentMethods = financials.paymentMethods || [];
+    const newMethods = [...currentMethods, { method, amount }];
+    const newAmountPaid = newMethods.reduce((sum: number, m: any) => sum + m.amount, 0);
+    
+    let newStatus = financials.paymentStatus;
+    if (newAmountPaid >= financials.totalValue) {
+      newStatus = 'Total';
+    } else if (newAmountPaid > 0) {
+      newStatus = 'Parcial';
+    } else {
+      newStatus = 'Pendente';
+    }
+
+    setFinancials({
+      ...financials,
+      paymentMethods: newMethods,
+      amountPaid: newAmountPaid,
+      paymentStatus: newStatus as any,
+      paymentType: newMethods.length === 1 ? newMethods[0].method : 'Múltiplo'
+    });
+    
+    setTempAmount('');
+  };
+
+  const handleRemovePaymentMethod = (index: number) => {
+    const currentMethods = financials.paymentMethods || [];
+    const newMethods = currentMethods.filter((_: any, i: number) => i !== index);
+    const newAmountPaid = newMethods.reduce((sum: number, m: any) => sum + m.amount, 0);
+
+    let newStatus = financials.paymentStatus;
+    if (newAmountPaid >= financials.totalValue) {
+      newStatus = 'Total';
+    } else if (newAmountPaid > 0) {
+      newStatus = 'Parcial';
+    } else {
+      newStatus = 'Pendente';
+    }
+
+    setFinancials({
+      ...financials,
+      paymentMethods: newMethods,
+      amountPaid: newAmountPaid,
+      paymentStatus: newStatus as any,
+      paymentType: newMethods.length === 1 ? newMethods[0].method : (newMethods.length > 1 ? 'Múltiplo' : '')
+    });
+  };
 
   const [signatureMode, setSignatureMode] = useState<'digital' | 'manual' | 'remote'>(
     initialOrder?.signatures?.mode === 'manual' || initialOrder?.signatures?.isManual ? 'manual' :
@@ -1039,7 +1100,10 @@ export default function OrdemServicoModule({
       setTechnicianNotes(initialOrder.technicianNotes || '');
       setService(initialOrder.service || '');
       setPriority(initialOrder.priority);
-      setFinancials(initialOrder.financials);
+      setFinancials({
+        ...initialOrder.financials,
+        paymentMethods: initialOrder.financials?.paymentMethods || (initialOrder.financials?.amountPaid > 0 ? [{ method: initialOrder.financials.paymentType || 'Dinheiro', amount: initialOrder.financials.amountPaid }] : [])
+      });
       setSignatures(initialOrder.signatures);
       setShowVisualChecklist(initialOrder.isVisualChecklist || false);
       setDeliveryForecast(initialOrder.deliveryForecast || '');
@@ -1431,19 +1495,25 @@ export default function OrdemServicoModule({
 
       // Record transaction in Caixa if there's a payment
       if (financials.paymentStatus !== 'Pendente' && financials.amountPaid > 0) {
-        await supabase.from('transactions').insert({
-          id: crypto.randomUUID(),
-          company_id: profile.company_id,
-          type: 'entrada',
-          description: `Pagamento OS ${osData.os_number} - ${selectedCustomer.name}`,
-          value: financials.amountPaid,
-          payment_method: (['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].includes(financials.paymentType) ? financials.paymentType : 'Dinheiro'),
-          date: now.split('T')[0],
-          time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          os_id: osData.os_number.toString(),
-          user_id: profile.id,
-          session_id: currentCashSession?.id
-        });
+        const methodsToInsert = financials.paymentMethods && financials.paymentMethods.length > 0
+          ? financials.paymentMethods.filter((m: any) => m.amount > 0)
+          : [{ method: financials.paymentType || 'Dinheiro', amount: financials.amountPaid }];
+
+        for (const pm of methodsToInsert) {
+          await supabase.from('transactions').insert({
+            id: crypto.randomUUID(),
+            company_id: profile.company_id,
+            type: 'entrada',
+            description: `Pagamento OS ${osData.os_number} - ${selectedCustomer.name} (${pm.method})`,
+            value: pm.amount,
+            payment_method: (['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].includes(pm.method) ? pm.method : 'Dinheiro'),
+            date: now.split('T')[0],
+            time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            os_id: osData.os_number.toString(),
+            user_id: profile.id,
+            session_id: currentCashSession?.id
+          });
+        }
       }
 
       // Create Receivable if there is a balance
@@ -2809,7 +2879,7 @@ export default function OrdemServicoModule({
                                 const svc = availableServices.find(s => s.id === e.target.value);
                                 if (svc) {
                                   setService(svc.name + (svc.description ? ` - ${svc.description}` : ''));
-                                  setFinancials(prev => ({ ...prev, totalValue: Number(svc.default_value) }));
+                                  setFinancials((prev: any) => ({ ...prev, totalValue: Number(svc.default_value) }));
                                 }
                               }}
                               className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
@@ -2985,16 +3055,34 @@ export default function OrdemServicoModule({
                           {['Pendente', 'Parcial', 'Total'].map(status => (
                             <button
                               key={status}
+                              type="button"
                               onClick={() => {
-                                const newAmountPaid = status === 'Total' 
-                                  ? financials.totalValue 
-                                  : (status === 'Pendente' ? 0 : financials.amountPaid);
-                                  
-                                setFinancials({
-                                  ...financials, 
-                                  paymentStatus: status as Order['financials']['paymentStatus'],
-                                  amountPaid: newAmountPaid
-                                });
+                                if (status === 'Total') {
+                                  setFinancials({
+                                    ...financials,
+                                    paymentStatus: 'Total',
+                                    amountPaid: financials.totalValue,
+                                    paymentMethods: [{ method: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro', amount: financials.totalValue }],
+                                    paymentType: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro'
+                                  });
+                                } else if (status === 'Pendente') {
+                                  setFinancials({
+                                    ...financials,
+                                    paymentStatus: 'Pendente',
+                                    amountPaid: 0,
+                                    paymentMethods: [],
+                                    paymentType: ''
+                                  });
+                                } else {
+                                  const defaultAmount = financials.amountPaid || (financials.totalValue / 2);
+                                  setFinancials({
+                                    ...financials,
+                                    paymentStatus: 'Parcial',
+                                    amountPaid: defaultAmount,
+                                    paymentMethods: [{ method: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro', amount: defaultAmount }],
+                                    paymentType: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro'
+                                  });
+                                }
                               }}
                               className={`flex-1 min-w-[80px] sm:min-w-0 py-2 text-xs font-medium rounded-sm border transition-colors ${
                                 financials.paymentStatus === status 
@@ -3009,45 +3097,110 @@ export default function OrdemServicoModule({
                       </div>
 
                       {financials.paymentStatus !== 'Pendente' && (
-                        <>
-                          {financials.paymentStatus === 'Parcial' && (
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-zinc-400">Valor Pago (R$)</label>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={financials.amountPaid || ''}
-                                onChange={e => setFinancials({...financials, amountPaid: parseFloat(e.target.value) || 0})}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                                placeholder="0,00"
-                              />
-                              <div className="text-xs text-zinc-500 mt-1 flex justify-between">
-                                <span>Restante:</span>
-                                <span className="font-medium text-white">
-                                  R$ {Math.max(0, financials.totalValue - financials.amountPaid).toFixed(2)}
-                                </span>
+                        <div className="space-y-4 pt-2 border-t border-zinc-800/50">
+                          <h4 className="text-[11px] font-bold text-[#00E676] uppercase tracking-wider">Meios de Recebimento</h4>
+                          
+                          {/* List of current payments */}
+                          <div className="space-y-2">
+                            {(financials.paymentMethods || []).map((pm: any, index: number) => (
+                              <div key={index} className="flex justify-between items-center bg-zinc-900 border border-zinc-800 rounded-sm px-3 py-2.5 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-[#00E676]">{pm.method}</span>
+                                  <span className="text-zinc-600">|</span>
+                                  <span className="text-white font-black">R$ {pm.amount.toFixed(2)}</span>
+                                </div>
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleRemovePaymentMethod(index)}
+                                  className="text-zinc-500 hover:text-red-500 transition-colors p-1"
+                                  title="Remover meio de pagamento"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
                               </div>
-                            </div>
-                          )}
+                            ))}
 
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-zinc-400">Forma de Pagamento</label>
-                            <select
-                              value={financials.paymentType}
-                              onChange={e => setFinancials({...financials, paymentType: e.target.value as Order['financials']['paymentType']})}
-                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
-                            >
-                              <option value="">Selecione...</option>
-                              <option value="Dinheiro">Dinheiro</option>
-                              <option value="PIX">PIX</option>
-                              <option value="Débito">Débito</option>
-                              <option value="Crédito">Crédito</option>
-                              <option value="Link">Link</option>
-                              <option value="Outro">Outro</option>
-                            </select>
+                            {(!financials.paymentMethods || financials.paymentMethods.length === 0) && (
+                              <p className="text-[11px] text-zinc-500 italic">Nenhum meio de recebimento adicionado ainda.</p>
+                            )}
                           </div>
-                        </>
+
+                          {/* Add Payment Form */}
+                          <div className="border border-dashed border-zinc-800 rounded p-3 space-y-3 bg-[#0A0A0A]">
+                            <p className="text-[9px] uppercase font-black tracking-wider text-zinc-500">Adicionar Recebimento</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                              <div className="sm:col-span-5 space-y-1">
+                                <label className="text-[9px] uppercase font-bold text-zinc-500">Forma de Pagamento</label>
+                                <select
+                                  value={tempMethod}
+                                  onChange={e => setTempMethod(e.target.value as any)}
+                                  className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                                >
+                                  <option value="Dinheiro">Dinheiro</option>
+                                  <option value="PIX">PIX</option>
+                                  <option value="Débito">Débito</option>
+                                  <option value="Crédito">Crédito</option>
+                                  <option value="Link">Link</option>
+                                  <option value="Outro">Outro</option>
+                                </select>
+                              </div>
+                              <div className="sm:col-span-4 space-y-1">
+                                <label className="text-[9px] uppercase font-bold text-zinc-500">Valor (R$)</label>
+                                <input
+                                  type="number"
+                                  min="0.01"
+                                  step="0.01"
+                                  value={tempAmount}
+                                  onChange={e => setTempAmount(e.target.value)}
+                                  className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                  placeholder="0,00"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const val = parseFloat(tempAmount) || 0;
+                                  handleAddPaymentMethod(tempMethod, val);
+                                }}
+                                className="sm:col-span-3 w-full bg-[#00E676]/10 border border-[#00E676]/30 hover:bg-[#00E676] hover:text-black text-[#00E676] text-xs font-black uppercase tracking-wider py-2 rounded-sm transition-all flex items-center justify-center gap-1.5 h-[34px]"
+                              >
+                                <Plus size={14} />
+                                Adicionar
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Summary Indicators */}
+                          <div className="bg-[#0A0A0A] border border-zinc-800 rounded p-4 space-y-2 mt-4">
+                            <div className="flex justify-between text-xs text-zinc-400">
+                              <span>Total do Serviço:</span>
+                              <span className="font-semibold text-white">R$ {financials.totalValue.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-zinc-400">
+                              <span>Total Recebido:</span>
+                              <span className="font-semibold text-[#00E676]">R$ {financials.amountPaid.toFixed(2)}</span>
+                            </div>
+                            <div className="h-px bg-zinc-800 my-1" />
+                            <div className="flex justify-between text-xs">
+                              {financials.totalValue - financials.amountPaid > 0 ? (
+                                <>
+                                  <span className="font-bold text-orange-400 uppercase tracking-wider text-[10px]">A Pagar (Saldo):</span>
+                                  <span className="font-black text-orange-400">R$ {(financials.totalValue - financials.amountPaid).toFixed(2)}</span>
+                                </>
+                              ) : financials.totalValue - financials.amountPaid < 0 ? (
+                                <>
+                                  <span className="font-bold text-blue-400 uppercase tracking-wider text-[10px]">Troco:</span>
+                                  <span className="font-black text-blue-400">R$ {Math.abs(financials.totalValue - financials.amountPaid).toFixed(2)}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="font-bold text-[#00E676] uppercase tracking-wider text-[10px]">Quitado:</span>
+                                  <span className="font-black text-[#00E676]">Pago Integralmente</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </section>

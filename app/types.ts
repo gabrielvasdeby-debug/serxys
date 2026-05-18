@@ -169,9 +169,10 @@ export interface Order {
   service: string;
   financials: {
     totalValue: number;
-    paymentType: 'Dinheiro' | 'PIX' | 'Cartão' | 'Transferência' | 'Débito' | 'Crédito' | 'Link' | 'Outro' | '';
+    paymentType: 'Dinheiro' | 'PIX' | 'Cartão' | 'Transferência' | 'Débito' | 'Crédito' | 'Link' | 'Outro' | 'Múltiplo' | '';
     paymentStatus: 'Total' | 'Parcial' | 'Pendente';
     amountPaid: number;
+    paymentMethods?: { method: string; amount: number }[];
   };
   signatures: {
     technician: string | null;
