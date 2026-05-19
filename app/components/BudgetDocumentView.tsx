@@ -29,6 +29,64 @@ const WhatsappIcon = ({ size = 14, className = '' }) => (
   </svg>
 );
 
+// Helper to trim transparent borders from canvas
+const trimCanvas = (canvas: HTMLCanvasElement): string => {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas.toDataURL('image/png');
+
+  const width = canvas.width;
+  const height = canvas.height;
+  const pixels = ctx.getImageData(0, 0, width, height);
+  const l = pixels.data.length;
+  
+  let minX = width;
+  let minY = height;
+  let maxX = 0;
+  let maxY = 0;
+
+  for (let i = 0; i < l; i += 4) {
+    const alpha = pixels.data[i + 3];
+    if (alpha > 0) {
+      const pixelIndex = i / 4;
+      const x = pixelIndex % width;
+      const y = Math.floor(pixelIndex / width);
+
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+  }
+
+  if (maxX < minX || maxY < minY) {
+    return canvas.toDataURL('image/png');
+  }
+
+  const padding = 6;
+  minX = Math.max(0, minX - padding);
+  minY = Math.max(0, minY - padding);
+  maxX = Math.min(width, maxX + padding);
+  maxY = Math.min(height, maxY + padding);
+
+  const croppedWidth = maxX - minX;
+  const croppedHeight = maxY - minY;
+
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = croppedWidth;
+  tempCanvas.height = croppedHeight;
+  
+  const tempCtx = tempCanvas.getContext('2d');
+  if (!tempCtx) return canvas.toDataURL('image/png');
+
+  tempCtx.drawImage(
+    canvas,
+    minX, minY, croppedWidth, croppedHeight,
+    0, 0, croppedWidth, croppedHeight
+  );
+
+  return tempCanvas.toDataURL('image/png');
+};
+
 export default function BudgetDocumentView({
   order, customer, companySettings, onApprove, onReject, isSubmitting
 }: BudgetDocumentViewProps) {
@@ -130,7 +188,7 @@ export default function BudgetDocumentView({
       alert('Por favor, desenhe sua assinatura para confirmar.');
       return;
     }
-    const sig = sigCanvas.current!.getCanvas().toDataURL('image/png');
+    const sig = trimCanvas(sigCanvas.current!.getCanvas());
     setShowSigPad(false);
     await onApprove(sig);
   };
