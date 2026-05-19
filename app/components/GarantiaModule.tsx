@@ -241,7 +241,8 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   }, [warranties, searchQuery, statusFilter]);
 
   // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
-  const triggerPrint = (mode: 'warranty' | 'warranty-thermal') => {
+  // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
+  const triggerPrint = async (mode: 'warranty' | 'warranty-thermal') => {
     if (!selectedWarranty) {
       onShowToast('Nenhuma garantia selecionada.');
       return;
@@ -253,6 +254,9 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     
     document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_Garantia_${osNumber}`;
     
+    // Ativa o estado de carregamento
+    setIsPrinting(true);
+
     // Limpa classes anteriores
     document.body.classList.remove('print-warranty', 'print-warranty-thermal');
     
@@ -265,15 +269,47 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     // Força o navegador a recalcular o layout (ajuda no Mobile Chrome/Safari a aplicar o CSS display:block antes do print)
     void document.body.offsetHeight;
 
-    // Evita re-render massivo do React antes da impressão
-    // Timeout otimizado (400ms)
+    // Identifica o contêiner ativo da impressão no Portal
+    const className = mode === 'warranty-thermal' ? 'warranty-thermal-container' : `print-${mode}-container`;
+    const container = document.querySelector(`.${className}`) as HTMLElement;
+
+    if (container) {
+      // Aguarda o carregamento de todas as imagens (logomarca e assinaturas base64)
+      await new Promise<void>((resolve) => {
+        const imgs = Array.from(container.querySelectorAll('img'));
+        if (imgs.length === 0) {
+          resolve();
+          return;
+        }
+        let loaded = 0;
+        const timer = setTimeout(resolve, 3000); // safety timeout de 3 segundos
+        const onLoad = () => {
+          loaded++;
+          if (loaded >= imgs.length) {
+            clearTimeout(timer);
+            resolve();
+          }
+        };
+        imgs.forEach((img) => {
+          if (img.complete) {
+            onLoad();
+          } else {
+            img.addEventListener('load', onLoad, { once: true });
+            img.addEventListener('error', onLoad, { once: true });
+          }
+        });
+      });
+    }
+
+    // Micro-timeout de 150ms para garantir renderização e fechar o loading antes de bloquear a thread do JS
     setTimeout(() => {
+      setIsPrinting(false);
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
       document.body.classList.remove(`print-${mode}`);
       document.title = originalTitle;
-    }, 400);
+    }, 150);
   };
 
   // Função para compartilhar o documento via API nativa (Mobile)

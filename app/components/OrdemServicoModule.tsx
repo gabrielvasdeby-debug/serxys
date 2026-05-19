@@ -1712,7 +1712,8 @@ export default function OrdemServicoModule({
   }, [printOrder, localOrder, service, checklist, osSettings.printTerms]);
 
   // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
-  const triggerPrint = (mode: 'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo') => {
+  // Função direta de impressão (evita useEffect para não perder o user-gesture no Mobile Safari)
+  const triggerPrint = async (mode: 'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo') => {
     if (!selectedCustomer) {
       onShowToast('Selecione um cliente para imprimir.');
       return;
@@ -1725,6 +1726,9 @@ export default function OrdemServicoModule({
     
     document.title = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isWarranty ? 'Garantia' : 'OS'}_${osNumber}`;
     
+    // Ativa o estado de carregamento
+    setIsPrinting(true);
+
     // Limpa classes anteriores
     document.body.classList.remove('print-a4', 'print-thermal', 'print-warranty', 'print-warranty-thermal', 'print-laudo');
     
@@ -1737,8 +1741,41 @@ export default function OrdemServicoModule({
     // Força o navegador a recalcular o layout (ajuda no Mobile Chrome/Safari a aplicar o CSS display:block antes do print)
     void document.body.offsetHeight;
 
-    // Timeout otimizado (400ms): Dá tempo suficiente para o navegador renderizar o Portal
+    // Identifica o contêiner ativo da impressão no Portal
+    const className = mode === 'warranty-thermal' ? 'warranty-thermal-container' : `print-${mode}-container`;
+    const container = document.querySelector(`.${className}`) as HTMLElement;
+
+    if (container) {
+      // Aguarda o carregamento de todas as imagens (logomarca e assinaturas base64)
+      await new Promise<void>((resolve) => {
+        const imgs = Array.from(container.querySelectorAll('img'));
+        if (imgs.length === 0) {
+          resolve();
+          return;
+        }
+        let loaded = 0;
+        const timer = setTimeout(resolve, 3000); // safety timeout de 3 segundos
+        const onLoad = () => {
+          loaded++;
+          if (loaded >= imgs.length) {
+            clearTimeout(timer);
+            resolve();
+          }
+        };
+        imgs.forEach((img) => {
+          if (img.complete) {
+            onLoad();
+          } else {
+            img.addEventListener('load', onLoad, { once: true });
+            img.addEventListener('error', onLoad, { once: true });
+          }
+        });
+      });
+    }
+
+    // Micro-timeout de 150ms para garantir renderização e fechar o loading antes de bloquear a thread do JS
     setTimeout(() => {
+      setIsPrinting(false);
       window.print();
       
       // Limpeza após fechar o diálogo de impressão
@@ -1748,7 +1785,7 @@ export default function OrdemServicoModule({
       if (signatureMode === 'manual' && (mode === 'a4' || mode === 'thermal')) {
         setTimeout(() => setIsScanReminderOpen(true), 1000);
       }
-    }, 400);
+    }, 150);
   };
 
   // Função para compartilhar o documento via API nativa (Mobile)
@@ -3538,7 +3575,7 @@ export default function OrdemServicoModule({
       {/* Usamos Portal para que fiquem fora da estrutura principal do app e não sejam ocultados pelo display:none do CSS de impressão */}
       {selectedCustomer && typeof document !== 'undefined' && createPortal(
         <>
-          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
+          <div className="print-a4-container" key={`nova-os-a4-${selectedCustomer.id}`}>
             <OrderPrintTemplate 
               order={printOrder}
               customer={selectedCustomer}
@@ -3547,7 +3584,7 @@ export default function OrdemServicoModule({
             />
           </div>
 
-          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
+          <div className="print-thermal-container" key={`nova-os-thermal-${selectedCustomer.id}`}>
             <ThermalReceiptTemplate 
               order={printOrder}
               customer={selectedCustomer}
@@ -3556,7 +3593,7 @@ export default function OrdemServicoModule({
             />
           </div>
 
-          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
+          <div className="print-warranty-container" key={`nova-os-warranty-${selectedCustomer.id}`}>
             <WarrantyPrintTemplate 
               order={warrantyOrder}
               customer={selectedCustomer}
@@ -3564,7 +3601,7 @@ export default function OrdemServicoModule({
               osSettings={osSettings}
             />
           </div>
-          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}-${signatures.technician ? 't' : '0'}-${signatures.client ? 'c' : '0'}`}>
+          <div className="warranty-thermal-container" key={`nova-os-warranty-thermal-${selectedCustomer.id}`}>
             <WarrantyThermalTemplate 
               order={warrantyOrder}
               customer={selectedCustomer}
