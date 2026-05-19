@@ -709,7 +709,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                     <button 
                       onClick={() => {
                         const portalUrl = companySettings.publicSlug 
-                          ? `${window.location.origin}/${companySettings.publicSlug}/${selectedWarranty.os_id}`
+                          ? `${window.location.origin}/${companySettings.publicSlug}/${selectedWarranty.os_number}`
                           : `${window.location.origin}/os/${selectedWarranty.os_id}`;
 
                         const template = osSettings?.whatsappMessages?.['Garantia'] || 

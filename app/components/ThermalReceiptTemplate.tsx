@@ -157,7 +157,14 @@ export default function ThermalReceiptTemplate({
 
       {/* QR & FOOTER */}
       <div className="flex flex-col items-center gap-1 my-1">
-        <QRCodeSVG value={`https://servyx.app/${companySettings?.publicSlug || 'os'}/${order.id}`} size={60} level="M" className="grayscale" />
+        <QRCodeSVG 
+          value={companySettings?.publicSlug 
+            ? `https://servyx.app/${companySettings.publicSlug}/${order.osNumber}` 
+            : `https://servyx.app/os/${order.id}`} 
+          size={60} 
+          level="M" 
+          className="grayscale" 
+        />
         <p className="text-[8px] text-center font-bold">Acompanhe via QRCode</p>
       </div>
 

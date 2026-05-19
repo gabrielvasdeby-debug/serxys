@@ -79,7 +79,9 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
     }
   };
 
-  const trackingUrl = `https://servyx.app/${companySettings.publicSlug || 'os'}/${order.id}`;
+  const trackingUrl = companySettings.publicSlug
+    ? `https://servyx.app/${companySettings.publicSlug}/${order.osNumber}`
+    : `https://servyx.app/os/${order.id}`;
 
   return (
     <div className="bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>

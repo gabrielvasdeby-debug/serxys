@@ -95,7 +95,11 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   const warrantyMonths = compData?.warrantyMonths || (compData?.warrantyDays ? Math.floor(compData.warrantyDays / 30) : 3);
 
   // Tracking URL for QR Code
-  const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}/${companySettings?.publicSlug}/${order.id || order.osNumber}` : '';
+  const trackingUrl = typeof window !== 'undefined' 
+    ? (companySettings?.publicSlug 
+        ? `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber || order.id}` 
+        : `${window.location.origin}/os/${order.id}`)
+    : '';
 
   return (
     <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
