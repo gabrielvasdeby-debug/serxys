@@ -3311,6 +3311,32 @@ export default function OrdemServicoModule({
                             onSave={(dataUrl) => setSignatures(prev => ({ ...prev, client: dataUrl }))}
                             onClear={() => setSignatures(prev => ({ ...prev, client: null }))}
                           />
+                          {/* Preview das assinaturas coletadas */}
+                          {(signatures.technician || signatures.client) && (
+                            <div className="mt-2 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-sm animate-in fade-in duration-500">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-3 flex items-center gap-2">
+                                <CheckCircle2 size={12} /> Assinaturas Coletadas
+                              </p>
+                              <div className="grid grid-cols-2 gap-3">
+                                {signatures.technician && (
+                                  <div className="flex flex-col items-center gap-1">
+                                    <div className="w-full h-20 bg-white rounded-sm overflow-hidden border border-zinc-200 flex items-center justify-center p-1 shadow-sm">
+                                      <img src={signatures.technician} alt="Assinatura Técnico" className="max-h-full max-w-full object-contain" />
+                                    </div>
+                                    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Técnico</span>
+                                  </div>
+                                )}
+                                {signatures.client && (
+                                  <div className="flex flex-col items-center gap-1">
+                                    <div className="w-full h-20 bg-white rounded-sm overflow-hidden border border-zinc-200 flex items-center justify-center p-1 shadow-sm">
+                                      <img src={signatures.client} alt="Assinatura Cliente" className="max-h-full max-w-full object-contain" />
+                                    </div>
+                                    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Cliente</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : signatureMode === 'remote' ? (
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -3549,6 +3575,13 @@ export default function OrdemServicoModule({
         </>,
         typeof document !== 'undefined' ? (document.getElementById('print-portal-root') || document.body) : null as any
       )}
+
+      {/* Success Animation Modal */}
+      <SuccessAnimationModal
+        isOpen={showSuccessModal}
+        osNumber={successOsNumber}
+        onClose={() => setShowSuccessModal(false)}
+      />
 
       <AnimatePresence>
         {whatsappPrompt.isOpen && (

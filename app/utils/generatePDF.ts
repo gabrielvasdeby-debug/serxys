@@ -9,17 +9,48 @@ export interface SharePDFOptions {
   forceShowOnly?: boolean;
 }
 
+/**
+ * Waits for all <img> elements inside a container to finish loading.
+ * This is critical for base64 signature images which need a paint cycle to appear.
+ */
+function waitForImages(container: HTMLElement, timeout = 3000): Promise<void> {
+  return new Promise((resolve) => {
+    const imgs = Array.from(container.querySelectorAll('img'));
+    if (imgs.length === 0) {
+      resolve();
+      return;
+    }
+    let loaded = 0;
+    const timer = setTimeout(resolve, timeout); // Safety timeout
+    const onLoad = () => {
+      loaded++;
+      if (loaded >= imgs.length) {
+        clearTimeout(timer);
+        resolve();
+      }
+    };
+    imgs.forEach((img) => {
+      if (img.complete) {
+        onLoad();
+      } else {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', onLoad, { once: true }); // Also resolve on error
+      }
+    });
+  });
+}
+
 export async function generateAndSharePDF(
   templateElement: ReactElement,
   filename: string,
   onShowToast: (msg: string) => void,
   opts: SharePDFOptions = {}
 ): Promise<void> {
-  const { width = 794, scale = 1.5, renderDelay = 100, forceShowOnly = true } = opts;
+  const { width = 794, scale = 1.5, renderDelay = 600, forceShowOnly = true } = opts;
 
-  // 1. Off-screen container (On-screen but hidden behind content to prevent mobile viewport culling)
+  // 1. Off-screen container (visible but behind content via z-index)
   const offscreen = document.createElement('div');
-  offscreen.style.cssText = `position:absolute;top:0;left:0;width:${width}px;background:#ffffff;z-index:-9999;pointer-events:none;overflow:hidden;`;
+  offscreen.style.cssText = `position:fixed;top:0;left:0;width:${width}px;background:#ffffff;z-index:-9999;pointer-events:none;`;
   document.body.appendChild(offscreen);
 
   try {
@@ -27,22 +58,26 @@ export async function generateAndSharePDF(
     const root = createRoot(offscreen);
     root.render(templateElement);
 
-    // Wait for rendering and images to fully paint
+    // Wait for React to paint the component
     await new Promise<void>((resolve) => setTimeout(resolve, renderDelay));
+
+    // Wait for all images (including base64 signatures) to fully render
+    await waitForImages(offscreen);
 
     // 2. Capture with html-to-image
     const { toJpeg } = await import('html-to-image');
-    
+
     const imgData = await toJpeg(offscreen, {
-      quality: 0.9,
+      quality: 0.92,
       backgroundColor: '#ffffff',
       width: width,
       pixelRatio: scale,
       skipFonts: true, // Prevents hanging on font CORS issues
       style: {
         transform: 'scale(1)',
-        transformOrigin: 'top left'
-      }
+        transformOrigin: 'top left',
+        overflow: 'visible',
+      },
     });
 
     root.unmount();
@@ -50,7 +85,7 @@ export async function generateAndSharePDF(
     // 3. Build PDF
     const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    
+
     const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
@@ -65,14 +100,17 @@ export async function generateAndSharePDF(
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if (isMobile && forceShowOnly) {
-      // Create a temporary link and click it to open in new tab
-      // Some mobile browsers block window.open, but clicking a link is usually allowed.
       const a = document.createElement('a');
       a.href = url;
       a.target = '_blank';
       a.click();
       onShowToast('PDF aberto com sucesso!');
-    } else if (!isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' })] })) {
+    } else if (
+      !isMobile &&
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' })] })
+    ) {
       const file = new File([pdfBlob], `${filename}.pdf`, { type: 'application/pdf' });
       try {
         await navigator.share({ files: [file], title: filename, text: `Segue o documento: ${filename}` });
@@ -82,7 +120,6 @@ export async function generateAndSharePDF(
         }
       }
     } else {
-      // Fallback: Download/Open
       const a = document.createElement('a');
       a.href = url;
       a.download = `${filename}.pdf`;
