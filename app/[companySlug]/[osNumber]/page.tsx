@@ -703,6 +703,7 @@ export default function CustomerPortal() {
                       <SignatureCanvas 
                         ref={sigPad}
                         penColor="#000000"
+                        clearOnResize={false}
                         onBegin={() => setHasDrawing(true)}
                         onEnd={() => {
                           if (sigPad.current) {

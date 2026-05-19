@@ -249,6 +249,7 @@ const SignaturePad = ({ title, onSave, onClear, initialSignature }: { title: str
                   <SignatureCanvas
                     ref={sigCanvas}
                     penColor="black"
+                    clearOnResize={false}
                     canvasProps={{
                       className: "w-full h-[200px] cursor-crosshair touch-none"
                     }}

@@ -120,6 +120,79 @@ export default function TrackingPage() {
   const [tempSignature, setTempSignature] = useState<string | null>(null);
   const sigCanvas = useRef<SignatureCanvas>(null);
 
+  // Re-size signature pad on orientation change
+  useEffect(() => {
+    const doResize = () => {
+      if (sigCanvas.current) {
+        const canvas = sigCanvas.current.getCanvas();
+        if (canvas) {
+          if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
+
+          const data = sigCanvas.current.toData();
+          const ratio = Math.max(window.devicePixelRatio || 1, 1);
+          const oldWidth = canvas.width / ratio;
+          const oldHeight = canvas.height / ratio;
+
+          canvas.width = canvas.offsetWidth * ratio;
+          canvas.height = canvas.offsetHeight * ratio;
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.scale(ratio, ratio);
+
+          sigCanvas.current.clear();
+
+          if (data && data.length > 0) {
+            const newWidth = canvas.offsetWidth;
+            const newHeight = canvas.offsetHeight;
+            
+            if (oldWidth > 0 && oldHeight > 0 && (oldWidth !== newWidth || oldHeight !== newHeight)) {
+              const scaleX = newWidth / oldWidth;
+              const scaleY = newHeight / oldHeight;
+
+              const scaledData = data.map((group: any) => {
+                if (group.points) {
+                  return {
+                    ...group,
+                    points: group.points.map((point: any) => ({
+                      ...point,
+                      x: point.x * scaleX,
+                      y: point.y * scaleY
+                    }))
+                  };
+                }
+                return group.map((point: any) => ({
+                  ...point,
+                  x: point.x * scaleX,
+                  y: point.y * scaleY
+                }));
+              });
+              sigCanvas.current.fromData(scaledData as any);
+            } else {
+              sigCanvas.current.fromData(data as any);
+            }
+          }
+        }
+      }
+    };
+
+    const handleOrientationChange = () => {
+      setTimeout(doResize, 300);
+    };
+
+    const handleResize = () => {
+      setTimeout(doResize, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    if (showEntrySignaturePad) {
+      setTimeout(doResize, 150);
+    }
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, [showEntrySignaturePad]);
+
   useEffect(() => {
     setIsMounted(true);
     if (!orderId) return;
@@ -550,6 +623,7 @@ export default function TrackingPage() {
                   <SignatureCanvas
                     ref={sigCanvas}
                     penColor="black"
+                    clearOnResize={false}
                     minWidth={2.5}
                     maxWidth={4.5}
                     canvasProps={{ className: "w-full h-80 cursor-crosshair focus:outline-none" }}
@@ -843,6 +917,7 @@ export default function TrackingPage() {
                   <SignatureCanvas
                     ref={sigCanvas}
                     penColor="black"
+                    clearOnResize={false}
                     minWidth={2.5}
                     maxWidth={4.5}
                     canvasProps={{ className: "w-full h-80 cursor-crosshair focus:outline-none" }}

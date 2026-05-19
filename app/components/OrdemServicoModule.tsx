@@ -239,6 +239,7 @@ const SignaturePad = ({ title, onSave, onClear, autoOpen, initialValue }: { titl
                   <SignatureCanvas 
                     ref={sigCanvas}
                     penColor="black"
+                    clearOnResize={false}
                     onBegin={() => setHasDrawing(true)}
                     onEnd={() => {
                       if (sigCanvas.current) {
