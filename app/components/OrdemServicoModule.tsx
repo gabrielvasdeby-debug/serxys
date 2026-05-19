@@ -898,6 +898,12 @@ export default function OrdemServicoModule({
   const [localOrder, setLocalOrder] = useState<Order | null>(initialOrder || null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOsNumber, setSuccessOsNumber] = useState('');
+  const [pdfPreviewModal, setPdfPreviewModal] = useState<{
+    isOpen: boolean;
+    imgDataUrl?: string;
+    pdfBlob?: Blob;
+    filename: string;
+  } | null>(null);
   
   const scrollToTop = () => {
     // Blur any active element (like the confirm button) that might be forcing scroll position
@@ -1860,9 +1866,11 @@ export default function OrdemServicoModule({
     const isWarranty = mode.includes('warranty');
     const filename = `${companyName.toUpperCase().replace(/\s+/g, '_')}_${isWarranty ? 'Garantia' : 'OS'}_${osNumberFormatted}`;
 
+    setIsPrinting(true);
+
     try {
       const React = await import('react');
-      const { generateAndSharePDF } = await import('../utils/generatePDF');
+      const { generatePDFData } = await import('../utils/generatePDF');
 
       let templateElement: React.ReactElement;
       if (isWarranty) {
@@ -1877,10 +1885,19 @@ export default function OrdemServicoModule({
         });
       }
 
-      await generateAndSharePDF(templateElement, filename, onShowToast);
+      const { pdfBlob, imgData } = await generatePDFData(templateElement);
+
+      setPdfPreviewModal({
+        isOpen: true,
+        imgDataUrl: imgData,
+        pdfBlob: pdfBlob,
+        filename: filename
+      });
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -3774,6 +3791,94 @@ export default function OrdemServicoModule({
             </motion.div>
           </motion.div>
         )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {pdfPreviewModal && pdfPreviewModal.isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-md flex flex-col no-print"
+            >
+              {/* Header Barra Superior */}
+              <div className="w-full h-16 bg-black/40 border-b border-zinc-800/80 px-4 flex items-center justify-between backdrop-blur-lg">
+                <button 
+                  onClick={() => setPdfPreviewModal(null)} 
+                  className="flex items-center gap-2 text-zinc-400 hover:text-white transition-all text-xs font-black uppercase tracking-wider"
+                >
+                  <ChevronLeft size={20} />
+                  Voltar
+                </button>
+                
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300 hidden sm:inline">
+                  Visualização do Documento
+                </span>
+
+                <button
+                  onClick={async () => {
+                    if (!selectedCustomer) return;
+                    
+                    const portalUrl = companySettings.publicSlug 
+                      ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder?.id || printOrder?.id}`
+                      : `${window.location.origin}/os/${localOrder?.id || printOrder?.id}`;
+
+                    const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
+                      `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
+                    
+                    let message = template
+                      .replace(/\\n/g, '\n')
+                      .replace(/\[nome_cliente\]/g, selectedCustomer.name)
+                      .replace(/{cliente}/g, selectedCustomer.name)
+                      .replace(/\[numero_os\]/g, (localOrder?.osNumber || printOrder?.osNumber || 0).toString().padStart(4, '0'))
+                      .replace(/{os}/g, (localOrder?.osNumber || printOrder?.osNumber || 0).toString().padStart(4, '0'))
+                      .replace(/\[link_os\]/g, portalUrl)
+                      .replace(/{link}/g, portalUrl)
+                      .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
+                      .replace(/{empresa}/g, companySettings.name || 'Servyx');
+
+                    let cleanPhone = selectedCustomer.whatsapp.replace(/\D/g, '');
+                    if (!cleanPhone.startsWith('55')) cleanPhone = `55${cleanPhone}`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+
+                    // Web Share API nativa para Mobile (anexa o PDF real)
+                    if (navigator.share && pdfPreviewModal.pdfBlob) {
+                      const file = new File([pdfPreviewModal.pdfBlob], `${pdfPreviewModal.filename}.pdf`, { type: 'application/pdf' });
+                      try {
+                        await navigator.share({
+                          files: [file],
+                          title: pdfPreviewModal.filename,
+                          text: `Segue em anexo o documento da sua OS.`
+                        });
+                      } catch (shareErr) {
+                        console.log('Compartilhamento nativo cancelado ou falhou, abrindo WhatsApp Direct.');
+                        window.open(whatsappUrl, '_blank');
+                      }
+                    } else {
+                      window.open(whatsappUrl, '_blank');
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-[#00E676]/20 active:scale-95"
+                >
+                  <MessageCircle size={14} fill="black" />
+                  Compartilhar via WhatsApp
+                </button>
+              </div>
+
+              {/* Documento Renderizado */}
+              <div className="flex-1 overflow-y-auto p-4 flex items-start justify-center">
+                <div className="w-full max-w-2xl bg-white shadow-2xl rounded-md overflow-hidden border border-zinc-800/80 my-4">
+                  {pdfPreviewModal.imgDataUrl && (
+                    <img 
+                      src={pdfPreviewModal.imgDataUrl} 
+                      alt="Visualização do PDF" 
+                      className="w-full h-auto select-none pointer-events-none" 
+                    />
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </>

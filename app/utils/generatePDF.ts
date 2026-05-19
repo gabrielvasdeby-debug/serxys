@@ -40,13 +40,11 @@ function waitForImages(container: HTMLElement, timeout = 3000): Promise<void> {
   });
 }
 
-export async function generateAndSharePDF(
+export async function generatePDFData(
   templateElement: ReactElement,
-  filename: string,
-  onShowToast: (msg: string) => void,
   opts: SharePDFOptions = {}
-): Promise<void> {
-  const { width = 794, scale = 1.5, renderDelay = 600, forceShowOnly = true } = opts;
+): Promise<{ pdfBlob: Blob; url: string; imgData: string }> {
+  const { width = 794, scale = 1.5, renderDelay = 600 } = opts;
 
   // 1. Off-screen container (visible but behind content via z-index)
   const offscreen = document.createElement('div');
@@ -96,6 +94,26 @@ export async function generateAndSharePDF(
     const pdfBlob = pdf.output('blob');
     const url = URL.createObjectURL(pdfBlob);
 
+    return { pdfBlob, url, imgData };
+  } catch (error: any) {
+    console.error('Erro na geração do PDF:', error);
+    throw error;
+  } finally {
+    if (document.body.contains(offscreen)) document.body.removeChild(offscreen);
+  }
+}
+
+export async function generateAndSharePDF(
+  templateElement: ReactElement,
+  filename: string,
+  onShowToast: (msg: string) => void,
+  opts: SharePDFOptions = {}
+): Promise<void> {
+  const { forceShowOnly = true } = opts;
+
+  try {
+    const { pdfBlob, url } = await generatePDFData(templateElement, opts);
+
     // 4. Action: Show or Share
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -127,9 +145,7 @@ export async function generateAndSharePDF(
       onShowToast('PDF gerado com sucesso!');
     }
   } catch (error: any) {
-    console.error('Erro na geração do PDF:', error);
+    console.error('Erro no generateAndSharePDF:', error);
     throw error;
-  } finally {
-    if (document.body.contains(offscreen)) document.body.removeChild(offscreen);
   }
 }
