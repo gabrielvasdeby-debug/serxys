@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { 
-  ChevronLeft, Search, Plus, User, Smartphone, 
+  Search, Plus, User, Smartphone, 
   CheckCircle2, AlertCircle, AlertTriangle, Save, Printer, MessageCircle,
   Check, X, Banknote, FileText, PenTool, Grid, Eye, Trash2, Camera, UploadCloud, Loader2, ShieldCheck, Mail, Pencil,
   Shield, Hash, Key, Lock, Home, ChevronLeft, Share2

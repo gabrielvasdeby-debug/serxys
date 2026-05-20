@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, Search, Plus, User, Smartphone, 
+  Search, Plus, User, Smartphone, 
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
