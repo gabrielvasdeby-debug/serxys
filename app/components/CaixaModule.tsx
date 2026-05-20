@@ -837,35 +837,42 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
               </div>
             )}
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-                <div className={`bg-[#111111] border border-zinc-700/60 px-3 py-3 rounded-[20px] relative overflow-hidden group shadow-sm`}>
-                   <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-emerald-500"><Banknote size={35} /></div>
-                   <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Dinheiro em Caixa</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.cashInHand >= 0 ? 'text-white' : 'text-red-500'} tracking-tighter`}>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.cashInHand)}
-                   </h2>
+            <div className="flex flex-col gap-3 shrink-0">
+                <div className={`bg-[#0A0A0A] border border-zinc-700/60 px-5 py-4 rounded-[20px] relative overflow-hidden group shadow-md flex items-center justify-between`}>
+                   <div className="relative z-10">
+                      <p className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5"><Banknote size={12} className="text-emerald-500" /> Dinheiro em Espécie (Gaveta)</p>
+                      <h2 className={`text-2xl sm:text-3xl font-black ${totals.cashInHand >= 0 ? 'text-white' : 'text-red-500'} tracking-tighter`}>
+                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.cashInHand)}
+                      </h2>
+                   </div>
+                   <div className="w-16 h-16 rounded-full bg-emerald-500/5 flex items-center justify-center shrink-0 border border-emerald-500/10 group-hover:scale-110 group-hover:bg-emerald-500/10 transition-all text-emerald-500">
+                     <Banknote size={28} />
+                   </div>
                 </div>
-               <div className="bg-[#111111] border border-zinc-700/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm">
-                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-emerald-500"><TrendingUp size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-emerald-500 tracking-tighter">
-                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}
-                  </h2>
+
+               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="bg-[#111111] border border-zinc-700/60 px-4 py-3.5 rounded-[20px] group relative overflow-hidden shadow-sm">
+                     <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-emerald-500"><TrendingUp size={30} /></div>
+                     <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Total Entradas</p>
+                     <h2 className="text-lg sm:text-xl font-black text-emerald-500 tracking-tighter">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}
+                     </h2>
+                  </div>
+                  <div className="bg-[#111111] border border-zinc-700/60 px-4 py-3.5 rounded-[20px] group relative overflow-hidden shadow-sm">
+                     <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-red-500"><TrendingDown size={30} /></div>
+                     <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
+                     <h2 className="text-lg sm:text-xl font-black text-red-500 tracking-tighter">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}
+                     </h2>
+                  </div>
+                  <div className={`col-span-2 lg:col-span-1 bg-[#111111] border border-zinc-700/60 px-4 py-3.5 rounded-[20px] group relative overflow-hidden shadow-sm`}>
+                     <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-blue-500"><Calculator size={30} /></div>
+                     <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
+                     <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-blue-500' : 'text-red-500'} tracking-tighter`}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.balance)}
+                     </h2>
+                  </div>
                </div>
-               <div className="bg-[#111111] border border-zinc-700/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm">
-                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-red-500"><TrendingDown size={30} /></div>
-                  <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Total Saídas</p>
-                  <h2 className="text-lg sm:text-xl font-black text-red-500 tracking-tighter">
-                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}
-                  </h2>
-               </div>
-                <div className={`bg-[#111111] border border-zinc-700/60 px-3 py-3 rounded-[20px] group relative overflow-hidden shadow-sm`}>
-                   <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-110 transition-transform text-blue-500"><Calculator size={30} /></div>
-                   <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.1em] mb-1">Saldo Líquido</p>
-                   <h2 className={`text-lg sm:text-xl font-black ${totals.balance >= 0 ? 'text-blue-500' : 'text-red-500'} tracking-tighter`}>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.balance)}
-                   </h2>
-                </div>
             </div>
 
             <div className="flex-1 flex flex-col lg:flex-row gap-6 md:overflow-hidden min-h-0">
