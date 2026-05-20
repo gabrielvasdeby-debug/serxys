@@ -272,16 +272,20 @@ export default function SettingsView({
 
   const onSaveProfile = () => {
     if (!editingProfile) return;
-    onUpdateProfile(editingProfile.id, {
+    
+    const updates: any = {
       name: editName,
       type: editType,
-      role: editType, // Keep both for safety
+      role: editType, // Keep for legacy
       photo: editPhoto,
-      photo_url: editPhoto, // Keep both for safety
       email: editEmail,
-      pin: editUsePin ? editPin : undefined,
       permissions: editPermissions
-    });
+    };
+
+    // Set pin correctly, using null to clear it in the DB when disabled
+    updates.pin = editUsePin ? editPin : null;
+
+    onUpdateProfile(editingProfile.id, updates);
 
     logActivity?.('EQUIPE', 'EDITOU PERFIL', {
       profileName: editName,

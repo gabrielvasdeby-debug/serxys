@@ -9,7 +9,8 @@ import {
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
-  Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight, Share2
+  Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight, Share2,
+  SlidersHorizontal, Filter, ArrowUpDown
 } from 'lucide-react';
 import { Customer } from './ClientesModule';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData, BudgetData, BudgetItem, Product } from '../types';
@@ -421,6 +422,11 @@ export default function StatusOsModule({
   const [reportPhotos, setReportPhotos] = useState<string[]>([]);
   const [showMetrics, setShowMetrics] = useState(false);
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+
+  // Helper Initials
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  };
   
   const handleCaptureReportPhoto = async () => {
     try {
@@ -1668,42 +1674,51 @@ export default function StatusOsModule({
       <header className="bg-[#141414] border-b border-zinc-800 p-2.5 sm:p-4 sticky top-0 z-30 no-print">
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
           {/* Mobile Header: Title Row -> Search Row -> Actions Row */}
-          <div className="flex lg:hidden flex-col gap-2.5">
-            {/* Row 1: Back + Title */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onBack}
-                className="p-1.5 hover:bg-zinc-800 rounded-sm transition-colors bg-zinc-900 border border-zinc-800"
-              >
-                <ChevronLeft size={22} className="text-zinc-400" />
+          <div className="flex lg:hidden flex-col gap-4">
+            {/* Row 1: Back + Title + New OS */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={onBack}
+                  className="w-11 h-11 flex items-center justify-center hover:bg-zinc-800 rounded-xl transition-colors bg-[#111111] border border-zinc-800"
+                >
+                  <ArrowLeft size={22} className="text-zinc-300" />
+                </button>
+                <div>
+                  <h1 className="text-xl font-bold text-white leading-tight">Status OS</h1>
+                  <p className="text-[11px] text-zinc-400 font-medium">Acompanhe e gerencie todas as ordens</p>
+                </div>
+              </div>
+              <button className="w-11 h-11 flex items-center justify-center bg-[#00E676]/10 rounded-xl border border-[#00E676]/20 active:scale-95 transition-transform" onClick={() => onBack()}>
+                <Plus size={22} className="text-[#00E676]" />
               </button>
-              <h1 className="text-base font-bold leading-none">Status OS</h1>
             </div>
             
-            {/* Row 2: Search Bar */}
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-              <input
-                type="text"
-                placeholder="Buscar OS, cliente ou aparelho..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
-              />
+            {/* Row 2: Search Bar & Settings */}
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+                <input
+                  type="text"
+                  placeholder="Buscar OS, cliente ou aparelho..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111111] border border-zinc-800 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-zinc-700 transition-colors"
+                />
+              </div>
+              <button className="w-[52px] h-[52px] shrink-0 flex items-center justify-center bg-[#111111] rounded-xl border border-zinc-800 active:scale-95 transition-transform">
+                <SlidersHorizontal size={20} className="text-zinc-400" />
+              </button>
             </div>
 
             {/* Row 3: Filter & Priority Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsStatusPickerOpen(true)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
-                  activeStatus !== 'ALL'
-                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_10px_rgba(0,230,118,0.05)]'
-                    : 'bg-[#0A0A0A] border-zinc-800 text-zinc-400 active:bg-zinc-800'
-                }`}
+                className="flex-1 bg-[#111111] border border-zinc-800 rounded-xl py-3.5 flex items-center justify-center gap-2 text-[11px] font-black tracking-widest text-zinc-300 active:scale-95 transition-all uppercase"
               >
-                <Grid size={14} />
-                {activeStatus === 'ALL' ? 'Filtro' : activeStatus}
+                <Filter size={16} className="text-zinc-500" />
+                FILTROS
               </button>
               <button
                 onClick={() => {
@@ -1714,15 +1729,58 @@ export default function StatusOsModule({
                     setActiveStatus('ALL');
                   }
                 }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+                className={`flex-1 bg-[#111111] border rounded-xl py-3.5 flex items-center justify-center gap-2 text-[11px] font-black tracking-widest active:scale-95 transition-all uppercase ${
                   groupBy === 'prioridade' 
-                  ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_10px_rgba(0,230,118,0.05)]' 
-                  : 'bg-[#0A0A0A] border-zinc-800 text-zinc-400 active:bg-zinc-800'
+                  ? 'border-[#00E676]/30 text-[#00E676] bg-[#00E676]/5' 
+                  : 'border-zinc-800 text-zinc-300'
                 }`}
               >
-                <AlertCircle size={14} />
-                Prioridade
+                <ArrowUpDown size={16} className={groupBy === 'prioridade' ? 'text-[#00E676]' : 'text-zinc-500'} />
+                PRIORIDADE
               </button>
+            </div>
+
+            {/* Row 4: Mobile Tabs Timeline */}
+            <div className="flex overflow-x-auto gap-4 pb-2 mt-1 no-scrollbar border-b border-zinc-800/60">
+              <button
+                onClick={() => setActiveStatus('ALL')}
+                className="flex items-center gap-2 pb-3 shrink-0 relative group"
+              >
+                <span className={`text-[13px] font-bold transition-colors ${activeStatus === 'ALL' ? 'text-white' : 'text-zinc-500'}`}>Todas</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${activeStatus === 'ALL' ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800 text-zinc-400'}`}>
+                  {orders.length}
+                </span>
+                {activeStatus === 'ALL' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#00E676] rounded-t-full shadow-[0_0_8px_#00E676]" />}
+              </button>
+              
+              {COLUMNS.map(status => {
+                 const count = orders.filter(o => o.status === status).length;
+                 if (count === 0 && activeStatus !== status) return null; // hide empty to save space, like prototype
+                 const isSelected = activeStatus === status;
+                 let shortName = status.split(' ')[0];
+                 if (['Em', 'Aguardando'].includes(shortName)) {
+                   shortName = status.split(' ')[1];
+                   if (status.includes('Técnica')) shortName = 'Análise';
+                 }
+                 if (status === 'Reparo Concluído') shortName = 'Concluída';
+                 if (status === 'Equipamento Retirado') shortName = 'Retirada';
+                 
+                 const config = STATUS_CONFIG[status];
+
+                 return (
+                   <button
+                     key={`m-tab-${status}`}
+                     onClick={() => setActiveStatus(status)}
+                     className="flex items-center gap-2 pb-3 shrink-0 relative group"
+                   >
+                     <span className={`text-[13px] font-bold transition-colors ${isSelected ? 'text-white' : 'text-zinc-500'}`}>{shortName}</span>
+                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${isSelected ? `${config.bg.replace('/10', '/20')} ${config.color}` : 'bg-zinc-800 text-zinc-400'}`}>
+                       {count}
+                     </span>
+                     {isSelected && <div className={`absolute bottom-0 left-0 right-0 h-[2px] ${config.bg.replace('/10', '/100')} rounded-t-full shadow-[0_0_8px_currentColor] ${config.color}`} />}
+                   </button>
+                 );
+              })}
             </div>
           </div>
 
@@ -2151,21 +2209,20 @@ export default function StatusOsModule({
                 </div>
 
                 {/* ===== MOBILE CARDS (hidden on sm+) ===== */}
-                <div className="flex flex-col gap-3 sm:hidden">
+                <div className="flex flex-col gap-4 sm:hidden pb-10">
                   {isLoading ? (
                     Array.from({ length: 3 }).map((_, i) => (
-                      <div key={`m-skeleton-${i}`} className="bg-[#1C1C1C] border border-zinc-800/50 rounded-lg p-4 space-y-3 animate-pulse">
+                      <div key={`m-skeleton-${i}`} className="bg-[#1C1C1C] border border-zinc-800/50 rounded-[16px] p-5 space-y-4 animate-pulse">
                         <div className="flex items-center justify-between">
-                          <div className="h-3 w-20 bg-zinc-800 rounded-full" />
-                          <div className="h-3 w-16 bg-zinc-800 rounded-full" />
+                          <div className="h-4 w-24 bg-zinc-800 rounded-full" />
+                          <div className="h-4 w-16 bg-zinc-800 rounded-full" />
                         </div>
-                        <div className="space-y-2">
-                          <div className="h-4 w-3/4 bg-zinc-800 rounded-sm" />
-                          <div className="h-3 w-1/2 bg-zinc-800 rounded-md" />
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="h-10 flex-1 bg-zinc-900 rounded-md border border-zinc-800/50" />
-                          <div className="h-10 flex-1 bg-zinc-900 rounded-md border border-zinc-800/50" />
+                        <div className="flex gap-4">
+                           <div className="w-12 h-12 bg-zinc-800 rounded-full shrink-0" />
+                           <div className="space-y-2 w-full">
+                             <div className="h-4 w-3/4 bg-zinc-800 rounded-sm" />
+                             <div className="h-3 w-1/2 bg-zinc-800 rounded-md" />
+                           </div>
                         </div>
                       </div>
                     ))
@@ -2173,113 +2230,102 @@ export default function StatusOsModule({
                     const customer = customers.find(c => c.id === order.customerId);
                     const cfg = STATUS_CONFIG[order.status];
                     const isLate = order.deliveryForecast && new Date(order.deliveryForecast) < new Date() && !['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status);
+                    
+                    let shortName = order.status.split(' ')[0];
+                    if (['Em', 'Aguardando'].includes(shortName)) {
+                      shortName = order.status.split(' ')[1];
+                    }
+                    if (order.status === 'Reparo Concluído') shortName = 'Concluído';
+                    
                     return (
-                      <div key={`m-${order.id}`} className="bg-[#1C1C1C] border border-zinc-800 rounded-lg overflow-hidden shadow-lg active:scale-[0.99] transition-all">
-                        {/* Status color bar */}
-                        <div className={`h-1 w-full ${cfg.bg.replace('/10', '/80')}`} />
-
-                        <div className="p-3 space-y-2.5">
-                          {/* Header: OS #, Status and Priority */}
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-[12px] font-black font-mono text-white bg-zinc-950 border border-zinc-800 px-2 py-0.5 rounded-sm uppercase tracking-wider shrink-0">
+                      <div key={`m-${order.id}`} className="relative bg-[#1A1A1A] rounded-[16px] overflow-hidden shadow-xl border border-[#2A2A2A]">
+                        {/* Status color indicator bar */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-[4px] ${cfg.bg.replace('/10', '/100')}`} />
+                        
+                        <div className="p-4 pl-5">
+                          {/* Header do Card */}
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <span className="text-[13px] font-black font-mono text-white tracking-widest">
                                 #{order.osNumber.toString().padStart(4, '0')}
                               </span>
-                              <span className={`truncate text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-tight ${cfg.bg} ${cfg.color} border border-current/10 shadow-sm`}>
-                                {order.status}
+                              <span className={`text-[9px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest ${cfg.color} ${cfg.bg.replace('/10', '/20')} border ${cfg.bg.replace('/10', '/30')}`}>
+                                {shortName}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                               <span className="text-[9px] text-zinc-600 font-bold uppercase">{new Date(order.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-                               <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[order.priority]} shadow-[0_0_8px_rgba(0,0,0,0.4)]`} />
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Calendar size={12} className="opacity-70" />
+                              <span className="text-[11px] font-medium">{new Date(order.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] ml-1" />
                             </div>
                           </div>
 
-                          {/* Customer & Equipment */}
-                          <div className="flex items-end justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <h4 className="font-black text-sm text-white truncate uppercase tracking-wide leading-tight">{customer?.name || 'Cliente não encontrado'}</h4>
+                          {/* Info principal com Avatar */}
+                          <div className="flex items-start gap-3.5 mb-4">
+                            <div className="w-12 h-12 rounded-full bg-[#00E676]/10 text-[#00E676] flex items-center justify-center font-bold text-lg shrink-0 border border-[#00E676]/20">
+                              {getInitials(customer?.name || '?')}
+                            </div>
+                            <div className="flex-1 min-w-0 pr-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-bold text-[13px] text-white truncate pr-2 uppercase leading-tight">
+                                  {customer?.name || 'Cliente não encontrado'}
+                                </h4>
                                 {customer?.whatsapp && (
                                   <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      let phone = customer.whatsapp.replace(/\D/g, '');
-                                      if (!phone.startsWith('55')) phone = `55${phone}`;
-                                      window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
-                                    }}
-                                    className="p-1.5 rounded-sm bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/20 transition-colors shrink-0"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       let phone = customer.whatsapp.replace(/\D/g, '');
+                                       if (!phone.startsWith('55')) phone = `55${phone}`;
+                                       window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
+                                     }}
+                                     className="w-7 h-7 flex items-center justify-center rounded-[8px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shrink-0"
                                   >
-                                    <MessageCircle size={14} />
+                                    <MessageCircle size={13} className="fill-emerald-500/20" />
                                   </button>
                                 )}
                               </div>
-                              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest truncate">{order.equipment.brand} {order.equipment.model}</p>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-[8px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-0.5">Total</p>
-                              <p className="text-sm font-black text-[#00E676]">{formatToBRL(order.financials?.totalValue || 0)}</p>
-                            </div>
-                          </div>
-
-                          {/* Compact Info (Defect & Status Badges) */}
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-zinc-950/40 rounded-sm px-2.5 py-2 border border-zinc-800/30 min-w-0 space-y-1.5">
-                              <p className="text-[11px] text-zinc-400 line-clamp-2 italic leading-tight truncate">
-                                <span className="text-[9px] text-zinc-600 font-black uppercase tracking-wider not-italic mr-1">Defeito:</span>
-                                {order.defect || '—'}
-                              </p>
-                              {order.service && (
-                                <p className="text-[11px] text-[#00E676]/70 line-clamp-1 leading-tight truncate">
-                                  <span className="text-[9px] text-zinc-600 font-black uppercase tracking-wider mr-1">Serviço:</span>
-                                  {order.service}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex gap-1 shrink-0">
-                              {isLate && (
-                                <div className="w-5 h-5 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center animate-pulse border border-red-500/20" title="Atrasado">
-                                  <AlertTriangle size={10} />
-                                </div>
-                              )}
-                              {order.budget?.status === 'Aprovado' && (
-                                <div className="w-5 h-5 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/20" title="Aprovado">
-                                  <Check size={10} />
-                                </div>
-                              )}
+                              <p className="text-[11px] text-zinc-400 font-medium mb-3 truncate">{order.equipment.brand} {order.equipment.model}</p>
+                              
+                              <div className="flex justify-between items-end gap-2">
+                                 <div className="flex flex-col gap-1.5 text-[11px] flex-1 min-w-0">
+                                   <div className="flex items-start">
+                                     <span className="text-zinc-500 uppercase font-black tracking-widest text-[9px] w-16 shrink-0 mt-[2px]">Defeito:</span>
+                                     <span className="text-zinc-300 italic line-clamp-1 pr-1">{order.defect || '—'}</span>
+                                   </div>
+                                   {order.service && (
+                                   <div className="flex items-start">
+                                     <span className="text-zinc-500 uppercase font-black tracking-widest text-[9px] w-16 shrink-0 mt-[2px]">Serviço:</span>
+                                     <span className="text-[#00E676] line-clamp-1 pr-1 font-medium">{order.service}</span>
+                                   </div>
+                                   )}
+                                 </div>
+                                 
+                                 {/* Price block */}
+                                 <div className="text-right shrink-0">
+                                   <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1">Total</p>
+                                   <p className="text-sm font-black text-[#00E676] tracking-tight">{formatToBRL(order.financials?.totalValue || 0)}</p>
+                                 </div>
+                              </div>
                             </div>
                           </div>
 
-                          {/* Action buttons - Ultra Compact 1x4 */}
-                          <div className="grid grid-cols-4 gap-1.5 pt-0.5">
-                            <button
-                              onClick={() => setSelectedOrder(order)}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-zinc-900 border border-zinc-800 text-zinc-400 active:bg-zinc-800 active:border-zinc-700 transition-all shadow-sm group"
-                            >
-                              <Eye size={14} className="group-active:scale-90 transition-transform" />
-                              <span className="text-[7px] font-black uppercase tracking-tighter">Detalhes</span>
-                            </button>
-                            <button
-                              onClick={() => { onEdit?.(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-zinc-900 border border-zinc-800 text-blue-500/70 active:bg-zinc-800 active:border-blue-500/30 transition-all shadow-sm group"
-                            >
-                              <Pencil size={14} className="group-active:scale-90 transition-transform" />
-                              <span className="text-[7px] font-black uppercase tracking-tighter text-blue-500/50">Editar</span>
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-[#00E676]/5 border border-[#00E676]/20 text-[#00E676] active:bg-[#00E676]/10 active:border-[#00E676]/40 transition-all shadow-sm group"
-                            >
-                              <CheckCircle2 size={14} className="group-active:scale-90 transition-transform" />
-                              <span className="text-[7px] font-black uppercase tracking-tighter">Status</span>
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-sm bg-zinc-900 border border-zinc-800 text-amber-500/70 active:bg-zinc-800 active:border-amber-500/30 transition-all shadow-sm group"
-                            >
-                              <FileText size={14} className="group-active:scale-90 transition-transform" />
-                              <span className="text-[7px] font-black uppercase tracking-tighter text-amber-500/50">Docs</span>
-                            </button>
+                          {/* Divider */}
+                          <div className="h-[1px] bg-[#2A2A2A]/60 -mx-4 mb-4" />
+
+                          {/* Action Buttons */}
+                          <div className="grid grid-cols-4 gap-2">
+                             <button onClick={() => setSelectedOrder(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-zinc-300 active:scale-95 transition-all">
+                               <Eye size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Detalhes</span>
+                             </button>
+                             <button onClick={() => onEdit?.(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-blue-400 active:scale-95 transition-all">
+                               <Pencil size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Editar</span>
+                             </button>
+                             <button onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-[#00E676] active:scale-95 transition-all">
+                               <CheckCircle2 size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Status</span>
+                             </button>
+                             <button onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-amber-500 active:scale-95 transition-all">
+                               <FileText size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Docs</span>
+                             </button>
                           </div>
                         </div>
                       </div>

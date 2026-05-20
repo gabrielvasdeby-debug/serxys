@@ -973,11 +973,25 @@ export function useServyxApp() {
   };
 
   const handleUpdateProfile = async (profileId: string, updates: Partial<Profile>) => {
-    const { data: updated, error } = await supabase.from('profiles').update(updates).eq('id', profileId).eq('company_id', selectedProfile?.company_id).select().single();
-    if (updated) {
-      setProfiles(profiles.map(p => p.id === profileId ? updated as Profile : p));
+    console.log('[Servyx Profile Update] Payload:', { profileId, updates });
+    const { data: updated, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', profileId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Servyx Profile Update] Error:', error.message, error.details);
+      setToastMessage(`Erro ao atualizar perfil: ${error.message}`);
+    } else if (updated) {
+      console.log('[Servyx Profile Update] Success:', updated);
+      setProfiles(profiles.map(p => p.id === profileId ? (updated as Profile) : p));
       if (selectedProfile?.id === profileId) setSelectedProfile(updated as Profile);
-      setToastMessage('Perfil atualizado');
+      setToastMessage('Perfil atualizado com sucesso!');
+    } else {
+      console.warn('[Servyx Profile Update] No profile updated, but no error returned.');
+      setToastMessage('Nenhuma alteração foi salva no perfil.');
     }
   };
 
