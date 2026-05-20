@@ -3841,19 +3841,23 @@ export default function OrdemServicoModule({
                     // Web Share API nativa para Mobile (anexa o PDF real)
                     if (navigator.share && pdfPreviewModal.pdfBlob) {
                       const file = new File([pdfPreviewModal.pdfBlob], `${pdfPreviewModal.filename}.pdf`, { type: 'application/pdf' });
-                      try {
-                        await navigator.share({
-                          files: [file],
-                          title: pdfPreviewModal.filename,
-                          text: `Segue em anexo o documento da sua OS.`
-                        });
-                      } catch (shareErr) {
-                        console.log('Compartilhamento nativo cancelado ou falhou, abrindo WhatsApp Direct.');
-                        window.open(whatsappUrl, '_blank');
+                      
+                      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                          await navigator.share({
+                            files: [file],
+                            title: pdfPreviewModal.filename,
+                            text: message // Agora envia o texto do portal junto com o PDF anexado!
+                          });
+                          return; // Sai da função após o sucesso do compartilhamento
+                        } catch (shareErr) {
+                          console.log('Compartilhamento nativo cancelado ou falhou, abrindo WhatsApp Direct.', shareErr);
+                        }
                       }
-                    } else {
-                      window.open(whatsappUrl, '_blank');
                     }
+                    
+                    // Fallback (PC ou celular sem suporte a arquivos via Share)
+                    window.open(whatsappUrl, '_blank');
                   }}
                   className="flex items-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-[#00E676]/20 active:scale-95"
                 >

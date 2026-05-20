@@ -832,7 +832,7 @@ export default function TrackingPage() {
                   <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Interação em Tempo Real</p>
                   <p className="text-sm font-black flex items-center gap-2">
                     <Clock size={14} className="text-[#00E676]" />
-                    {new Date(order.updatedAt).toLocaleString('pt-BR')}
+                    {new Date(order.updatedAt || order.createdAt || Date.now()).toLocaleString('pt-BR')}
                   </p>
                 </div>
               </div>
@@ -1045,8 +1045,8 @@ export default function TrackingPage() {
               <div className="grid grid-cols-2 gap-6 border-t border-zinc-800/50 pt-6">
                 <div>
                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">Equipamento</p>
-                   <p className="text-sm font-bold">{order.equipment.brand}</p>
-                   <p className="text-xs text-zinc-500">{order.equipment.model}</p>
+                   <p className="text-sm font-bold">{order.equipment?.brand || 'Aparelho'}</p>
+                   <p className="text-xs text-zinc-500">{order.equipment?.model || 'Não especificado'}</p>
                 </div>
                 <div>
                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">Nº Referência</p>
@@ -1068,12 +1068,12 @@ export default function TrackingPage() {
               <div>
                 <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">Solicitação Inicial</p>
                 <p className="text-sm text-zinc-400 leading-relaxed italic border-l-2 border-[#00E676] pl-4">
-                  "{order.defect}"
+                  "{order.defect || 'Nenhum defeito relatado no momento.'}"
                 </p>
               </div>
               <div className="pt-6 border-t border-zinc-800/50">
                 <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">Atendimento desde</p>
-                <p className="text-sm font-bold">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
+                <p className="text-sm font-bold">{new Date(order.createdAt || Date.now()).toLocaleDateString('pt-BR')}</p>
               </div>
             </div>
           </motion.div>
