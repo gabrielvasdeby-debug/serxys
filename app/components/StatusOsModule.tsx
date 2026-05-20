@@ -1092,8 +1092,11 @@ export default function StatusOsModule({
     return orders.filter(o => {
       const customer = customers.find(c => c.id === o.customerId);
       const searchLower = searchQuery.toLowerCase();
+      const searchNum = searchLower.replace(/\D/g, '');
+      const osNumStr = o.osNumber.toString().padStart(4, '0');
       return (
         o.osNumber.toString().includes(searchLower) ||
+        (searchNum !== '' && osNumStr.includes(searchNum)) ||
         (customer?.name.toLowerCase().includes(searchLower)) ||
         (customer?.document && customer.document.includes(searchLower)) ||
         o.equipment.model.toLowerCase().includes(searchLower) ||
@@ -2246,9 +2249,11 @@ export default function StatusOsModule({
                           {/* Header do Card */}
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <span className="text-[13px] font-black font-mono text-white tracking-widest">
-                                #{order.osNumber.toString().padStart(4, '0')}
-                              </span>
+                              <div className="bg-[#111] px-2 py-0.5 rounded border border-zinc-800">
+                                <span className="text-[10px] font-black tracking-widest uppercase text-white/90">
+                                OS {order.osNumber.toString().padStart(4, '0')}
+                                </span>
+                              </div>
                               <span className={`text-[9px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest ${cfg.color} ${cfg.bg.replace('/10', '/20')} border ${cfg.bg.replace('/10', '/30')}`}>
                                 {shortName}
                               </span>
@@ -4881,7 +4886,7 @@ export default function StatusOsModule({
               <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
                 <div>
                   <h3 className="text-sm font-black text-white uppercase tracking-widest">Alterar Status</h3>
-                  <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1">OS #{orderToQuickStatus.osNumber.toString().padStart(4, '0')} - {customers.find(c => c.id === orderToQuickStatus.customerId)?.name}</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1">OS {orderToQuickStatus.osNumber.toString().padStart(4, '0')} - {customers.find(c => c.id === orderToQuickStatus.customerId)?.name}</p>
                 </div>
                 <button onClick={() => setOrderToQuickStatus(null)} className="p-2 text-zinc-500 hover:text-white bg-zinc-800/50 rounded-sm">
                   <X size={18} />
