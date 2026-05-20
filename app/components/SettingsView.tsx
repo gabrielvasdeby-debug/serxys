@@ -83,7 +83,7 @@ export default function SettingsView({
   onShowToast,
   logActivity
 }: SettingsViewProps) {
-   const [activeSection, setActiveSection] = useState<'MENU' | 'COMPANY' | 'PROFILES' | 'OS' | 'WHATSAPP_MARKETING' | 'AUDIT'>(initialSection);
+   const [activeSection, setActiveSection] = useState<'MENU' | 'COMPANY' | 'PROFILES' | 'OS' | 'OS_MENU' | 'WHATSAPP_MARKETING' | 'AUDIT'>(initialSection);
   const [auditLogs, setAuditLogs] = useState<ActivityLog[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditDate, setAuditDate] = useState(new Date().toISOString().split('T')[0]);
@@ -408,8 +408,12 @@ export default function SettingsView({
           <div className="flex items-center gap-8">
             <div className="flex gap-2">
               <button 
-                title={activeSection === 'MENU' ? "Voltar ao Dashboard" : "Voltar ao Menu"}
-                onClick={() => (activeSection === 'MENU' || activeSection === initialSection) ? onBack() : setActiveSection('MENU')} 
+                title={activeSection === 'MENU' ? "Voltar ao Dashboard" : "Voltar"}
+                onClick={() => {
+                  if (activeSection === 'MENU' || activeSection === initialSection) onBack();
+                  else if (activeSection === 'OS') setActiveSection('OS_MENU');
+                  else setActiveSection('MENU');
+                }} 
                 className="w-12 h-12 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-[12px] transition-all text-zinc-400 hover:text-white group hover:scale-105 active:scale-95"
               >
                 <ChevronLeft size={22} strokeWidth={1.5} className="group-hover:-translate-x-1 transition-transform" />
@@ -428,7 +432,8 @@ export default function SettingsView({
               <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
                 {activeSection === 'MENU' ? 'Ajustes' : 
                  activeSection === 'PROFILES' ? 'Equipe' : 
-                 activeSection === 'OS' ? 'Configuração de OS' : 
+                 activeSection === 'OS_MENU' ? 'Configuração de OS' : 
+                 activeSection === 'OS' ? (osTab === 'PRINT' ? 'Impressão OS' : osTab === 'CHECKLIST' ? 'Configuração de Checklist' : 'Termos de Garantia') : 
                  activeSection === 'COMPANY' ? 'Empresa' :
                  activeSection === 'AUDIT' ? 'Rastreamento' :
                  'Mensagens'}
@@ -448,9 +453,9 @@ export default function SettingsView({
                 <div className="flex flex-col gap-3">
                   {[
                     { id: 'COMPANY', title: 'Minha Empresa', desc: 'Identidade, documentos e endereço.', icon: ShieldCheck, color: '#00E676' },
+                    { id: 'OS_MENU', title: 'Configuração de OS', desc: 'Checklists, garantias e termos de serviço.', icon: FileCog, color: '#F59E0B' },
                     { id: 'PROFILES', title: 'Equipe e Acessos', desc: 'Gerenciar perfis, cargos e permissões.', icon: UserCog, color: '#3B82F6' },
                     { id: 'AUDIT', title: 'Rastreamento (Auditoria)', desc: 'Histórico de ações de cada perfil.', icon: Activity, color: '#E91E63' },
-                    { id: 'OS', title: 'Configuração de OS', desc: 'Checklists, garantias e termos de serviço.', icon: FileCog, color: '#F59E0B' },
                     { id: 'WHATSAPP_MARKETING', title: 'Relacionamento', desc: 'Configurar mensagens automáticas e marketing.', icon: MessageCircle, color: '#A855F7' },
                   ].map((item) => {
                     const Icon = item.icon;
@@ -487,6 +492,38 @@ export default function SettingsView({
                   >
                     ⚠️ Redefinir Sistema (Limpar Tudo)
                   </button>
+                </div>
+              </motion.div>
+            )}
+
+            {activeSection === 'OS_MENU' && (
+              <motion.div key="os_menu" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                <div className="flex flex-col gap-3">
+                  {[
+                    { id: 'PRINT', title: 'Impressão OS', desc: 'Configurar cupom, numeração e termos.', icon: Hash, color: '#00E676' },
+                    { id: 'CHECKLIST', title: 'Configuração de Checklist', desc: 'Gerenciar itens testados por categoria.', icon: CheckCircle2, color: '#F59E0B' },
+                    { id: 'WARRANTY', title: 'Termos de Garantia', desc: 'Definir regras e tempo de garantia.', icon: PenTool, color: '#3B82F6' },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button 
+                        key={item.id}
+                        onClick={() => { setActiveSection('OS'); setOsTab(item.id as any); }}
+                        className="bg-[#111] border border-white/5 hover:border-[#00E676]/30 hover:bg-[#00E676]/[0.02] rounded-[12px] p-5 text-left transition-all group flex items-center gap-5"
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-white/[0.03] flex items-center justify-center group-hover:bg-[#00E676]/10 group-hover:scale-110 transition-all" style={{ color: item.color }}>
+                          <Icon size={24} />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-white font-bold text-base">{item.title}</h3>
+                          <p className="text-zinc-500 text-[11px] leading-tight mt-0.5">{item.desc}</p>
+                        </div>
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900/50 flex items-center justify-center text-zinc-600 group-hover:text-[#00E676] group-hover:bg-[#00E676]/10 transition-all">
+                          <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
