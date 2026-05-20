@@ -64,7 +64,7 @@ export default function TechnicalReportPrintTemplate({
 
   const report = order.technicalReport;
   const trackingUrl = companySettings?.publicSlug
-    ? `https://servyx.app/${companySettings.publicSlug}/${order.osNumber}`
+    ? `https://servyx.app/${companySettings.publicSlug}/${order.id}`
     : `https://servyx.app/os/${order.id}`;
   const emissionDate = report.createdAt ? new Date(report.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
 

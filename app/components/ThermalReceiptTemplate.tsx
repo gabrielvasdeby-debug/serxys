@@ -159,7 +159,7 @@ export default function ThermalReceiptTemplate({
       <div className="flex flex-col items-center gap-1 my-1">
         <QRCodeSVG 
           value={companySettings?.publicSlug 
-            ? `https://servyx.app/${companySettings.publicSlug}/${order.osNumber}` 
+            ? `https://servyx.app/${companySettings.publicSlug}/${order.id}` 
             : `https://servyx.app/os/${order.id}`} 
           size={60} 
           level="M" 

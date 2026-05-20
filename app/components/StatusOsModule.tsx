@@ -889,7 +889,7 @@ export default function StatusOsModule({
 
     const total = calculateBudgetTotal() || parseFloat(budgetPrice) || 0;
     const portalUrl = companySettings?.publicSlug 
-      ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}`
+      ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}`
       : `${window.location.origin}/os/${selectedOrder.id}`;
 
     const template = osSettings.whatsappMessages?.['Aguardando Aprovação'] ||
@@ -1284,7 +1284,7 @@ export default function StatusOsModule({
         onShowToast('Cliente sem número de WhatsApp cadastrado');
       } else {
         const portalUrl = companySettings.publicSlug
-          ? `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber}`
+          ? `${window.location.origin}/${companySettings.publicSlug}/${order.id}`
           : `${window.location.origin}/os/${order.id}`;
         const template = osSettings.whatsappMessages?.[newStatus] || companySettings.followUpMessage || 
           `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
@@ -1401,7 +1401,7 @@ export default function StatusOsModule({
         const customer = customers.find(c => c.id === selectedOrder.customerId);
         if (customer?.whatsapp) {
           const portalUrl = companySettings.publicSlug
-            ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}`
+            ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}`
             : `${window.location.origin}/os/${selectedOrder.id}`;
           const template = osSettings.whatsappMessages?.['Reparo Concluído'] ||
             `Olá {nome_cliente}! 👋\n\nInformamos que o seu equipamento ({equipamento}) já está pronto para retirada!\n\nVocê pode conferir os detalhes no link:\n{link_os}\n\nAtenciosamente, {nome_assistencia}`;
@@ -2658,7 +2658,7 @@ export default function StatusOsModule({
                       onClick={() => {
                         const customer = customers.find(c => c.id === selectedOrder.customerId);
                         if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
-                        const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}` : `${window.location.origin}/os/${selectedOrder.id}`;
+                        const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}` : `${window.location.origin}/os/${selectedOrder.id}`;
                         
                         const message = (osSettings.whatsappEntryTemplate || `Olá [nome_cliente]! Sua OS [numero_os] ([equipamento]) foi registrada com sucesso em nossa assistência. Acompanhe o status pelo link: [link_os]`)
                           .replace(/\[nome_cliente\]/g, customer.name)
@@ -3714,7 +3714,7 @@ export default function StatusOsModule({
                     onClick={() => {
                       const customer = customers.find(c => c.id === selectedOrder.customerId);
                       if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
-                      const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.osNumber}` : `${window.location.origin}/os/${selectedOrder.id}`;
+                      const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}` : `${window.location.origin}/os/${selectedOrder.id}`;
                       const template = osSettings.whatsappMessages?.['Entrada Registrada'] || `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\n{link}\n\n{empresa}`;
                       const message = template.replace(/{cliente}/g, customer.name).replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0')).replace(/{link}/g, portalUrl).replace(/{empresa}/g, companySettings.name || 'Servyx');
                       let decodedPhone = customer.whatsapp.replace(/\D/g, '');

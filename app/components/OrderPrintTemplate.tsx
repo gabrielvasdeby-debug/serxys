@@ -79,8 +79,8 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
     }
   };
 
-  const trackingUrl = companySettings.publicSlug
-    ? `https://servyx.app/${companySettings.publicSlug}/${order.osNumber}`
+  const trackingUrl = companySettings?.publicSlug
+    ? `https://servyx.app/${companySettings.publicSlug}/${order.id}`
     : `https://servyx.app/os/${order.id}`;
 
   return (
@@ -288,7 +288,7 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
         <div className="bg-[#F8F9FA] rounded-lg p-3 flex flex-col text-[10px] mt-1 border shadow-sm">
           <div className="font-black flex items-center gap-1.5 mb-1.5 uppercase text-[10.5px] tracking-wider text-[#2B323D]"><Info size={13} />OBSERVAÇÕES IMPORTANTES</div>
           <div className="text-[10px] leading-relaxed font-medium text-slate-700 whitespace-pre-wrap pl-1 pr-1">
-            {osSettings.printTerms || 'O cliente declara que as informações prestadas são verdadeiras, conferiu os dados e concorda com os termos desta Ordem de Serviço.\n\nO equipamento passará por análise técnica, podendo haver alteração no orçamento mediante aprovação do cliente.\n\nApós conclusão, reprovação ou impossibilidade de reparo, o equipamento deverá ser retirado em até 90 dias da notificação, sob pena de cobrança de armazenagem.\n\nNão nos responsabilizamos por acessórios não descritos. O cliente é responsável pelo backup e pelos dados.\n\nEquipamentos com sinais de mau uso, oxidação, quedas, violação ou reparo por terceiros podem perder a garantia.\n\nA garantia cobre apenas os serviços realizados e peças substituídas, não incluindo danos por mau uso ou causas externas.'}
+            {osSettings?.printTerms || 'O cliente declara que as informações prestadas são verdadeiras, conferiu os dados e concorda com os termos desta Ordem de Serviço.\n\nO equipamento passará por análise técnica, podendo haver alteração no orçamento mediante aprovação do cliente.\n\nApós conclusão, reprovação ou impossibilidade de reparo, o equipamento deverá ser retirado em até 90 dias da notificação, sob pena de cobrança de armazenagem.\n\nNão nos responsabilizamos por acessórios não descritos. O cliente é responsável pelo backup e pelos dados.\n\nEquipamentos com sinais de mau uso, oxidação, quedas, violação ou reparo por terceiros podem perder a garantia.\n\nA garantia cobre apenas os serviços realizados e peças substituídas, não incluindo danos por mau uso ou causas externas.'}
           </div>
         </div>
 
@@ -314,13 +314,13 @@ export default function OrderPrintTemplate({ order, customer: rawCustomer, compa
               )}
             </div>
             <span className="text-[9px] uppercase font-black text-slate-500 tracking-tighter">Responsável Técnico</span>
-            <span className="font-black text-[10px] text-slate-900 uppercase">{companySettings.name}</span>
+            <span className="font-black text-[10px] text-slate-900 uppercase">{companySettings?.name || 'Assistência'}</span>
           </div>
         </div>
 
         {/* RODAPÉ */}
         <div className="mt-4 pt-3 border-t text-center text-[8px] text-slate-500 font-medium">
-          {osSettings.printFooter || `${companySettings.name} - SERVYX | CNPJ: ${companySettings.cnpj || '---'} | ${companySettings.city} - ${companySettings.state}`}
+          {osSettings?.printFooter || `${companySettings?.name || 'SERVYX'} - SERVYX | CNPJ: ${companySettings?.cnpj || '---'} | ${companySettings?.city || ''} - ${companySettings?.state || ''}`}
         </div>
         </div>
       </div>

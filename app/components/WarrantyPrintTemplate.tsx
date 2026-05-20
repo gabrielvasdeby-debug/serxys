@@ -97,7 +97,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   // Tracking URL for QR Code
   const trackingUrl = typeof window !== 'undefined' 
     ? (companySettings?.publicSlug 
-        ? `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber || order.id}` 
+        ? `${window.location.origin}/${companySettings.publicSlug}/${order.id}` 
         : `${window.location.origin}/os/${order.id}`)
     : '';
 

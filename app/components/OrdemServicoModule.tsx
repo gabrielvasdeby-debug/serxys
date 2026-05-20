@@ -1639,7 +1639,7 @@ export default function OrdemServicoModule({
       if (signatureMode === 'remote' && selectedCustomer.whatsapp) {
         // Use slug + secure UUID link (branding + privacy)
         const portalUrl = companySettings.publicSlug 
-          ? `${window.location.origin}/${companySettings.publicSlug}/${osData.os_number}`
+          ? `${window.location.origin}/${companySettings.publicSlug}/${osData.id}`
           : `${window.location.origin}/os/${osData.id}`;
         
         const template = osSettings.whatsappMessages?.['Assinatura Remota'] || 
@@ -1692,7 +1692,7 @@ export default function OrdemServicoModule({
         }
 
         const portalUrl = companySettings.publicSlug 
-          ? `${window.location.origin}/${companySettings.publicSlug}/${order.osNumber}`
+          ? `${window.location.origin}/${companySettings.publicSlug}/${order.id}`
           : `${window.location.origin}/os/${order.id}`;
 
         const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
@@ -3508,7 +3508,7 @@ export default function OrdemServicoModule({
                               `Olá, [nome_cliente]! 👋\nSua OS [numero_os] foi registrada com sucesso.\nAcompanhe por aqui: [link_os]\n\n[nome_assistencia]`;
                             
                             const portalUrl = companySettings.publicSlug 
-                              ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder ? localOrder.osNumber : osSettings.nextOsNumber}`
+                              ? `${window.location.origin}/${companySettings.publicSlug}/${orderId}`
                               : `${window.location.origin}/os/${orderId}`;
 
                             const message = template
@@ -3820,7 +3820,7 @@ export default function OrdemServicoModule({
                     if (!selectedCustomer) return;
                     
                     const portalUrl = companySettings.publicSlug 
-                      ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder?.osNumber || printOrder?.osNumber}`
+                      ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder?.id || printOrder?.id}`
                       : `${window.location.origin}/os/${localOrder?.id || printOrder?.id}`;
 
                     const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
