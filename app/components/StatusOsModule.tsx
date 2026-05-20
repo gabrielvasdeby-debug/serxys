@@ -1678,7 +1678,7 @@ export default function StatusOsModule({
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
           {/* Mobile Header: Title Row -> Search Row -> Actions Row */}
           <div className="flex lg:hidden flex-col gap-4">
-            {/* Row 1: Back + Title + New OS */}
+            {/* Row 1: Back + Title */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
@@ -1692,26 +1692,18 @@ export default function StatusOsModule({
                   <p className="text-[11px] text-zinc-400 font-medium">Acompanhe e gerencie todas as ordens</p>
                 </div>
               </div>
-              <button className="w-11 h-11 flex items-center justify-center bg-[#00E676]/10 rounded-xl border border-[#00E676]/20 active:scale-95 transition-transform" onClick={() => onBack()}>
-                <Plus size={22} className="text-[#00E676]" />
-              </button>
             </div>
             
-            {/* Row 2: Search Bar & Settings */}
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-                <input
-                  type="text"
-                  placeholder="Buscar OS, cliente ou aparelho..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#111111] border border-zinc-800 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-zinc-700 transition-colors"
-                />
-              </div>
-              <button className="w-[52px] h-[52px] shrink-0 flex items-center justify-center bg-[#111111] rounded-xl border border-zinc-800 active:scale-95 transition-transform">
-                <SlidersHorizontal size={20} className="text-zinc-400" />
-              </button>
+            {/* Row 2: Search Bar */}
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar OS, cliente ou aparelho..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-[#111111] border border-zinc-800 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-zinc-700 transition-colors"
+              />
             </div>
 
             {/* Row 3: Filter & Priority Actions */}
