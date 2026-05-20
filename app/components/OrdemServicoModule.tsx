@@ -3188,13 +3188,12 @@ export default function OrdemServicoModule({
                                     paymentType: ''
                                   });
                                 } else {
-                                  const defaultAmount = financials.amountPaid || (financials.totalValue / 2);
                                   setFinancials({
                                     ...financials,
                                     paymentStatus: 'Parcial',
-                                    amountPaid: defaultAmount,
-                                    paymentMethods: [{ method: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro', amount: defaultAmount }],
-                                    paymentType: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro'
+                                    amountPaid: 0,
+                                    paymentMethods: [],
+                                    paymentType: ''
                                   });
                                 }
                               }}
