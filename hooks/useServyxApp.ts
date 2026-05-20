@@ -243,16 +243,21 @@ export function useServyxApp() {
   }, [selectedProfile]);
 
   const handleLogout = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('[Servyx] Sign out error:', err);
-    }
+    // Clear state first for immediate UI response and to prevent freezing
     setSelectedProfile(null);
     setProfiles([]);
     setCustomers([]);
     setOrders([]);
     setView('LOGIN');
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.auth.signOut();
+      }
+    } catch (err) {
+      console.error('[Servyx] Sign out error:', err);
+    }
   }, []);
 
   const loadDataFromSupabase = useCallback(async () => {
