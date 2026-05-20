@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ArrowLeft, Search, ShieldCheck, ShieldAlert, Filter, 
+  ChevronLeft, Search, ShieldCheck, ShieldAlert, Filter, 
   Calendar, User, Smartphone, FileText, CheckCircle2, XCircle, 
   Eye, Printer, MessageCircle, Clock, Save, ChevronDown, Wrench, X, Share2
 } from 'lucide-react';
@@ -362,7 +362,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                 onClick={onBack}
                 className="p-2.5 hover:bg-zinc-800 rounded-md transition-all text-zinc-400 active:scale-90"
               >
-                <ArrowLeft size={20} />
+                <ChevronLeft size={20} />
               </button>
               <div>
                 <h1 className="text-lg sm:text-2xl font-black tracking-tight flex items-center gap-2">

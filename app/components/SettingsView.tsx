@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  ArrowLeft, 
+  ChevronLeft, 
   ShieldCheck, 
   UserCog, 
   FileCog, 
@@ -412,7 +412,7 @@ export default function SettingsView({
                 onClick={() => (activeSection === 'MENU' || activeSection === initialSection) ? onBack() : setActiveSection('MENU')} 
                 className="w-12 h-12 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-[12px] transition-all text-zinc-400 hover:text-white group hover:scale-105 active:scale-95"
               >
-                <ArrowLeft size={22} strokeWidth={1.5} className="group-hover:-translate-x-1 transition-transform" />
+                <ChevronLeft size={22} strokeWidth={1.5} className="group-hover:-translate-x-1 transition-transform" />
               </button>
               {activeSection !== 'MENU' && (
                 <button 

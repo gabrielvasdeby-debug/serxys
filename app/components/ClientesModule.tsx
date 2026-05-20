@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ArrowLeft, Search, Plus, Edit2, Trash2, Eye, 
+  ChevronLeft, Search, Plus, Edit2, Trash2, Eye, 
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, Box,
   MapPin, Phone, Mail, FileText, Calendar, AlertCircle, Loader2, MessageCircle
 } from 'lucide-react';
@@ -320,7 +320,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
             }}
             className="p-2.5 hover:bg-white/5 rounded-sm transition-colors text-zinc-400 hover:text-white"
           >
-            <ArrowLeft size={20} />
+            <ChevronLeft size={20} />
           </button>
           <div className="flex-1">
             <h1 className="text-base font-bold tracking-tight">

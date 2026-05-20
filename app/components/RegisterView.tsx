@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Eye } from 'lucide-react';
+import { ChevronLeft, Eye } from 'lucide-react';
 import { formatPhone } from '../utils/formatPhone';
 
 interface RegisterViewProps {
@@ -30,7 +30,7 @@ export default function RegisterView({ onRegister, onBack }: RegisterViewProps) 
       <div className="w-full max-w-md mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <button onClick={onBack} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400">
-            <ArrowLeft size={24} />
+            <ChevronLeft size={24} />
           </button>
           <h1 className="text-2xl font-bold text-white">Criar nova conta</h1>
         </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Wrench, Plus, Search, Edit2, Trash2, ArrowLeft, 
+  Wrench, Plus, Search, Edit2, Trash2, ChevronLeft, 
   Clock, DollarSign, X, Save,
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, HelpCircle, Printer, Headphones, Watch
 } from 'lucide-react';
@@ -178,7 +178,7 @@ export default function ServicosModule({ profile, onBack, onShowToast, onLogActi
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <button onClick={onBack} className="p-3 bg-white/5 hover:bg-white/10 rounded-sm transition-all border border-white/5 group">
-              <ArrowLeft size={20} className="text-zinc-400 group-hover:text-white transition-colors" />
+              <ChevronLeft size={20} className="text-zinc-400 group-hover:text-white transition-colors" />
             </button>
             <div className="relative group/title">
               <div className="flex items-center gap-2">

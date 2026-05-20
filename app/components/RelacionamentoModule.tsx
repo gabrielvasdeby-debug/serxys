@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ArrowLeft, Search, Cake, MessageCircle, Star, 
+  ChevronLeft, Search, Cake, MessageCircle, Star, 
   Calendar, CheckCircle2, History, Smartphone, User, 
   Send, ExternalLink, Filter, ChevronRight, Check
 } from 'lucide-react';
@@ -164,7 +164,7 @@ export default function RelacionamentoModule({
               onClick={onBack}
               className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400"
             >
-              <ArrowLeft size={20} />
+              <ChevronLeft size={20} />
             </button>
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">

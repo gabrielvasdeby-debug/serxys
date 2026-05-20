@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, User, ShieldCheck, Lock, Check, Camera, Plus, X } from 'lucide-react';
+import { ChevronLeft, User, ShieldCheck, Lock, Check, Camera, Plus, X } from 'lucide-react';
 import { Profile, ProfileType } from '../types';
 import { DEFAULT_PERMISSIONS, AVAILABLE_MODULES } from '../constants';
 import { supabase } from '../supabase';
@@ -55,7 +55,7 @@ export default function CreateProfileView({ onSave, onBack, profiles, onShowToas
       <header className="p-6 border-b border-white/5">
         <div className="max-w-xl mx-auto flex items-center gap-4">
           <button onClick={onBack} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400">
-            <ArrowLeft size={24} />
+            <ChevronLeft size={24} />
           </button>
           <h1 className="text-xl font-bold text-white tracking-tight italic uppercase">Novo Perfil Elite</h1>
         </div>

@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ArrowLeft, Search, Plus, User, Smartphone, 
+  ChevronLeft, Search, Plus, User, Smartphone, 
   CheckCircle2, XCircle, AlertCircle, AlertTriangle, Save, MessageCircle,
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
@@ -1685,7 +1685,7 @@ export default function StatusOsModule({
                   onClick={onBack}
                   className="w-11 h-11 flex items-center justify-center hover:bg-zinc-800 rounded-xl transition-colors bg-[#111111] border border-zinc-800"
                 >
-                  <ArrowLeft size={22} className="text-zinc-300" />
+                  <ChevronLeft size={22} className="text-zinc-300" />
                 </button>
                 <div>
                   <h1 className="text-xl font-bold text-white leading-tight">Status OS</h1>
@@ -2539,7 +2539,7 @@ export default function StatusOsModule({
                             <p className="text-sm text-zinc-500 font-medium">{customer?.name || 'Cliente Desconhecido'}</p>
                           </div>
                           <div className="p-2 bg-zinc-900 border border-zinc-800 rounded-sm opacity-0 group-hover/item:opacity-100 transition-opacity">
-                            <ArrowLeft size={16} className="text-zinc-400 rotate-180" />
+                            <ChevronLeft size={16} className="text-zinc-400 rotate-180" />
                           </div>
                         </button>
                       );

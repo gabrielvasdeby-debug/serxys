@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Truck, Plus, Search, Edit2, Trash2, ArrowLeft, 
+  Truck, Plus, Search, Edit2, Trash2, ChevronLeft, 
   Phone, Mail, MapPin, FileText, X, Save, 
   Calendar, ShoppingCart, Filter,
   MessageCircle, Layers
@@ -217,7 +217,7 @@ export default function FornecedoresModule({ profile, onBack, onShowToast, onLog
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <button onClick={onBack} className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-sm hover:border-zinc-600 transition-all group">
-              <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white" />
+              <ChevronLeft size={18} className="text-zinc-400 group-hover:text-white" />
             </button>
             <div>
               <h1 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">

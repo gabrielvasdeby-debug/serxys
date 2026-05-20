@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { 
-  Package, Plus, Search, ArrowLeft, 
+  Package, Plus, Search, ChevronLeft, 
   AlertTriangle, TrendingUp, ShoppingCart, 
   Barcode, Image as ImageIcon, 
   Edit2, Trash2, Save, X,
@@ -422,7 +422,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
               onClick={onBack}
               className="p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/5 text-zinc-400 hover:text-white"
             >
-              <ArrowLeft size={18} />
+              <ChevronLeft size={18} />
             </button>
             <div>
               <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">

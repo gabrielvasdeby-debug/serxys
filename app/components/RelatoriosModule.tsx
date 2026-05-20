@@ -7,7 +7,7 @@ import {
   PieChart, Pie, LineChart, Line, AreaChart, Area
 } from 'recharts';
 import { 
-  ArrowLeft, Calendar, TrendingUp, TrendingDown, 
+  ChevronLeft, Calendar, TrendingUp, TrendingDown, 
   Target, Wrench, Package, ListChecks, Filter,
   ChevronDown, Download, RefreshCw
 } from 'lucide-react';
@@ -355,7 +355,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <button onClick={onBack} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group">
-              <ArrowLeft size={20} className="text-zinc-400 group-hover:text-white transition-colors" />
+              <ChevronLeft size={20} className="text-zinc-400 group-hover:text-white transition-colors" />
             </button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Relatórios Analíticos</h1>

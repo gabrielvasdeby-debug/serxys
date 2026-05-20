@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ArrowLeft, Plus, Calendar, User, Clock, CheckCircle2, 
+  ChevronLeft, Plus, Calendar, User, Clock, CheckCircle2, 
   Filter, Search, X, Activity,
   ClipboardList, Wrench, 
   Check, Play, Pause
@@ -313,7 +313,7 @@ export default function AgendaModule({
               onClick={onBack}
               className="p-2 sm:px-4 sm:py-2.5 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-sm sm:rounded-sm transition-all group flex items-center gap-2"
             >
-              <ArrowLeft size={16} className="text-zinc-500 group-hover:text-white transition-colors" />
+              <ChevronLeft size={16} className="text-zinc-500 group-hover:text-white transition-colors" />
               <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-white hidden sm:inline">Voltar</span>
             </button>
             <div className="flex items-center gap-3">
@@ -901,7 +901,7 @@ export default function AgendaModule({
                             className="w-full flex items-center justify-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black text-[10px] tracking-[0.2em] uppercase font-black py-4 rounded-sm transition-all shadow-lg hover:shadow-[#00E676]/40 active:scale-[0.98]"
                           >
                             Abrir OS Completa
-                            <ArrowLeft size={16} className="rotate-180" strokeWidth={3} />
+                            <ChevronLeft size={16} className="rotate-180" strokeWidth={3} />
                           </button>
                         </div>
                       </div>

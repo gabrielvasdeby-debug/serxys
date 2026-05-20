@@ -17,7 +17,7 @@ import {
   ChartPie,
   ArrowUpRight,
   ArrowDownRight,
-  ArrowLeft,
+  ChevronLeft,
   Hash,
   ChevronRight
 } from 'lucide-react';
@@ -815,7 +815,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4 sm:gap-6">
             <button onClick={onBack} className="p-2.5 sm:p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group">
-              <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
+              <ChevronLeft size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
             </button>
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">Financeiro</h1>
