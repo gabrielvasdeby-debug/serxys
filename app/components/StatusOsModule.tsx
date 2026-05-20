@@ -1736,16 +1736,20 @@ export default function StatusOsModule({
             </div>
 
             {/* Row 4: Mobile Tabs Timeline */}
-            <div className="flex overflow-x-auto gap-4 pb-2 mt-1 no-scrollbar border-b border-zinc-800/60">
+            <div className="flex overflow-x-auto gap-2.5 py-2 mt-1 mb-2 no-scrollbar">
               <button
                 onClick={() => setActiveStatus('ALL')}
-                className="flex items-center gap-2 pb-3 shrink-0 relative group"
+                style={activeStatus === 'ALL' ? { borderColor: '#00E676' } : {}}
+                className={`flex items-center gap-2 px-3.5 py-2 shrink-0 rounded-xl border transition-all active:scale-95 ${
+                  activeStatus === 'ALL'
+                    ? 'bg-[#00E676]/10 text-[#00E676]'
+                    : 'bg-[#111111] border-zinc-800 text-zinc-400 hover:bg-[#1A1A1A]'
+                }`}
               >
-                <span className={`text-[13px] font-bold transition-colors ${activeStatus === 'ALL' ? 'text-white' : 'text-zinc-500'}`}>Todas</span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${activeStatus === 'ALL' ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800 text-zinc-400'}`}>
+                <span className="text-[11px] font-black uppercase tracking-widest">Todas</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${activeStatus === 'ALL' ? 'bg-[#00E676]/20' : 'bg-zinc-800 text-zinc-500'}`}>
                   {orders.length}
                 </span>
-                {activeStatus === 'ALL' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#00E676] rounded-t-full shadow-[0_0_8px_#00E676]" />}
               </button>
               
               {COLUMNS.map(status => {
@@ -1766,13 +1770,17 @@ export default function StatusOsModule({
                    <button
                      key={`m-tab-${status}`}
                      onClick={() => setActiveStatus(status)}
-                     className="flex items-center gap-2 pb-3 shrink-0 relative group"
+                     style={isSelected ? { borderColor: 'currentColor' } : {}}
+                     className={`flex items-center gap-2 px-3.5 py-2 shrink-0 rounded-xl border transition-all active:scale-95 ${
+                       isSelected
+                         ? `${config.bg.replace('/10', '/10')} ${config.color}`
+                         : 'bg-[#111111] border-zinc-800 text-zinc-400 hover:bg-[#1A1A1A]'
+                     }`}
                    >
-                     <span className={`text-[13px] font-bold transition-colors ${isSelected ? 'text-white' : 'text-zinc-500'}`}>{shortName}</span>
-                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full transition-colors ${isSelected ? `${config.bg.replace('/10', '/20')} ${config.color}` : 'bg-zinc-800 text-zinc-400'}`}>
+                     <span className="text-[11px] font-black uppercase tracking-widest">{shortName}</span>
+                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isSelected ? config.bg.replace('/10', '/20') : 'bg-zinc-800 text-zinc-500'}`}>
                        {count}
                      </span>
-                     {isSelected && <div className={`absolute bottom-0 left-0 right-0 h-[2px] ${config.bg.replace('/10', '/100')} rounded-t-full shadow-[0_0_8px_currentColor] ${config.color}`} />}
                    </button>
                  );
               })}
