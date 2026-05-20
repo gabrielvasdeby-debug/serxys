@@ -2362,8 +2362,8 @@ export default function OrdemServicoModule({
               </div>
 
               {/* Unified Stepper Navigation (Responsive) */}
-              <div ref={tabsScrollRef} className="relative mb-6 w-full overflow-x-auto no-scrollbar pb-1">
-                <div className="flex gap-1 min-w-max sm:min-w-0 sm:w-full">
+              <div ref={tabsScrollRef} className="relative mb-6 w-full overflow-x-auto no-scrollbar pb-2 pt-2 px-1">
+                <div className="flex gap-2 min-w-max sm:w-full">
                   {[
                     { id: 'EQUIPMENT', label: 'Equipamento', icon: Smartphone },
                     { id: 'CHECKLIST', label: 'Checklist', icon: CheckCircle2 },
@@ -2372,30 +2372,28 @@ export default function OrdemServicoModule({
                     { id: 'SIGNATURE', label: 'Assinatura', icon: Pencil },
                   ].map((tab, idx, arr) => {
                     const isSelected = activeTab === tab.id;
+                    const pastIndex = arr.findIndex(t => t.id === activeTab);
+                    const isPast = idx < pastIndex;
                     return (
                       <button
                         key={tab.id}
                         data-selected={isSelected}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 h-14 sm:h-12 px-2 sm:px-0 relative ${idx !== 0 ? '-ml-3 sm:-ml-4' : ''} transition-all duration-300 group ${
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 h-12 px-4 sm:px-6 rounded-full transition-all duration-300 group ${
                           isSelected
-                            ? 'bg-[#00E676]/20 border border-[#00E676]/50 shadow-[0_0_15px_rgba(0,230,118,0.1)]'
-                            : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
+                            ? 'bg-[#00E676] border border-[#00E676] shadow-[0_0_20px_rgba(0,230,118,0.3)] scale-105 z-10'
+                            : isPast 
+                              ? 'bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700'
+                              : 'bg-[#141414] hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700'
                         }`}
-                        style={{
-                          clipPath: idx === 0
-                            ? 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 0% 50%)'
-                            : idx === arr.length - 1
-                              ? 'polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 10px 50%)'
-                              : 'polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%)',
-                          zIndex: isSelected ? 50 : arr.length - idx
-                        }}
                       >
-                        <div className={`hidden sm:flex transition-all duration-300 ${isSelected ? 'text-[#00E676] scale-110' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                          <tab.icon size={18} className="sm:w-4 sm:h-4" />
+                        <div className={`flex items-center justify-center transition-all duration-300 ${
+                          isSelected ? 'text-black' : isPast ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-400'
+                        }`}>
+                          <tab.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                        <span className={`text-[10px] sm:text-[10px] uppercase font-black tracking-tighter sm:tracking-widest transition-colors whitespace-nowrap ${
-                          isSelected ? 'text-[#00E676]' : 'text-zinc-500 group-hover:text-zinc-300'
+                        <span className={`text-[10px] sm:text-xs uppercase tracking-wider transition-colors whitespace-nowrap ${
+                          isSelected ? 'text-black font-black' : isPast ? 'text-zinc-300 font-bold' : 'text-zinc-500 font-bold group-hover:text-zinc-400'
                         }`}>
                           {tab.label}
                         </span>
