@@ -6,7 +6,7 @@ import {
   ArrowDownLeft, CheckCircle2, X, Search, Trash2,
   TrendingUp, TrendingDown, Wallet, History, Save,
   ShieldAlert, AlertCircle, Barcode, FileDown, Printer, ShoppingBag, ChevronRight, Check,
-  Calculator, ChevronUp, ChevronDown, ChevronLeft, HelpCircle, Loader2, Home
+  Calculator, ChevronUp, ChevronDown, ChevronLeft, HelpCircle, Loader2, Home, Info
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { generateCashReportPDF } from '../utils/pdfGenerator';
@@ -150,6 +150,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
   const [searchSale, setSearchSale] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [expandedSales, setExpandedSales] = useState<Record<string, boolean>>({});
   const [isSalesLoading, setIsSalesLoading] = useState(false);
   const [showQuickSupplier, setShowQuickSupplier] = useState(false);
   const [tourStepTimer, setTourStepTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -1058,18 +1059,54 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                       <th className="px-4 py-3 text-left text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Destino / Comprador</th>
                                       <th className="px-4 py-3 text-left text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Hora</th>
                                       <th className="px-4 py-3 text-right text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em]">Valor Total</th>
-                                       <th className="px-2 py-3"></th>
+                                      <th className="px-2 py-3"></th>
                                    </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-900/50">
                                    {sales.filter(s => { const search = searchSale.toLowerCase(); const numStr = `venda #${String(s.saleNumber).padStart(8, '0')}`.toLowerCase(); return numStr.includes(search) || (s.customerName || '').toLowerCase().includes(search); }).map((s) => (
-                                      <tr key={s.id} onClick={() => setSelectedSale(s)} className="hover:bg-white/[0.02] cursor-pointer transition-colors group">
-                                         <td className="px-4 py-3"><span className="text-xs font-black text-white/40 group-hover:text-[#00E676] transition-colors tracking-tighter block">ID: {String(s.saleNumber).padStart(8, '0')}</span></td>
-                                         <td className="px-4 py-3"><div className="flex flex-col"><span className="text-xs font-black text-white uppercase truncate max-w-[200px] leading-none mb-1">{s.customerName || 'Venda Direta'}</span><span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest">{s.paymentMethod}</span></div></td>
-                                         <td className="px-4 py-3 text-zinc-400 font-black text-[10px] uppercase">{s.time}</td>
-                                         <td className="px-4 py-3 text-right"><span className="text-lg font-black text-emerald-500 drop-shadow-[0_0_10px_rgba(0,230,118,0.15)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span></td>
-                                          <td className="px-2 py-3"><button title="2a Via" onClick={e => { e.stopPropagation(); handleReprintSale(s); }} className="p-2 rounded-lg text-zinc-500 hover:text-[#00E676] hover:bg-[#00E676]/10 transition-all opacity-0 group-hover:opacity-100 active:scale-95"><Printer size={15} strokeWidth={1.5} /></button></td>
-                                      </tr>
+                                      <React.Fragment key={s.id}>
+                                         <tr onClick={() => setSelectedSale(s)} className="hover:bg-white/[0.02] cursor-pointer transition-colors group">
+                                            <td className="px-4 py-3"><span className="text-xs font-black text-white/40 group-hover:text-[#00E676] transition-colors tracking-tighter block">ID: {String(s.saleNumber).padStart(8, '0')}</span></td>
+                                            <td className="px-4 py-3"><div className="flex flex-col"><span className="text-xs font-black text-white uppercase truncate max-w-[200px] leading-none mb-1">{s.customerName || 'Venda Direta'}</span><span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest">{s.paymentMethod}</span></div></td>
+                                            <td className="px-4 py-3 text-zinc-400 font-black text-[10px] uppercase">{s.time}</td>
+                                            <td className="px-4 py-3 text-right"><span className="text-lg font-black text-emerald-500 drop-shadow-[0_0_10px_rgba(0,230,118,0.15)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.total)}</span></td>
+                                            <td className="px-2 py-3">
+                                               <div className="flex items-center justify-end gap-1">
+                                                  <button title="Ver Itens" onClick={e => { e.stopPropagation(); setExpandedSales(prev => ({ ...prev, [s.id]: !prev[s.id] })); }} className={`p-2 rounded-lg transition-all active:scale-95 ${expandedSales[s.id] ? 'text-[#00E676] bg-[#00E676]/10' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}><Info size={15} strokeWidth={2} /></button>
+                                                  <button title="2a Via" onClick={e => { e.stopPropagation(); handleReprintSale(s); }} className="p-2 rounded-lg text-zinc-500 hover:text-[#00E676] hover:bg-[#00E676]/10 transition-all opacity-0 group-hover:opacity-100 active:scale-95"><Printer size={15} strokeWidth={1.5} /></button>
+                                               </div>
+                                            </td>
+                                         </tr>
+                                         {expandedSales[s.id] && (
+                                            <tr className="bg-black/25">
+                                               <td colSpan={5} className="px-6 py-4">
+                                                  <div className="flex flex-col gap-2 max-w-2xl">
+                                                     <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Itens Vendidos nesta venda:</span>
+                                                     {s.items && s.items.length > 0 ? (
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                           {s.items.map((item, idx) => (
+                                                              <div key={idx} className="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
+                                                                 <div className="flex flex-col">
+                                                                    <span className="font-bold text-xs text-zinc-200">{item.productName}</span>
+                                                                    {(item.productBrand || item.productModel) && (
+                                                                       <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">{item.productBrand || ''} {item.productModel || ''}</span>
+                                                                    )}
+                                                                 </div>
+                                                                 <div className="flex flex-col items-end">
+                                                                    <span className="font-black text-xs text-[#00E676]">{item.quantity}x</span>
+                                                                    <span className="text-[9px] font-bold text-zinc-500 mt-0.5">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price)}</span>
+                                                                 </div>
+                                                              </div>
+                                                           ))}
+                                                        </div>
+                                                     ) : (
+                                                        <span className="italic text-zinc-600 text-xs">Nenhum item registrado</span>
+                                                     )}
+                                                  </div>
+                                               </td>
+                                            </tr>
+                                         )}
+                                      </React.Fragment>
                                    ))}
                                 </tbody>
                              </table>
@@ -1078,16 +1115,49 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                           {/* Versão Mobile (Cards) */}
                           <div className="sm:hidden overflow-y-auto flex-1 custom-scrollbar flex flex-col gap-2 p-3 bg-[#1A1A1A]">
                              {sales.filter(s => { const search = searchSale.toLowerCase(); const numStr = `venda #${String(s.saleNumber).padStart(8, '0')}`.toLowerCase(); return numStr.includes(search) || (s.customerName || '').toLowerCase().includes(search); }).map((s) => (
-                                <div key={s.id} onClick={() => setSelectedSale(s)} className="bg-[#141414] border border-zinc-700/80 rounded-xl p-4 flex flex-col gap-3 active:scale-[0.98] transition-transform">
+                                <div key={s.id} className="bg-[#141414] border border-zinc-700/80 rounded-xl p-4 flex flex-col gap-3 active:scale-[0.98] transition-transform">
                                    <div className="flex justify-between items-start">
-                                      <div className="flex flex-col">
+                                      <div className="flex flex-col" onClick={() => setSelectedSale(s)}>
                                          <span className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">ID: {String(s.saleNumber).padStart(8, '0')}</span>
                                          <span className="text-sm font-black text-white uppercase leading-tight">{s.customerName || 'Venda Direta'}</span>
                                       </div>
-                                      <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1 bg-black px-2 py-1 rounded-md border border-zinc-700/50"><Clock size={10}/> {s.time}</span>
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                          <button 
+                                            title="Ver Itens"
+                                            onClick={e => { e.stopPropagation(); setExpandedSales(prev => ({ ...prev, [s.id]: !prev[s.id] })); }} 
+                                            className={`p-2 rounded-lg border transition-all active:scale-95 ${expandedSales[s.id] ? 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800/50 border-zinc-700 text-zinc-400'}`}
+                                          >
+                                            <Info size={12} strokeWidth={2.5} />
+                                          </button>
+                                          <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1 bg-black px-2 py-1 rounded-md border border-zinc-700/50"><Clock size={10}/> {s.time}</span>
+                                       </div>
                                    </div>
                                    
-                                   <div className="flex justify-between items-end mt-1 pt-3 border-t border-zinc-700/40">
+                                   {/* Expanded Mobile Items */}
+                                    {expandedSales[s.id] && (
+                                       <div className="bg-black/35 border border-zinc-800 rounded-xl p-3 flex flex-col gap-2 mt-1">
+                                          <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Itens Vendidos</span>
+                                          {s.items && s.items.length > 0 ? (
+                                            <div className="flex flex-col gap-1.5">
+                                              {s.items.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-center text-xs bg-zinc-900/60 p-2.5 rounded-lg border border-zinc-800/50">
+                                                  <div className="flex flex-col min-w-0 flex-1 pr-2">
+                                                    <span className="text-zinc-300 font-bold truncate">{item.productName}</span>
+                                                    {(item.productBrand || item.productModel) && (
+                                                       <span className="text-[8px] font-bold text-zinc-500 uppercase">{item.productBrand || ''} {item.productModel || ''}</span>
+                                                    )}
+                                                  </div>
+                                                  <span className="text-[#00E676] font-black text-xs shrink-0">{item.quantity}x</span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <span className="italic text-zinc-600 text-xs">Sem itens</span>
+                                          )}
+                                       </div>
+                                    )}
+
+                                   <div onClick={() => setSelectedSale(s)} className="flex justify-between items-end mt-1 pt-3 border-t border-zinc-700/40">
                                       <div className="flex flex-col gap-1">
                                          <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Pagamento</span>
                                          <span className="text-[10px] font-black text-emerald-500/60 bg-emerald-500/5 px-2 py-0.5 rounded-sm self-start border border-emerald-500/10">{s.paymentMethod}</span>
