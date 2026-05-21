@@ -1020,25 +1020,71 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   {activeTab === 'fluxo' ? (
                     <div className="flex-1 bg-[#111111] border border-zinc-700/50 rounded-[32px] md:overflow-hidden shadow-sm flex flex-col min-h-0">
                        <div className="divide-y divide-zinc-900/40 md:overflow-y-auto flex-1 custom-scrollbar">
-                          {filteredTransactions.map((t) => (
-                             <div key={t.id} className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800 shadow-inner bg-zinc-900 ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>
-                                   {t.type === 'entrada' ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownLeft size={18} strokeWidth={2.5} />}
-                                </div>
-                               <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between gap-2">
-                                     <p className="text-xs font-black text-white uppercase truncate tracking-tight min-w-0 flex-1">{t.description}</p>
-                                     <span className={`text-sm font-black tracking-tighter shrink-0 whitespace-nowrap ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
-                                  </div>
-                                  <div className="flex items-center gap-3 mt-1">
-                                     <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} className="text-zinc-600" /> {t.time}</span>
-                                     <span className="text-[9px] font-black text-zinc-400 bg-zinc-900/80 px-2 py-0.5 rounded-lg border border-zinc-700/40 uppercase tracking-tighter shadow-sm">{t.paymentMethod}</span>
-                                     {t.osId && <span className="text-[9px] font-black text-blue-500/40 uppercase tracking-widest pl-3 border-l border-zinc-700/50">OS {t.osId}</span>}
-                                  </div>
-                               </div>
-                               {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-600 hover:text-zinc-400 transition-all sm:opacity-0 sm:group-hover:opacity-100 active:scale-95"><Trash2 size={18} /></button>)}
-                            </div>
-                          ))}
+                          {filteredTransactions.map((t) => {
+                             const match = t.description.match(/^Venda\s+#(\d+)/i);
+                             const matchingSale = match ? sales.find(s => s.saleNumber === parseInt(match[1], 10)) : null;
+
+                             return (
+                                <React.Fragment key={t.id}>
+                                   <div className="p-3 flex items-center gap-4 hover:bg-white/[0.01] transition-colors group">
+                                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800 shadow-inner bg-zinc-900 ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                         {t.type === 'entrada' ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownLeft size={18} strokeWidth={2.5} />}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                         <div className="flex items-start justify-between gap-2">
+                                            <p className="text-xs font-black text-white uppercase truncate tracking-tight min-w-0 flex-1">{t.description}</p>
+                                            <span className={`text-sm font-black tracking-tighter shrink-0 whitespace-nowrap ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
+                                         </div>
+                                         <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} className="text-zinc-600" /> {t.time}</span>
+                                            <span className="text-[9px] font-black text-zinc-400 bg-zinc-900/80 px-2 py-0.5 rounded-lg border border-zinc-700/40 uppercase tracking-tighter shadow-sm">{t.paymentMethod}</span>
+                                            {t.osId && <span className="text-[9px] font-black text-blue-500/40 uppercase tracking-widest pl-3 border-l border-zinc-700/50">OS {t.osId}</span>}
+                                         </div>
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                         {matchingSale && (
+                                            <button 
+                                              title="Ver Itens"
+                                              onClick={e => { e.stopPropagation(); setExpandedSales(prev => ({ ...prev, [matchingSale.id]: !prev[matchingSale.id] })); }} 
+                                              className={`p-2 rounded-lg border transition-all active:scale-95 ${expandedSales[matchingSale.id] ? 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676]' : 'bg-zinc-800/50 border-zinc-700 text-zinc-400'}`}
+                                            >
+                                              <Info size={14} strokeWidth={2.5} />
+                                            </button>
+                                         )}
+                                         {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-600 hover:text-zinc-400 transition-all sm:opacity-0 sm:group-hover:opacity-100 active:scale-95"><Trash2 size={18} /></button>)}
+                                      </div>
+                                   </div>
+                                   {matchingSale && expandedSales[matchingSale.id] && (
+                                      <div className="px-14 pb-4">
+                                         <div className="flex flex-col gap-2 max-w-2xl border-l-2 border-zinc-800 pl-4 py-2">
+                                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Itens Vendidos nesta venda:</span>
+                                            {matchingSale.items && matchingSale.items.length > 0 ? (
+                                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                  {matchingSale.items.map((item, idx) => (
+                                                     <div key={idx} className="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
+                                                        <div className="flex flex-col">
+                                                           <span className="font-bold text-xs text-zinc-200">{item.productName}</span>
+                                                           {(item.productBrand || item.productModel) && (
+                                                              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">{item.productBrand || ''} {item.productModel || ''}</span>
+                                                           )}
+                                                        </div>
+                                                        <div className="flex flex-col items-end">
+                                                           <span className="font-black text-xs text-[#00E676]">{item.quantity}x</span>
+                                                           <span className="text-[9px] font-bold text-zinc-500 mt-0.5">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price)}</span>
+                                                        </div>
+                                                     </div>
+                                                  ))}
+                                               </div>
+                                            ) : (
+                                               <span className="italic text-zinc-600 text-xs">Nenhum item registrado</span>
+                                            )}
+                                         </div>
+                                      </div>
+                                   )}
+                                </React.Fragment>
+                             );
+                          })}
                           {filteredTransactions.length === 0 && (
                             <div className="flex-1 py-12 text-center flex flex-col items-center justify-center gap-4 grayscale opacity-10"><TrendingUp size={48} /><p className="text-xs font-black uppercase tracking-[0.5em]">Nenhum registro</p></div>
                           )}
