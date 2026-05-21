@@ -3340,7 +3340,7 @@ export default function OrdemServicoModule({
                     </div>
                     
                       {/* Signature Mode Selection */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="flex flex-col md:grid md:grid-cols-3 gap-3 mb-6">
                         {/* 1 - Manual */}
                         <button
                           type="button"
@@ -3348,19 +3348,24 @@ export default function OrdemServicoModule({
                             setSignatureMode('manual');
                             setSignatures(prev => ({ ...prev, mode: 'manual', isManual: true }));
                           }}
-                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+                          className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'manual'
-                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
-                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-zinc-700/50' 
+                              : 'bg-[#0A0A0A] border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/50'
                           }`}
                         >
-                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-zinc-900 text-blue-400 shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-sm flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-zinc-900 text-blue-400 shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
                               <Pencil size={20} />
                            </div>
-                           <div className="text-center relative z-10">
-                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'manual' ? 'text-white' : 'text-zinc-500'}`}>Manual</h4>
-                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Papel Físico</p>
+                           <div className="text-left md:text-center flex-1 relative z-10">
+                              <h4 className={`text-sm md:text-[9px] uppercase font-black tracking-widest ${signatureMode === 'manual' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`}>Manual</h4>
+                              <p className={`text-[10px] md:text-[8px] font-bold uppercase tracking-tight mt-0.5 ${signatureMode === 'manual' ? 'text-blue-400/80' : 'text-zinc-600'}`}>Papel Físico</p>
                            </div>
+                           {signatureMode === 'manual' && (
+                             <div className="md:hidden shrink-0 w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center mr-1">
+                               <CheckCircle2 size={14} />
+                             </div>
+                           )}
                         </button>
 
                         {/* 2 - Digital */}
@@ -3370,19 +3375,24 @@ export default function OrdemServicoModule({
                             setSignatureMode('digital');
                             setSignatures(prev => ({ ...prev, mode: 'digital', isManual: false }));
                           }}
-                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+                          className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'digital'
-                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
-                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
+                              : 'bg-[#0A0A0A] border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/50'
                           }`}
                         >
-                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'digital' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-sm flex items-center justify-center transition-all ${signatureMode === 'digital' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
                               <Smartphone size={20} />
                            </div>
-                           <div className="text-center relative z-10">
-                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'digital' ? 'text-white' : 'text-zinc-500'}`}>Digital</h4>
-                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Na tela</p>
+                           <div className="text-left md:text-center flex-1 relative z-10">
+                              <h4 className={`text-sm md:text-[9px] uppercase font-black tracking-widest ${signatureMode === 'digital' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`}>Digital</h4>
+                              <p className={`text-[10px] md:text-[8px] font-bold uppercase tracking-tight mt-0.5 ${signatureMode === 'digital' ? 'text-[#00E676]/80' : 'text-zinc-600'}`}>Na tela</p>
                            </div>
+                           {signatureMode === 'digital' && (
+                             <div className="md:hidden shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 text-[#00E676] flex items-center justify-center mr-1">
+                               <CheckCircle2 size={14} />
+                             </div>
+                           )}
                         </button>
 
                         {/* 3 - Via Link (WhatsApp) */}
@@ -3392,19 +3402,24 @@ export default function OrdemServicoModule({
                             setSignatureMode('remote');
                             setSignatures(prev => ({ ...prev, mode: 'remote', isManual: false }));
                           }}
-                          className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+                          className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'remote'
-                              ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm' 
-                              : 'bg-[#0A0A0A] border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
+                              : 'bg-[#0A0A0A] border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/50'
                           }`}
                         >
-                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center transition-all ${signatureMode === 'remote' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-sm flex items-center justify-center transition-all ${signatureMode === 'remote' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
                               <MessageCircle size={20} />
                            </div>
-                           <div className="text-center relative z-10">
-                              <h4 className={`text-[9px] uppercase font-black tracking-widest ${signatureMode === 'remote' ? 'text-white' : 'text-zinc-500'}`}>Via WhatsApp</h4>
-                              <p className="text-[8px] font-bold uppercase tracking-tight text-zinc-600 mt-0.5">Link Remoto</p>
+                           <div className="text-left md:text-center flex-1 relative z-10">
+                              <h4 className={`text-sm md:text-[9px] uppercase font-black tracking-widest ${signatureMode === 'remote' ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`}>Via WhatsApp</h4>
+                              <p className={`text-[10px] md:text-[8px] font-bold uppercase tracking-tight mt-0.5 ${signatureMode === 'remote' ? 'text-[#00E676]/80' : 'text-zinc-600'}`}>Link Remoto</p>
                            </div>
+                           {signatureMode === 'remote' && (
+                             <div className="md:hidden shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 text-[#00E676] flex items-center justify-center mr-1">
+                               <CheckCircle2 size={14} />
+                             </div>
+                           )}
                         </button>
                       </div>
 
