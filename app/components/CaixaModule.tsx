@@ -683,10 +683,14 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           setSelectedSale(null);
           onShowToast('Venda cancelada e produtos devolvidos ao estoque');
           
+          const productsList = sale.items && sale.items.length > 0
+            ? sale.items.map(item => `${item.productName} (${item.quantity}x)`).join(', ')
+            : '';
+
           onLogActivity?.('CAIXA', 'CANCELOU VENDA', {
             saleNumber: sale.saleNumber,
             total: sale.total,
-            description: `Cancelou venda #${sale.saleNumber} e retornou itens ao estoque`
+            description: `Cancelou venda #${sale.saleNumber} e retornou itens ao estoque${productsList ? ` [${productsList}]` : ''}`
           });
 
           // Atualizar lista de produtos local se necessário (o ideal seria dar um refetch ou atualizar localmente)
@@ -1335,16 +1339,20 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                 }
 
                 onShowToast('Venda finalizada');
-                onLogActivity?.('CAIXA', 'REALIZOU VENDA', {
-                  saleId,
-                  saleNumber: nextNumber,
-                  saleNumberFormatted: String(nextNumber).padStart(8, '0'),
-                  customerName: saleData.customerName,
-                  total: saleData.total,
-                  paymentMethod: saleData.paymentMethod,
-                  itemCount: saleData.items.length,
-                  description: `Venda #${String(nextNumber).padStart(8, '0')} para ${saleData.customerName || 'Balcão'} — R$ ${saleData.total.toFixed(2)} (${saleData.paymentMethod})`
-                });
+                const productsList = saleData.items && saleData.items.length > 0
+                   ? saleData.items.map(item => `${item.productName} (${item.quantity}x)`).join(', ')
+                   : '';
+
+                 onLogActivity?.('CAIXA', 'REALIZOU VENDA', {
+                   saleId,
+                   saleNumber: nextNumber,
+                   saleNumberFormatted: String(nextNumber).padStart(8, '0'),
+                   customerName: saleData.customerName,
+                   total: saleData.total,
+                   paymentMethod: saleData.paymentMethod,
+                   itemCount: saleData.items.length,
+                   description: `Venda #${String(nextNumber).padStart(8, '0')} para ${saleData.customerName || 'Balcão'} — R$ ${saleData.total.toFixed(2)} (${saleData.paymentMethod})${productsList ? ` [${productsList}]` : ''}`
+                 });
                 return saleObj;
               } catch (e: any) { 
                 console.error('Erro na venda:', e);
