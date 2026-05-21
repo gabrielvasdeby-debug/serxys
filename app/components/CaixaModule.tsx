@@ -166,7 +166,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
         try {
           const { data, error } = await supabase
             .from('products')
-            .select('id, name, price, stock, category, min_stock, barcode, brand, model')
+            .select('id, name, price, stock, category, min_stock, barcode, brand, model, image')
             .eq('company_id', profile.company_id);
           
           if (error) throw error;
@@ -180,7 +180,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
               minStock: p.min_stock,
               barcode: p.barcode,
               brand: p.brand,
-              model: p.model
+              model: p.model,
+              image: p.image
             })) as Product[]);
           }
         } catch (err) {
@@ -1692,7 +1693,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
   onNewCustomer: (c: { id: string, name: string }) => void,
   isLoadingProducts?: boolean
 }) {
-  const [selectedItems, setSelectedItems] = useState<{ productId: string, productName: string, productBrand?: string, productModel?: string, quantity: number, price: number }[]>([]);
+  const [selectedItems, setSelectedItems] = useState<{ productId: string, productName: string, productBrand?: string, productModel?: string, productImage?: string, quantity: number, price: number }[]>([]);
   const [search, setSearch] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -1736,7 +1737,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
           setSelectedItems(prev => {
             const exists = prev.find(i => i.productId === found.id);
             if (exists) return prev.map(i => i.productId === found.id ? { ...i, quantity: i.quantity + 1 } : i);
-            return [...prev, { productId: found.id, productName: found.name, productBrand: found.brand, productModel: found.model, quantity: 1, price: found.price || 0 }];
+            return [...prev, { productId: found.id, productName: found.name, productBrand: found.brand, productModel: found.model, productImage: found.image, quantity: 1, price: found.price || 0 }];
           });
           setScannerDetected(true);
           setLastScanned(found.name);
@@ -1786,7 +1787,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
       if (existing) {
         return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { productId: product.id, productName: product.name, productBrand: product.brand, productModel: product.model, quantity: 1, price: product.price || 0 }];
+      return [...prev, { productId: product.id, productName: product.name, productBrand: product.brand, productModel: product.model, productImage: product.image, quantity: 1, price: product.price || 0 }];
     });
   };
 
@@ -2034,6 +2035,15 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                            </button>
                         </div>
 
+                        {/* Product Image Thumbnail */}
+                        <div className="w-12 h-12 bg-zinc-950/60 border border-zinc-800/80 rounded-xl overflow-hidden shrink-0 flex items-center justify-center text-zinc-500/50 relative shadow-inner">
+                           {item.productImage ? (
+                              <img src={item.productImage} alt={item.productName} className="absolute inset-0 w-full h-full object-cover animate-fade-in" />
+                           ) : (
+                              <ShoppingCart size={16} className="opacity-30" />
+                           )}
+                        </div>
+
                         <div className="flex-1 min-w-0 pr-4">
                            <div className="flex flex-wrap items-baseline gap-x-2">
                              <p className="text-[12px] font-black text-zinc-300 uppercase truncate leading-none group-hover:text-white transition-colors">{item.productName}</p>
@@ -2217,22 +2227,22 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                 </div>
 
                 {/* Confirm Action Button */}
-                 <button 
-                   onClick={handleFinalize} 
-                   disabled={selectedItems.length === 0 || isSaving}
-                   className="w-full h-16 sm:h-14 bg-gradient-to-r from-[#00E676] to-[#00C853] hover:from-[#00C853] hover:to-[#00B24A] shadow-[0_15px_30px_rgba(0,230,118,0.3)] hover:shadow-[#00E676]/40 disabled:from-zinc-900 disabled:to-zinc-900 disabled:text-zinc-600 rounded-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-4 text-black font-black uppercase tracking-widest sm:tracking-[0.4em] text-[15px] sm:text-[10px] group mb-2"
-                 >
-                   {isSaving ? (
-                     <>
-                       <Loader2 size={28} className="animate-spin" />
-                       REALIZANDO VENDA...
-                     </>
-                   ) : (
-                     <>
-                       <Printer size={28} className="group-hover:scale-110 transition-transform" />
-                       CONFIRMAR VENDA
-                     </>
-                   )}
+                <button 
+                    onClick={handleFinalize} 
+                    disabled={selectedItems.length === 0 || isSaving}
+                    className="w-full h-14 sm:h-16 mt-4 sm:mt-6 bg-gradient-to-r from-[#00E676] to-[#00C853] hover:from-[#00C853] hover:to-[#00B24A] shadow-[0_12px_24px_rgba(0,230,118,0.25)] hover:shadow-[#00E676]/35 disabled:from-zinc-900 disabled:to-zinc-900 disabled:text-zinc-600 rounded-2xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-3 text-black font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[12px] sm:text-xs group mb-4"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        <span>REALIZANDO VENDA...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Printer size={20} className="group-hover:scale-110 transition-transform" />
+                        <span>CONFIRMAR VENDA</span>
+                      </>
+                    )}
                  </button>
                 
              </div>
