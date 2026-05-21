@@ -823,23 +823,23 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
             </div>
           </div>
           
-          <div className="flex flex-wrap bg-[#121212] p-1 rounded-2xl border border-zinc-800/50">
-            <div className="flex shrink-0 gap-1">
+          <div className="flex w-full sm:w-auto bg-[#121212] p-1 rounded-2xl border border-zinc-800/50 overflow-hidden">
+            <div className="flex w-full overflow-x-auto custom-scrollbar sm:scrollbar-hide shrink-0 gap-1">
               <button 
                 onClick={() => setActiveTab('EXTRATO')} 
-                className={`px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'EXTRATO' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'EXTRATO' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
               >
                 Fluxo de Caixa
               </button>
               <button 
                 onClick={() => setActiveTab('RECEBER')} 
-                className={`px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'RECEBER' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'RECEBER' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
               >
                 Receber
               </button>
               <button 
                 onClick={() => setActiveTab('PAGAR')} 
-                className={`px-4 sm:px-6 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'PAGAR' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'PAGAR' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
               >
                 Pagar
               </button>
@@ -878,8 +878,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
               </div>
 
               {/* Stat Cards from Resumo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="glass-panel p-6 rounded-[32px] border border-white/5 hover:border-emerald-500/20 transition-colors">
+              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:pb-0 custom-scrollbar">
+                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-emerald-500/20 transition-colors shrink-0">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
                       <TrendingUp size={20} />
@@ -890,7 +890,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                   <p className="text-xl font-bold text-white tracking-tight">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
 
-                <div className="glass-panel p-6 rounded-[32px] border border-white/5 hover:border-red-500/20 transition-colors">
+                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-red-500/20 transition-colors shrink-0">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
                       <TrendingDown size={20} />
@@ -901,7 +901,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                   <p className="text-xl font-bold text-white tracking-tight">R$ {stats.expenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
 
-                <div className="glass-panel p-6 rounded-[32px] border border-white/5 hover:border-amber-500/20 transition-colors">
+                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-amber-500/20 transition-colors shrink-0">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center">
                       <History size={20} />
@@ -912,7 +912,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                   <p className="text-xl font-bold text-white tracking-tight">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
 
-                <div className="glass-panel p-6 rounded-[32px] border border-white/5 hover:border-blue-500/20 transition-colors">
+                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-blue-500/20 transition-colors shrink-0">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
                       <ArrowUpRight size={20} />
@@ -923,7 +923,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                   <p className="text-xl font-bold text-white tracking-tight">R$ {((stats as any).pendingReceivables || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
 
-                <div className="bg-[#00E676]/5 p-6 rounded-[32px] border border-[#00E676]/20 relative overflow-hidden group">
+                <div className="min-w-[240px] sm:min-w-0 snap-center bg-[#00E676]/5 p-6 rounded-[32px] border border-[#00E676]/20 relative overflow-hidden group shrink-0">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[#00E676]/10 blur-3xl -mr-12 -mt-12 rounded-full group-hover:bg-[#00E676]/20 transition-all" />
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-4">
@@ -1038,7 +1038,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Card Layout */}
-                <div className="md:hidden divide-y divide-zinc-900">
+                <div className="md:hidden space-y-3 mt-4">
                   {(() => {
                     const now = new Date();
                     let start: Date, end: Date;
@@ -1064,23 +1064,25 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     .sort((a, b) => new Date(b.date + 'T' + (b.time || '00:00')).getTime() - new Date(a.date + 'T' + (a.time || '00:00')).getTime());
 
                     if (list.length === 0) {
-                      return <div className="p-12 text-center text-zinc-500 text-sm">Nenhuma movimentação encontrada.</div>;
+                      return <div className="p-12 text-center text-zinc-500 text-sm glass-panel rounded-2xl">Nenhuma movimentação encontrada.</div>;
                     }
 
                     return list.map((m: any) => (
-                      <div key={m.id} className="p-5 space-y-3">
+                      <div key={m.id} className="bg-[#141414] border border-zinc-800/50 p-4 rounded-2xl shadow-sm flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] text-zinc-500 font-bold">{format(parseISO(m.date), 'dd/MM/yyyy')}</span>
-                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${m.type === 'entrada' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${m.type === 'entrada' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-red-500/10 text-red-400'}`}>
                             {m.type === 'entrada' ? 'Entrada' : 'Saída'}
                           </span>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-white leading-tight capitalize">{m.description}</p>
-                          <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-widest font-medium">{m.paymentMethod} {m.source === 'caixa' && '• Caixa'}</p>
-                        </div>
-                        <div className={`text-lg font-black text-right ${m.type === 'entrada' ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {m.type === 'entrada' ? '+' : '-'} R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white leading-tight capitalize truncate">{m.description}</p>
+                            <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-widest font-medium truncate">{m.paymentMethod} {m.source === 'caixa' && '• Caixa'}</p>
+                          </div>
+                          <div className={`text-base font-black text-right shrink-0 ${m.type === 'entrada' ? 'text-[#00E676]' : 'text-red-400'}`}>
+                            {m.type === 'entrada' ? '+' : '-'} R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </div>
                         </div>
                       </div>
                     ));
@@ -1237,7 +1239,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Cards for Receivables */}
-                <div className="md:hidden divide-y divide-zinc-900">
+                <div className="md:hidden space-y-3 mt-4">
                   {(() => {
                     const filtered = receivables.filter(r => {
                       const search = receivablesSearch.toLowerCase();
@@ -1246,42 +1248,42 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     });
 
                     if (filtered.length === 0) {
-                      return <div className="p-12 text-center text-zinc-500 text-sm">Nenhum recebimento encontrado.</div>;
+                      return <div className="p-12 text-center text-zinc-500 text-sm glass-panel rounded-2xl">Nenhum recebimento encontrado.</div>;
                     }
 
                     return filtered.map(r => (
-                      <div key={r.id} className="p-5 space-y-4">
+                      <div key={r.id} className="bg-[#141414] border border-zinc-800/50 p-4 rounded-2xl shadow-sm flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] text-zinc-500 font-bold">{format(parseISO(r.dueDate), 'dd/MM/yyyy')}</span>
                           {r.osNumber > 0 ? (
-                            <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-tighter">OS {String(r.osNumber).padStart(4, '0')}</span>
+                            <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">OS {String(r.osNumber).padStart(4, '0')}</span>
                           ) : (
-                            <span className="text-[9px] font-black text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded uppercase tracking-tighter">Manual</span>
+                            <span className="text-[9px] font-black text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-widest">Manual</span>
                           )}
                         </div>
                         
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white line-clamp-1">{r.customerName}</p>
+                            <p className="text-sm font-bold text-white truncate">{r.customerName}</p>
                             <div className="mt-2" onClick={() => handleToggleReceivableStatus(r)}>
-                              <span className={`text-[9px] font-black uppercase tracking-[0.15em] ${r.remainingAmount > 0 ? 'text-amber-500' : 'text-[#00E676]'}`}>
-                                {r.remainingAmount > 0 ? '● Pendente' : '● Recebido'}
+                              <span className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-full ${r.remainingAmount > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-[#00E676]/10 text-[#00E676]'}`}>
+                                {r.remainingAmount > 0 ? 'Pendente' : 'Recebido'}
                               </span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className={`text-base font-black ${r.remainingAmount > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                          <div className="text-right shrink-0">
+                            <p className={`text-base font-black ${r.remainingAmount > 0 ? 'text-amber-500' : 'text-[#00E676]'}`}>
                               R$ {r.remainingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                             {r.paidAmount > 0 && r.remainingAmount > 0 && (
-                               <p className="text-[9px] text-zinc-500 font-bold uppercase mt-0.5">Total R$ {r.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                               <p className="text-[9px] text-zinc-500 font-bold uppercase mt-1">Total R$ {r.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             )}
                           </div>
                         </div>
 
                         <button 
                           onClick={() => { setSelectedReceivable(r); setIsPaymentModalOpen(true); }}
-                          className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-[#00E676] text-zinc-400 hover:text-black rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest border border-zinc-700/50"
+                          className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 bg-zinc-800 hover:bg-[#00E676] text-white hover:text-black rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest border border-zinc-700/50"
                         >
                           <CreditCard size={14} /> Registrar Pagamento
                         </button>
@@ -1411,7 +1413,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Card View for Expenses */}
-                <div className="md:hidden divide-y divide-zinc-900">
+                <div className="md:hidden space-y-3 mt-4">
                   {(() => {
                     const sortedExpenses = [...expenses].sort((a, b) => {
                       if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
@@ -1422,33 +1424,35 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     });
 
                     if (sortedExpenses.length === 0) {
-                      return <div className="p-12 text-center text-zinc-500 text-sm">Nenhuma despesa para exibir.</div>;
+                      return <div className="p-12 text-center text-zinc-500 text-sm glass-panel rounded-2xl">Nenhuma despesa para exibir.</div>;
                     }
 
                     return sortedExpenses.map(exp => (
-                      <div key={exp.id} className="p-5 space-y-4">
+                      <div key={exp.id} className="bg-[#141414] border border-zinc-800/50 p-4 rounded-2xl shadow-sm flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] text-zinc-500 font-bold">{format(parseISO(exp.date), 'dd/MM/yyyy')}</span>
-                          <span className="text-[9px] font-bold uppercase tracking-widest bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{exp.category}</span>
+                          <span className="text-[9px] font-bold uppercase tracking-widest bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-400">{exp.category}</span>
                         </div>
                         
-                        <div>
-                          <p className="text-sm font-bold text-white line-clamp-1">{exp.description}</p>
-                          <div className="flex items-center gap-3 mt-2">
-                             <div 
-                                onClick={() => handleToggleExpensePaid(exp)}
-                                className="flex items-center gap-2 cursor-pointer"
-                              >
-                                <span className={`text-[9px] font-black uppercase tracking-[0.15em] ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-[#00E676]'}`}>
-                                  {exp.status === 'PENDING' ? '● Pendente' : '● Pago'}
-                                </span>
-                              </div>
-                              {exp.supplier && <span className="text-[9px] text-zinc-600 uppercase tracking-widest italic">• {exp.supplier}</span>}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white truncate">{exp.description}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                               <div 
+                                  onClick={() => handleToggleExpensePaid(exp)}
+                                  className="flex items-center gap-2 cursor-pointer"
+                                >
+                                  <span className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-full ${exp.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-[#00E676]/10 text-[#00E676]'}`}>
+                                    {exp.status === 'PENDING' ? 'Pendente' : 'Pago'}
+                                  </span>
+                                </div>
+                                {exp.supplier && <span className="text-[9px] text-zinc-600 uppercase tracking-widest italic truncate">• {exp.supplier}</span>}
+                            </div>
                           </div>
-                        </div>
-
-                        <div className={`text-lg font-black text-right ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
-                          R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          
+                          <div className={`text-base font-black text-right shrink-0 ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
+                            R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </div>
                         </div>
                       </div>
                     ));
@@ -1463,12 +1467,13 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       {/* Expense Modal */}
       <AnimatePresence>
         {isExpenseModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-800 rounded-[32px] shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              className="bg-[#141414] border border-zinc-800 rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden pb-6 sm:pb-0"
             >
               <div className="p-6 sm:p-8 border-b border-zinc-900 flex items-center justify-between shrink-0">
                 <div>
@@ -1541,12 +1546,13 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       {/* Payment Update Modal */}
       <AnimatePresence>
         {isPaymentModalOpen && selectedReceivable && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-800 rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden"
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              className="bg-[#141414] border border-zinc-800 rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden pb-6 sm:pb-0"
             >
               <div className="p-6 sm:p-8 border-b border-zinc-900 text-center">
                 <h2 className="text-xl font-bold text-white mb-1">Registrar Pagamento</h2>
@@ -1591,12 +1597,13 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       {/* Income Modal */}
       <AnimatePresence>
         {isIncomeModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#141414] border border-zinc-800 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden"
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              className="bg-[#141414] border border-zinc-800 rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden pb-6 sm:pb-0"
             >
               <div className="p-6 sm:p-8 border-b border-zinc-900 flex items-center justify-between">
                 <div>
