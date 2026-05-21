@@ -1992,7 +1992,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-px bg-zinc-800/50">
              
              {/* Cart Column (70/30 Density) */}
-             <div className="flex-1 flex flex-col bg-[#1A1A1A] overflow-hidden h-[45vh] md:h-full">
+             <div className="flex-1 flex flex-col bg-[#1A1A1A] overflow-hidden min-h-[35vh] md:h-full">
                 <div className="px-4 py-3 border-b border-zinc-700/50 bg-[#111111] flex items-center justify-between shrink-0">
                    <div className="flex items-center gap-2">
                       <ShoppingCart size={16} className="text-zinc-400" />
@@ -2001,9 +2001,9 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                    <span className="text-[9px] font-black text-[#00E676] px-2 py-0.5 rounded bg-[#00E676]/5 border border-[#00E676]/20 uppercase">{selectedItems.length} UN</span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col divide-y divide-zinc-900/50">
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col p-2 gap-2 md:p-0 md:gap-0 md:divide-y md:divide-zinc-900/50">
                    {selectedItems.map((item, idx) => (
-                     <div key={idx} className="flex gap-4 items-center p-2.5 hover:bg-zinc-800/30 transition-colors group">
+                     <div key={idx} className="flex gap-3 md:gap-4 items-center p-3 md:p-2.5 bg-zinc-900/40 md:bg-transparent rounded-xl md:rounded-none border border-zinc-800/50 md:border-transparent hover:bg-zinc-800/50 transition-colors group">
                         {/* Quantity Control */}
                         <div className="flex flex-col items-center bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden shrink-0 shadow-inner">
                            <button 
@@ -2185,14 +2185,14 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                       </div>
 
                       {/* Payment Grid Block */}
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-1">MÉTODO RECEBIMENTO</span>
-                         <div className="grid grid-cols-2 gap-2">
+                         <div className="flex overflow-x-auto no-scrollbar md:grid md:grid-cols-2 gap-2 pb-1 snap-x">
                             {['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].map(m => (
                               <button 
                                 key={m} 
                                 onClick={() => setPaymentMethod(m as any)} 
-                                className={`py-3.5 sm:py-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest border transition-all active:scale-[0.98] ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-[#111111] text-zinc-400 border-zinc-700/60 hover:border-zinc-600'}`}
+                                className={`shrink-0 w-[110px] md:w-auto snap-start py-3.5 sm:py-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest border transition-all active:scale-[0.98] ${paymentMethod === m ? 'bg-white text-black border-white shadow-lg' : 'bg-[#111111] text-zinc-400 border-zinc-700/60 hover:border-zinc-600 hover:bg-zinc-900'}`}
                               >
                                 {m}
                               </button>
@@ -2202,12 +2202,15 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                    </div>
 
                    {/* Totalization View (Precision) */}
-                   <div className="bg-[#111111] border border-zinc-700/50 rounded-xl py-4 sm:py-6 flex flex-col items-center justify-center text-center shadow-inner group border-t border-t-[#00E676]/20">
-                      <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] sm:tracking-[0.5em] mb-1 sm:mb-2">TOTAL EM CAIXA</span>
-                      <span className="text-3xl sm:text-4xl font-black text-[#00E676] tracking-tighter drop-shadow-[0_0_15px_rgba(0,230,118,0.2)]">
+                   <div className="bg-[#111111] border border-zinc-700/50 rounded-2xl py-5 sm:py-6 flex flex-col items-center justify-center text-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.5)] group relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#00E676]/5 to-transparent opacity-50 pointer-events-none" />
+                      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00E676]/50 to-transparent" />
+                      
+                      <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] sm:tracking-[0.5em] mb-1 sm:mb-2 relative z-10">TOTAL A RECEBER</span>
+                      <span className="text-4xl sm:text-4xl font-black text-[#00E676] tracking-tighter drop-shadow-[0_0_20px_rgba(0,230,118,0.3)] relative z-10">
                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
                       </span>
-                      <div className="mt-3 sm:mt-4 px-4 py-1 bg-[#1A1A1A] rounded-full border border-zinc-700/50 text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                      <div className="mt-3 sm:mt-4 px-4 py-1 bg-[#1A1A1A]/80 backdrop-blur-md rounded-full border border-zinc-700/50 text-[9px] font-black text-zinc-400 uppercase tracking-widest relative z-10">
                          FORMA: {paymentMethod}
                       </div>
                    </div>
