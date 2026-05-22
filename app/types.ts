@@ -144,8 +144,13 @@ export interface TechnicalReport {
   createdAt?: string;
 }
 
-export interface Order {
-  id: string;
+export interface CaixaData {
+  products: Product[];
+  customers: any[];
+  cash_sessions: CashSession[];
+  sales: Sale[];
+  transactions: Transaction[];
+}
   public_id?: string;
   publicExpiresAt?: string;
   companyId: string;
@@ -193,6 +198,55 @@ export interface Order {
   customer_origin_snapshot?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Represents an Order in the system.
+ * Includes fields used throughout the application and optional fields for flexibility.
+ */
+export interface Order {
+  id: string;
+  company_id: string;
+  os_number: number;
+  customer_id?: string;
+  equipment: {
+    type: string;
+    brand: string;
+    model: string;
+    serial: string;
+    color: string;
+    passwordType: 'text' | 'pattern' | 'none';
+    passwordValue: string;
+  };
+  checklist: Record<string, 'works' | 'broken' | 'untested'>;
+  checklistNotPossible?: boolean;
+  entryPhotos?: string[];
+  checklistNotes?: string;
+  defect?: string;
+  technicianNotes?: string;
+  service?: string;
+  financials: {
+    totalValue: number;
+    paymentType: string;
+    paymentStatus: string;
+    amountPaid: number;
+    paymentMethods?: { method: string; amount: number }[];
+  };
+  signatures: {
+    technician: string | null;
+    client: string | null;
+    isManual?: boolean;
+    mode?: 'digital' | 'manual' | 'remote';
+  };
+  status: OrderStatus;
+  priority: OrderPriority;
+  history: OrderHistoryEvent[];
+  completionData?: OrderCompletionData;
+  technicalReport?: TechnicalReport;
+  budget?: BudgetData;
+  createdAt: string;
+  updatedAt: string;
+  [key: string]: any;
 }
 
 export interface AppNotification {

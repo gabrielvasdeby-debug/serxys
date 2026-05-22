@@ -227,7 +227,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     }
     // Set current session based on fetched sessions (open session if exists)
     if (!fetchLoading && fetchedSessions) {
-      const open = fetchedSessions.find((s: CashSession) => s.status === 'open');
+      const open = (fetchedSessions as CashSession[]).find((s) => s.status === 'open');
       setCurrentSession(open || null);
     }
     // Propagate loading state
