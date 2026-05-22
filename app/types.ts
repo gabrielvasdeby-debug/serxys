@@ -144,109 +144,102 @@ export interface TechnicalReport {
   createdAt?: string;
 }
 
-export interface CaixaData {
-  products: Product[];
-  customers: any[];
-  cash_sessions: CashSession[];
-  sales: Sale[];
-  transactions: Transaction[];
-}
-  public_id?: string;
-  publicExpiresAt?: string;
-  companyId: string;
-  osNumber: number;
-  customerId: string;
-  equipment: {
-    type: string;
-    brand: string;
-    model: string;
-    serial: string;
-    color: string;
-    passwordType: 'text' | 'pattern' | 'none';
-    passwordValue: string;
-  };
-  checklist: Record<string, 'works' | 'broken' | 'untested'>;
-  checklistNotPossible?: boolean;
-  entryPhotos?: string[];
-  checklistNotes: string;
-  defect: string;
-  technicianNotes: string;
-  service: string;
-  financials: {
-    totalValue: number;
-    paymentType: 'Dinheiro' | 'PIX' | 'Cartão' | 'Transferência' | 'Débito' | 'Crédito' | 'Link' | 'Outro' | 'Múltiplo' | '';
-    paymentStatus: 'Total' | 'Parcial' | 'Pendente';
-    amountPaid: number;
-    paymentMethods?: { method: string; amount: number }[];
-  };
-  signatures: {
-    technician: string | null;
-    client: string | null;
-    isManual?: boolean;
-    mode?: 'digital' | 'manual' | 'remote';
-  };
-  status: OrderStatus;
-  priority: OrderPriority;
-  history: OrderHistoryEvent[];
-  completionData?: OrderCompletionData;
-  technicalReport?: TechnicalReport;
-  budget?: BudgetData;
-  productsUsed?: { id: string, name: string, quantity: number, price: number }[];
-  isVisualChecklist?: boolean;
-  deliveryForecast?: string;
-  scannedOsUrl?: string;
-  customer_origin_snapshot?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Represents an Order in the system.
- * Includes fields used throughout the application and optional fields for flexibility.
- */
 export interface Order {
   id: string;
-  company_id: string;
-  os_number: number;
+  company_id?: string;
+  os_number?: number;
   customer_id?: string;
-  equipment: {
-    type: string;
-    brand: string;
-    model: string;
-    serial: string;
-    color: string;
-    passwordType: 'text' | 'pattern' | 'none';
-    passwordValue: string;
+  // Campos camelCase usados em alguns módulos
+  companyId?: string;
+  osNumber?: number;
+  customerId?: string;
+  public_id?: string;
+  publicExpiresAt?: string;
+  equipment?: {
+    type?: string;
+    brand?: string;
+    model?: string;
+    serial?: string;
+    color?: string;
+    passwordType?: 'text' | 'pattern' | 'none';
+    passwordValue?: string;
   };
-  checklist: Record<string, 'works' | 'broken' | 'untested'>;
+  checklist?: Record<string, 'works' | 'broken' | 'untested'>;
   checklistNotPossible?: boolean;
   entryPhotos?: string[];
   checklistNotes?: string;
   defect?: string;
   technicianNotes?: string;
   service?: string;
-  financials: {
-    totalValue: number;
-    paymentType: string;
-    paymentStatus: string;
-    amountPaid: number;
+  financials?: {
+    totalValue?: number;
+    paymentType?: string;
+    paymentStatus?: string;
+    amountPaid?: number;
     paymentMethods?: { method: string; amount: number }[];
   };
-  signatures: {
-    technician: string | null;
-    client: string | null;
+  signatures?: {
+    technician?: string | null;
+    client?: string | null;
     isManual?: boolean;
     mode?: 'digital' | 'manual' | 'remote';
   };
-  status: OrderStatus;
-  priority: OrderPriority;
-  history: OrderHistoryEvent[];
+  status?: OrderStatus;
+  priority?: OrderPriority;
+  history?: OrderHistoryEvent[];
   completionData?: OrderCompletionData;
   technicalReport?: TechnicalReport;
   budget?: BudgetData;
-  createdAt: string;
-  updatedAt: string;
+  productsUsed?: { id: string; name: string; quantity: number; price: number }[];
+  isVisualChecklist?: boolean;
+  deliveryForecast?: string;
+  scannedOsUrl?: string;
+  customer_origin_snapshot?: string;
+  createdAt?: string;
+  updatedAt?: string;
   [key: string]: any;
+}
+
+// Tipos auxiliares do módulo Caixa
+export interface CashSession {
+  id: string;
+  company_id: string;
+  opened_by: string;
+  opened_at: string;
+  closed_at?: string;
+  initial_amount: number;
+  final_amount?: number;
+  status: 'open' | 'closed';
+  [key: string]: any;
+}
+
+export interface Sale {
+  id: string;
+  company_id: string;
+  session_id?: string;
+  total: number;
+  payment_method?: string;
+  created_at: string;
+  [key: string]: any;
+}
+
+export interface Transaction {
+  id: string;
+  company_id: string;
+  session_id?: string;
+  type: 'income' | 'expense';
+  amount: number;
+  description?: string;
+  created_at: string;
+  [key: string]: any;
+}
+
+export interface CaixaData {
+  products: Product[];
+  customers: any[];
+  cash_sessions: CashSession[];
+  sales: Sale[];
+  transactions: Transaction[];
 }
 
 export interface AppNotification {

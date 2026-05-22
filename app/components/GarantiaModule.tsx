@@ -652,7 +652,11 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                     <div className="bg-white shadow-2xl mx-auto w-full max-w-[794px] min-h-[500px]">
                       {selectedWarrantyData && (
                         <WarrantyPrintTemplate
-                          order={selectedWarrantyData.order}
+                          order={{
+                            ...selectedWarrantyData.order,
+                            company_id: (selectedWarrantyData.order as any).companyId ?? '',
+                            os_number: (selectedWarrantyData.order as any).osNumber ?? 0,
+                          }}
                           customer={selectedWarrantyData.customer}
                           companySettings={companySettings}
                           osSettings={osSettings}
