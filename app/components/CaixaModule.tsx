@@ -199,11 +199,11 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
   }, [isQuickSaleOpen, products.length, profile.company_id]);
 
   // New data fetching using the consolidated RPC via useCaixaData hook
-  const { data, error: fetchError, isLoading: fetchLoading } = useCaixaData(profile.company_id, selectedDate);
+  const { data, error: fetchError, isLoading: fetchLoading } = useCaixaData(profile.company_id as string, selectedDate);
   const {
     products: fetchedProducts = [],
     customers: fetchedCustomers = [],
-    cash_sessions: fetchedSessions = [],
+    cash_sessions: fetchedSessions = [] as CashSession[],
     sales: fetchedSales = [],
     transactions: fetchedTransactions = []
   } = data || {};
@@ -227,7 +227,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     }
     // Set current session based on fetched sessions (open session if exists)
     if (!fetchLoading && fetchedSessions) {
-      const open = fetchedSessions.find(s => s.status === 'open');
+      const open = fetchedSessions.find((s: CashSession) => s.status === 'open');
       setCurrentSession(open || null);
     }
     // Propagate loading state
