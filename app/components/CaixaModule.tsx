@@ -1364,10 +1364,10 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   items: saleData.items,
                   total: saleData.total,
                   payment_method: saleData.paymentMethod,
-                  customer_name: saleData.customerName,
+                  customer_name: saleData.customerName || null,
                   user_id: profile.id,
                   user_name: profile.name,
-                  session_id: currentSession?.id
+                  session_id: currentSession?.id || null
                 }).select().single();
 
                 if (saleError) throw saleError;
