@@ -39,7 +39,7 @@ BEGIN
   END IF;
 
 END $$;
-
+ALTER TABLE public.sales ADD COLUMN IF NOT EXISTS company_id TEXT;
 -- 3. Desabilita RLS para facilitar integração inicial
 ALTER TABLE public.sales DISABLE ROW LEVEL SECURITY;
 

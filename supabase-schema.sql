@@ -162,8 +162,8 @@ CREATE TABLE IF NOT EXISTS public.sales (
   total NUMERIC DEFAULT 0,
   payment_method TEXT,
   customer_name TEXT,
+  company_id TEXT,
   user_id TEXT,
-  user_name TEXT,
   session_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
