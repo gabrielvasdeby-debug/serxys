@@ -184,7 +184,7 @@ export interface Order {
     isManual?: boolean;
     mode?: 'digital' | 'manual' | 'remote';
   };
-  status?: OrderStatus;
+  status: OrderStatus;
   priority?: OrderPriority;
   history?: OrderHistoryEvent[];
   completionData?: OrderCompletionData;
