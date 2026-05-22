@@ -9,7 +9,7 @@ import {
   Calculator, ChevronUp, ChevronDown, ChevronLeft, HelpCircle, Loader2, Home, Info
 } from 'lucide-react';
 import { supabase } from '../supabase';
-import { useCaixaData } from '../../src/hooks/useCaixaData';
+import { useCaixaData } from '../hooks/useCaixaData';
 import { generateCashReportPDF } from '../utils/pdfGenerator';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -199,7 +199,14 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
   }, [isQuickSaleOpen, products.length, profile.company_id]);
 
   // New data fetching using the consolidated RPC via useCaixaData hook
-  const { products: fetchedProducts, customers: fetchedCustomers, sessions: fetchedSessions, sales: fetchedSales, transactions: fetchedTransactions, error: fetchError, isLoading: fetchLoading } = useCaixaData(profile.company_id);
+  const { data, error: fetchError, isLoading: fetchLoading } = useCaixaData(profile.company_id, selectedDate);
+  const {
+    products: fetchedProducts = [],
+    customers: fetchedCustomers = [],
+    cash_sessions: fetchedSessions = [],
+    sales: fetchedSales = [],
+    transactions: fetchedTransactions = []
+  } = data || {};
 
   // Sync fetched data with local state for compatibility with existing UI logic
   useEffect(() => {
