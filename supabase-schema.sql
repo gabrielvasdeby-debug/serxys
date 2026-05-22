@@ -186,4 +186,14 @@ ALTER TABLE public.receivables DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payables DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.agenda DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_settings DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.sales DISABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS idx_sales_company_id ON public.sales (company_id);
+CREATE INDEX IF NOT EXISTS idx_products_company_id ON public.products (company_id);
+CREATE INDEX IF NOT EXISTS idx_customers_company_id ON public.customers (company_id);
+CREATE INDEX IF NOT EXISTS idx_cash_sessions_company_id ON public.cash_sessions (company_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_company_id ON public.transactions (company_id);
+CREATE INDEX IF NOT EXISTS idx_agenda_company_id ON public.agenda (company_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_company_id ON public.expenses (company_id);
+CREATE INDEX IF NOT EXISTS idx_receivables_company_id ON public.receivables (company_id);
+CREATE INDEX IF NOT EXISTS idx_payables_company_id ON public.payables (company_id);
+CREATE INDEX IF NOT EXISTS idx_app_settings_company_id ON public.app_settings (company_id);
+

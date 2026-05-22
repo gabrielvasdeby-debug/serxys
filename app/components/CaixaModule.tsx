@@ -9,6 +9,7 @@ import {
   Calculator, ChevronUp, ChevronDown, ChevronLeft, HelpCircle, Loader2, Home, Info
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import { useCaixaData } from '../../src/hooks/useCaixaData';
 import { generateCashReportPDF } from '../utils/pdfGenerator';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -92,6 +93,7 @@ export interface Sale {
   userId: string;
   userName?: string;
   createdAt: string;
+  company_id?: string;
 }
 
 interface CaixaModuleProps {
@@ -196,109 +198,38 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     }
   }, [isQuickSaleOpen, products.length, profile.company_id]);
 
+  // New data fetching using the consolidated RPC via useCaixaData hook
+  const { products: fetchedProducts, customers: fetchedCustomers, sessions: fetchedSessions, sales: fetchedSales, transactions: fetchedTransactions, error: fetchError, isLoading: fetchLoading } = useCaixaData(profile.company_id);
+
+  // Sync fetched data with local state for compatibility with existing UI logic
   useEffect(() => {
-    setLoading(true);
-
-    const fetchData = async () => {
-      try {
-        // FASE 1: Dispara open session + dados secundários em paralelo
-        const [
-          openSessionsResult,
-          suppliersResult,
-          customersResult,
-          allSessionsResult,
-        ] = await Promise.all([
-          supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).eq('status', 'open').order('opened_at', { ascending: false }).limit(1),
-          supabase.from('suppliers').select('id, company_name').eq('company_id', profile.company_id).order('company_name'),
-          supabase.from('customers').select('id, name').eq('company_id', profile.company_id).order('name'),
-          supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).order('date', { ascending: false }).limit(50),
-        ]);
-
-        if (suppliersResult.error) console.error('Suppliers Error:', suppliersResult.error);
-        if (customersResult.error) console.error('Customers Error:', customersResult.error);
-        if (allSessionsResult.error) console.error('AllSessions Error:', allSessionsResult.error);
-
-        // Processa dados secundários (não bloqueiam o render)
-        if (suppliersResult.data) setAvailableSuppliers(suppliersResult.data);
-        if (customersResult.data) setCustomers(customersResult.data);
-        if (allSessionsResult.data) {
-          setSessions(allSessionsResult.data.map(s => ({
-            id: s.id, date: s.date, status: s.status,
-            openingTime: s.opened_at ? new Date(s.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---',
-            openingUser: s.opened_by, openingUserName: s.opened_by_name || 'Sistema',
-            closingTime: s.closed_at ? new Date(s.closed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '---',
-            closingUser: s.closed_by, closingUserName: s.closed_by_name || 'Sistema',
-            initialValue: s.opening_balance, finalValue: s.closing_balance || 0,
-            expectedValue: s.expected_balance || 0, totalEntries: s.total_entries || 0,
-            totalExits: s.total_exits || 0, difference: s.difference || 0
-          }) as CashSession));
-        }
-
-        // Determina a data correta
-        const openSession = openSessionsResult.data && openSessionsResult.data.length > 0 ? openSessionsResult.data[0] : null;
-        let dateToFetch = selectedDate;
-        const isDefaultToday = selectedDate === today;
-        if (openSession && isDefaultToday) {
-          dateToFetch = openSession.date;
-          setSelectedDate(dateToFetch);
-        }
-
-        // FASE 2: Busca sessão da data + vendas em paralelo
-        const [sessionForDateResult, salesResult] = await Promise.all([
-          supabase.from('cash_sessions').select('*').eq('company_id', profile.company_id).eq('date', dateToFetch).order('status', { ascending: false }).limit(1),
-          supabase.from('sales').select('*').eq('company_id', profile.company_id).eq('date', dateToFetch).order('created_at', { ascending: false }),
-        ]);
-
-        const sessionData = sessionForDateResult.data && sessionForDateResult.data.length > 0 ? sessionForDateResult.data[0] : null;
-
-        if (sessionData) {
-          setCurrentSession({
-            id: sessionData.id, date: sessionData.date, status: sessionData.status,
-            openingTime: sessionData.opened_at ? new Date(sessionData.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
-            openingUser: sessionData.opened_by, openingUserName: sessionData.opened_by_name || 'Usuário',
-            initialValue: sessionData.opening_balance,
-            closingTime: sessionData.closed_at ? new Date(sessionData.closed_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : undefined,
-            finalValue: sessionData.closing_balance
-          } as CashSession);
-        } else {
-          setCurrentSession(null);
-        }
-
-        if (salesResult.data) {
-          setSales(salesResult.data.map(s => ({
-            id: s.id, saleNumber: s.sale_number, date: s.date,
-            time: s.time || new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            items: s.items, total: s.total, paymentMethod: s.payment_method,
-            customerName: s.customer_name, userId: s.user_id,
-            userName: s.user_name, createdAt: s.created_at
-          })) as Sale[]);
-        }
-
-        // FASE 3: Busca transações (depende do sessionData)
-        const transQuery = sessionData
-          ? supabase.from('transactions').select('*').eq('company_id', profile.company_id).eq('session_id', sessionData.id).order('created_at', { ascending: false })
-          : supabase.from('transactions').select('*').eq('company_id', profile.company_id).eq('date', dateToFetch).order('created_at', { ascending: false });
-
-        const { data: transData, error: transError } = await transQuery;
-        if (transError) console.error('Transactions Error:', transError);
-
-        if (transData) {
-          setTransactions(transData.map(t => ({
-            id: t.id, type: t.type, description: t.description, value: t.value,
-            paymentMethod: t.payment_method, date: t.date, time: t.time,
-            osId: t.os_id, userId: t.user_id, createdAt: t.created_at
-          })) as Transaction[]);
-        }
-      } catch (err) {
-        console.error('Erro geral ao buscar dados do caixa:', err);
-        onShowToast('Erro ao carregar dados do caixa. Tente recarregar.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [selectedDate]);
+    if (!fetchLoading && fetchedProducts) {
+      setProducts(fetchedProducts);
+    }
+    if (!fetchLoading && fetchedCustomers) {
+      setCustomers(fetchedCustomers);
+    }
+    if (!fetchLoading && fetchedSessions) {
+      setSessions(fetchedSessions);
+    }
+    if (!fetchLoading && fetchedSales) {
+      setSales(fetchedSales);
+    }
+    if (!fetchLoading && fetchedTransactions) {
+      setTransactions(fetchedTransactions);
+    }
+    // Set current session based on fetched sessions (open session if exists)
+    if (!fetchLoading && fetchedSessions) {
+      const open = fetchedSessions.find(s => s.status === 'open');
+      setCurrentSession(open || null);
+    }
+    // Propagate loading state
+    setLoading(fetchLoading);
+    if (fetchError) {
+      console.error('Erro ao buscar dados via RPC:', fetchError);
+      onShowToast('Erro ao carregar dados do caixa.');
+    }
+  }, [fetchLoading, fetchedProducts, fetchedCustomers, fetchedSessions, fetchedSales, fetchedTransactions, fetchError]);
 
   const totals = useMemo<Totals>(() => {
     const initial = currentSession?.initialValue || 0;
