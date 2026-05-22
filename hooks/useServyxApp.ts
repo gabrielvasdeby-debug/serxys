@@ -490,6 +490,13 @@ export function useServyxApp() {
         setView('LOGIN');
         setIsAuthReady(true);
       }
+    }).catch(err => {
+      console.error('[Servyx] Session recovery failed:', err);
+      if (mounted) {
+        setView('LOGIN');
+        setIsAuthReady(true);
+        setToastMessage('Conexão recusada pelo Supabase.');
+      }
     });
 
     return () => { 
