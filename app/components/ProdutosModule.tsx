@@ -20,23 +20,7 @@ import InfoTooltip from './InfoTooltip';
 
 
 
-interface Sale {
-  id: string;
-  date: string;
-  items: {
-    productId: string;
-    productName: string;
-    productBrand?: string;
-    productModel?: string;
-    quantity: number;
-    price: number;
-    total: number;
-  }[];
-  total: number;
-  paymentMethod: string;
-  userId: string;
-  createdAt: string;
-}
+
 
 interface ProdutosModuleProps {
   profile: {

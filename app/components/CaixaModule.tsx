@@ -17,39 +17,9 @@ import { capFirst } from '../utils/capFirst';
 import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { formatPhone } from '../utils/formatPhone';
 import InfoTooltip from './InfoTooltip';
-import { Product } from '../types';
+import { Product, CashSession, Transaction, Sale } from '../types';
 
-export interface Transaction {
-  id: string;
-  type: 'entrada' | 'saida';
-  description: string;
-  value: number;
-  paymentMethod: 'Dinheiro' | 'PIX' | 'Débito' | 'Crédito' | 'Link';
-  category?: string;
-  date: string; // ISO format YYYY-MM-DD
-  time: string; // HH:mm
-  osId?: string;
-  userId: string;
-  createdAt: string;
-}
 
-export interface CashSession {
-  id: string;
-  date: string;
-  status: 'open' | 'closed';
-  openingTime: string;
-  openingUser: string;
-  openingUserName: string;
-  initialValue: number;
-  closingTime?: string;
-  closingUser?: string;
-  closingUserName?: string;
-  finalValue?: number;
-  expectedValue?: number;
-  difference?: number;
-  totalEntries?: number;
-  totalExits?: number;
-}
 
 
 
@@ -73,28 +43,6 @@ interface TransactionData {
   productName?: string;
 }
 
-interface SaleData {
-  items: { productId: string, productName: string, productBrand?: string, productModel?: string, quantity: number, price: number, total: number }[];
-  total: number;
-  paymentMethod: string;
-  customerName?: string;
-  saleNumber?: number;
-}
-
-export interface Sale {
-  id: string;
-  saleNumber: number;
-  date: string;
-  time: string;
-  items: { productId: string, productName: string, productBrand?: string, productModel?: string, quantity: number, price: number, total: number }[];
-  total: number;
-  paymentMethod: string;
-  customerName?: string;
-  userId: string;
-  userName?: string;
-  createdAt: string;
-  company_id?: string;
-}
 
 interface CaixaModuleProps {
   profile: {
