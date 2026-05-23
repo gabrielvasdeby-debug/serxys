@@ -1960,8 +1960,8 @@ export default function OrdemServicoModule({
                   {localOrder ? 'Editar' : 'Nova OS'}
                 </span>
                 <span className="text-base sm:text-xs font-black font-mono bg-zinc-900 border border-white/5 text-zinc-400 px-3 py-1.5 sm:px-2 sm:py-1 rounded-lg shadow-inner">
-                  OS {localOrder ? localOrder.osNumber.toString().padStart(4, '0') : 
-                      (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
+                  OS {localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(4, '0') : 
+                      (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
                 </span>
               </div>
               <h1 className="hidden sm:block text-xl font-black text-white tracking-tight">
