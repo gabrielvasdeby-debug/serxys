@@ -773,7 +773,7 @@ export default function OrdemServicoModule({
   });
 
   // OS Form State
-  const [equipment, setEquipment] = useState<Order['equipment']>({
+  const [equipment, setEquipment] = useState<NonNullable<Order['equipment']>>({
     type: '',
     brand: '',
     model: '',
@@ -1156,7 +1156,9 @@ export default function OrdemServicoModule({
       const customer = customers.find(c => c.id === initialOrder.customerId);
       if (customer) setSelectedCustomer(customer);
       
-      setEquipment(initialOrder.equipment);
+      if (initialOrder.equipment) {
+        setEquipment(initialOrder.equipment);
+      }
       setChecklist(initialOrder.checklist);
       setChecklistNotPossible(initialOrder.checklistNotPossible || (initialOrder as any).checklist_not_possible || false);
       setEntryPhotos(initialOrder.entryPhotos || []);
