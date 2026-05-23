@@ -1704,17 +1704,24 @@ export default function OrdemServicoModule({
         const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
           `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
         
+        const orderOsNumberStr = (order.osNumber || 0).toString().padStart(4, '0');
+        const orderBrand = order.equipment?.brand || '';
+        const orderModel = order.equipment?.model || '';
+        const orderDefect = order.defect || '';
+        const orderStatus = order.status || 'Entrada';
+        const orderCreatedAtStr = order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
+
         let message = template
           .replace(/\\n/g, '\n')
           .replace(/\[nome_cliente\]/g, selectedCustomer.name)
           .replace(/{cliente}/g, selectedCustomer.name)
-          .replace(/\[numero_os\]/g, order.osNumber.toString().padStart(4, '0'))
-          .replace(/{os}/g, order.osNumber.toString().padStart(4, '0'))
-          .replace(/\[marca\]/g, order.equipment.brand)
-          .replace(/\[modelo\]/g, order.equipment.model)
-          .replace(/\[defeito\]/g, order.defect)
-          .replace(/\[status\]/g, order.status)
-          .replace(/\[data_entrada\]/g, new Date(order.createdAt).toLocaleDateString('pt-BR'))
+          .replace(/\[numero_os\]/g, orderOsNumberStr)
+          .replace(/{os}/g, orderOsNumberStr)
+          .replace(/\[marca\]/g, orderBrand)
+          .replace(/\[modelo\]/g, orderModel)
+          .replace(/\[defeito\]/g, orderDefect)
+          .replace(/\[status\]/g, orderStatus)
+          .replace(/\[data_entrada\]/g, orderCreatedAtStr)
           .replace(/\[link_os\]/g, portalUrl)
           .replace(/{link}/g, portalUrl)
           .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
