@@ -1444,7 +1444,7 @@ export default function OrdemServicoModule({
         const baseOrder = (initialOrder || localOrder)!;
         osData.status = baseOrder.status;
         osData.history = [
-          ...baseOrder.history,
+          ...(baseOrder.history || []),
           {
             date: now,
             user: profile.name,
