@@ -1547,8 +1547,8 @@ export default function OrdemServicoModule({
           type: equipment.type as DeviceType,
           brand: equipment.brand,
           model: equipment.model,
-          serialNumber: equipment.serial,
-          color: equipment.color,
+          serialNumber: equipment.serial || '',
+          color: equipment.color || '',
           notes: ''
         };
         
