@@ -1169,7 +1169,12 @@ export default function OrdemServicoModule({
         ...initialOrder.financials,
         paymentMethods: initialOrder.financials?.paymentMethods || ((initialOrder.financials?.amountPaid ?? 0) > 0 ? [{ method: initialOrder.financials?.paymentType || 'Dinheiro', amount: initialOrder.financials?.amountPaid ?? 0 }] : [])
       });
-      setSignatures(initialOrder.signatures);
+      setSignatures(initialOrder.signatures || {
+        technician: null,
+        client: null,
+        isManual: false,
+        mode: 'digital'
+      });
       setShowVisualChecklist(initialOrder.isVisualChecklist || false);
       setDeliveryForecast(initialOrder.deliveryForecast || '');
     }
