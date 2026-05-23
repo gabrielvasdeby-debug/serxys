@@ -43,6 +43,13 @@ interface TransactionData {
   productName?: string;
 }
 
+interface SaleData {
+  items: any[];
+  total: number;
+  paymentMethod: string;
+  customerName?: string;
+  saleNumber?: string | number;
+}
 
 interface CaixaModuleProps {
   profile: {
@@ -192,20 +199,21 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     const entriesByType = transactions
       .filter(t => t.type === 'entrada')
       .reduce((acc, t) => {
-        const method = t.paymentMethod;
-        acc[method] = (acc[method] || 0) + t.value;
-        acc.total += t.value;
+        const method = t.paymentMethod || 'Outro';
+        const val = t.value || 0;
+        acc[method] = (acc[method] || 0) + val;
+        acc.total += val;
         return acc;
       }, { total: 0 } as Record<string, number>);
 
     const exits = transactions
       .filter(t => t.type === 'saida')
-      .reduce((acc, t) => acc + t.value, 0);
+      .reduce((acc, t) => acc + (t.value || 0), 0);
 
     const cashEntries = entriesByType['Dinheiro'] || 0;
     const cashExits = transactions
       .filter(t => t.type === 'saida' && t.paymentMethod === 'Dinheiro')
-      .reduce((acc, t) => acc + t.value, 0);
+      .reduce((acc, t) => acc + (t.value || 0), 0);
 
     return {
       initial,
@@ -379,19 +387,19 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       })) as Transaction[];
 
       const pastTotals: Totals = {
-        initial: session.initialValue,
-        entries: trans.filter(t => t.type === 'entrada').reduce((acc, t) => acc + t.value, 0),
+        initial: session.initialValue || 0,
+        entries: trans.filter(t => t.type === 'entrada').reduce((acc, t) => acc + (t.value || 0), 0),
         entriesByType: trans.filter(t => t.type === 'entrada').reduce((acc, t) => {
           const method = t.paymentMethod || 'Dinheiro';
-          acc[method] = (acc[method] || 0) + t.value;
+          acc[method] = (acc[method] || 0) + (t.value || 0);
           return acc;
         }, {} as Record<string, number>),
-        exits: trans.filter(t => t.type === 'saida').reduce((acc, t) => acc + t.value, 0),
+        exits: trans.filter(t => t.type === 'saida').reduce((acc, t) => acc + (t.value || 0), 0),
         balance: 0,
         cashInHand: 0
       };
       pastTotals.balance = pastTotals.entries - pastTotals.exits;
-      pastTotals.cashInHand = pastTotals.initial + (pastTotals.entriesByType['Dinheiro'] || 0) - trans.filter(t => t.type === 'saida' && t.paymentMethod === 'Dinheiro').reduce((acc, t) => acc + t.value, 0);
+      pastTotals.cashInHand = pastTotals.initial + (pastTotals.entriesByType['Dinheiro'] || 0) - trans.filter(t => t.type === 'saida' && t.paymentMethod === 'Dinheiro').reduce((acc, t) => acc + (t.value || 0), 0);
 
       generateCashReportPDF(session, trans, pastTotals, companySettings);
     } catch (error: any) {
@@ -441,7 +449,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     const company = companySettings?.name || 'Sua Empresa';
     const dateStr = new Date(sale.date + 'T12:00:00').toLocaleDateString('pt-BR');
     const saleNumStr = String(sale.saleNumber).padStart(8, '0');
-    const itemsHtml = (sale.items || []).map(i => {
+    const itemsHtml = (sale.items || []).map((i: any) => {
       const brandModel = (i.productBrand || i.productModel) ? ` (${i.productBrand || ''} ${i.productModel || ''})`.trim() : '';
       return `<tr><td style="padding:2px 0">${i.productName}${brandModel}</td><td style="text-align:center">${i.quantity}x</td><td style="text-align:right">${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(i.price)}</td><td style="text-align:right">${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(i.total)}</td></tr>`;
     }).join('');
@@ -571,7 +579,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           onShowToast('Venda cancelada e produtos devolvidos ao estoque');
           
           const productsList = sale.items && sale.items.length > 0
-            ? sale.items.map(item => `${item.productName} (${item.quantity}x)`).join(', ')
+            ? sale.items.map((item: any) => `${item.productName} (${item.quantity}x)`).join(', ')
             : '';
 
           onLogActivity?.('CAIXA', 'CANCELOU VENDA', {
@@ -907,7 +915,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                     <div className="flex-1 bg-[#111111] border border-zinc-700/50 rounded-[32px] md:overflow-hidden shadow-sm flex flex-col min-h-0">
                        <div className="divide-y divide-zinc-900/40 md:overflow-y-auto flex-1 custom-scrollbar">
                           {filteredTransactions.map((t) => {
-                             const match = t.description.match(/^Venda\s+#(\d+)/i);
+                             const match = t.description?.match(/^Venda\s+#(\d+)/i);
                              const matchingSale = match ? sales.find(s => s.saleNumber === parseInt(match[1], 10)) : null;
 
                              return (
@@ -919,7 +927,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                       <div className="flex-1 min-w-0">
                                          <div className="flex items-start justify-between gap-2">
                                             <p className="text-xs font-black text-white uppercase truncate tracking-tight min-w-0 flex-1">{t.description}</p>
-                                            <span className={`text-sm font-black tracking-tighter shrink-0 whitespace-nowrap ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value)}</span>
+                                            <span className={`text-sm font-black tracking-tighter shrink-0 whitespace-nowrap ${t.type === 'entrada' ? 'text-emerald-500' : 'text-red-500'}`}>{t.type === 'entrada' ? '+' : '-'} {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value || 0)}</span>
                                          </div>
                                          <div className="flex items-center gap-3 mt-1">
                                             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} className="text-zinc-600" /> {t.time}</span>
@@ -947,7 +955,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Itens Vendidos nesta venda:</span>
                                             {matchingSale.items && matchingSale.items.length > 0 ? (
                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                  {matchingSale.items.map((item, idx) => (
+                                                  {matchingSale.items.map((item: any, idx: number) => (
                                                      <div key={idx} className="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
                                                         <div className="flex flex-col">
                                                            <span className="font-bold text-xs text-zinc-200">{item.productName}</span>
@@ -1016,7 +1024,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Itens Vendidos nesta venda:</span>
                                                      {s.items && s.items.length > 0 ? (
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                           {s.items.map((item, idx) => (
+                                                           {s.items.map((item: any, idx: number) => (
                                                               <div key={idx} className="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
                                                                  <div className="flex flex-col">
                                                                     <span className="font-bold text-xs text-zinc-200">{item.productName}</span>
@@ -1071,7 +1079,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                           <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Itens Vendidos</span>
                                           {s.items && s.items.length > 0 ? (
                                             <div className="flex flex-col gap-1.5">
-                                              {s.items.map((item, idx) => (
+                                              {s.items.map((item: any, idx: number) => (
                                                 <div key={idx} className="flex justify-between items-center text-xs bg-zinc-900/60 p-2.5 rounded-lg border border-zinc-800/50">
                                                   <div className="flex flex-col min-w-0 flex-1 pr-2">
                                                     <span className="text-zinc-300 font-bold truncate">{item.productName}</span>
@@ -1315,7 +1323,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                 }
 
                 setProducts(prev => prev.map(p => {
-                  const sold = saleData.items.find(i => i.productId === p.id);
+                  const sold = saleData.items.find((i: any) => i.productId === p.id);
                   if (sold) {
                     return { ...p, stock: Math.max(0, p.stock - sold.quantity) };
                   }
@@ -1342,7 +1350,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
                 onShowToast('Venda finalizada');
                 const productsList = saleData.items && saleData.items.length > 0
-                   ? saleData.items.map(item => `${item.productName} (${item.quantity}x)`).join(', ')
+                   ? saleData.items.map((item: any) => `${item.productName} (${item.quantity}x)`).join(', ')
                    : '';
 
                  onLogActivity?.('CAIXA', 'REALIZOU VENDA', {
@@ -2013,7 +2021,7 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col p-2 gap-2 md:p-0 md:gap-0 md:divide-y md:divide-zinc-900/50">
-                   {selectedItems.map((item, idx) => (
+                   {selectedItems.map((item: any, idx: number) => (
                      <div key={idx} className="flex gap-3 md:gap-4 items-center p-3 md:p-2.5 bg-zinc-900/40 md:bg-transparent rounded-xl md:rounded-none border border-zinc-800/50 md:border-transparent hover:bg-zinc-800/50 transition-colors group">
                         {/* Quantity Control */}
                         <div className="flex flex-col items-center bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden shrink-0 shadow-inner">
@@ -2342,7 +2350,7 @@ function SaleDetailModal({ sale, onClose, onReprint, onDelete, canAction }: { sa
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800/20">
-                       {sale.items.map((item, idx) => (
+                       {sale.items.map((item: any, idx: number) => (
                          <tr key={idx}>
                             <td className="px-4 py-3">
                                <p className="text-[11px] font-bold text-white leading-tight">{item.productName}</p>

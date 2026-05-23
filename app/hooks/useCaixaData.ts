@@ -1,7 +1,7 @@
 // app/hooks/useCaixaData.ts
 import useSWR from 'swr';
 import { supabase } from '../supabase';
-import { CaixaData } from '../types';
+import type { CaixaData } from '../types';
 
 const fetcher = async (companyId: string, date: string): Promise<CaixaData> => {
   const { data, error } = await supabase

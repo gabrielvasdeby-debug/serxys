@@ -521,7 +521,7 @@ export default function AgendaModule({
                               {task.type === 'os' && order && (
                                 <div className="flex items-center gap-3 mt-1.5 opacity-60">
                                   <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-                                    <Wrench size={10} /> {order.equipment.brand} {order.equipment.model}
+                                    <Wrench size={10} /> {order.equipment ? `${order.equipment.brand} ${order.equipment.model}` : ''}
                                   </p>
                                   <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
                                   <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
@@ -742,7 +742,7 @@ export default function AgendaModule({
                         const customer = customers.find(c => c.id === o.customerId);
                         return (
                           <option key={o.id} value={o.id} className="bg-[#141414] text-white">
-                            OS {o.osNumber.toString().padStart(4, '0')} | {o.equipment.brand} {o.equipment.model} {customer ? `(${customer.name})` : ''}
+                            OS {o.osNumber ? o.osNumber.toString().padStart(4, '0') : ''} | {o.equipment ? `${o.equipment.brand} ${o.equipment.model}` : ''} {customer ? `(${customer.name})` : ''}
                           </option>
                         );
                       })}
@@ -884,7 +884,7 @@ export default function AgendaModule({
                           <div className="grid grid-cols-2 gap-4">
                             <div className="bg-black/40 p-3 rounded-sm border border-white/5">
                               <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest mb-1 pb-1 border-b border-white/5">Aparelho</p>
-                              <p className="text-xs text-white font-bold truncate">{order?.equipment.brand} {order?.equipment.model}</p>
+                              <p className="text-xs text-white font-bold truncate">{order?.equipment ? `${order.equipment.brand} ${order.equipment.model}` : ''}</p>
                             </div>
                             <div className="bg-black/40 p-3 rounded-sm border border-white/5">
                               <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest mb-1 pb-1 border-b border-white/5">Cliente</p>

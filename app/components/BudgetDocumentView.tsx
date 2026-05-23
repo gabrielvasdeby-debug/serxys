@@ -254,7 +254,7 @@ export default function BudgetDocumentView({
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar size={10} className="text-slate-400" />
-              <span>{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+              <span>{order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : '—'}</span>
             </div>
             {isApproved && (
               <span className="bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded-sm text-[8px] uppercase tracking-wider border border-emerald-200">
@@ -335,11 +335,11 @@ export default function BudgetDocumentView({
                 </thead>
                 <tbody>
                   <tr className="bg-white text-slate-800 font-bold">
-                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment.type || '—'}</td>
-                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment.brand}</td>
-                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment.model}</td>
-                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment.color || '—'}</td>
-                    <td className="py-2 px-2 font-black text-[#1A2535]">{order.equipment.serial || '—'}</td>
+                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment?.type || '—'}</td>
+                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment?.brand || '—'}</td>
+                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment?.model || '—'}</td>
+                    <td className="py-2 px-2 border-r border-slate-100">{order.equipment?.color || '—'}</td>
+                    <td className="py-2 px-2 font-black text-[#1A2535]">{order.equipment?.serial || '—'}</td>
                   </tr>
                 </tbody>
               </table>

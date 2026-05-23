@@ -9,7 +9,6 @@ import {
   Shield, Hash, Key, Lock, Home, ChevronLeft, Share2
 } from 'lucide-react';
 import { Customer, DeviceType } from './ClientesModule';
-import { Transaction } from './CaixaModule';
 import PatternLock from './PatternLock';
 import SignatureCanvas from 'react-signature-canvas';
 import { supabase } from '../supabase';
@@ -18,7 +17,7 @@ import ThermalReceiptTemplate from './ThermalReceiptTemplate';
 import WarrantyPrintTemplate from './WarrantyPrintTemplate';
 import WarrantyThermalTemplate from './WarrantyThermalTemplate';
 import VisualController from './VisualController';
-import { Order, OrderStatus, OrderPriority, OrderCompletionData } from '../types';
+import { Order, OrderStatus, OrderPriority, OrderCompletionData, Transaction } from '../types';
 import { formatPhone } from '../utils/formatPhone';
 import { formatDocument } from '../utils/formatDocument';
 import { applyMaskWithCursor } from '../utils/maskUtils';
@@ -1162,13 +1161,13 @@ export default function OrdemServicoModule({
       setChecklistNotPossible(initialOrder.checklistNotPossible || (initialOrder as any).checklist_not_possible || false);
       setEntryPhotos(initialOrder.entryPhotos || []);
       setChecklistNotes(initialOrder.checklistNotes || '');
-      setDefect(initialOrder.defect);
+      setDefect(initialOrder.defect || '');
       setTechnicianNotes(initialOrder.technicianNotes || '');
       setService(initialOrder.service || '');
-      setPriority(initialOrder.priority);
+      setPriority(initialOrder.priority || 'Média');
       setFinancials({
         ...initialOrder.financials,
-        paymentMethods: initialOrder.financials?.paymentMethods || (initialOrder.financials?.amountPaid > 0 ? [{ method: initialOrder.financials.paymentType || 'Dinheiro', amount: initialOrder.financials.amountPaid }] : [])
+        paymentMethods: initialOrder.financials?.paymentMethods || ((initialOrder.financials?.amountPaid ?? 0) > 0 ? [{ method: initialOrder.financials?.paymentType || 'Dinheiro', amount: initialOrder.financials?.amountPaid ?? 0 }] : [])
       });
       setSignatures(initialOrder.signatures);
       setShowVisualChecklist(initialOrder.isVisualChecklist || false);

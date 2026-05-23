@@ -916,18 +916,18 @@ const trimCanvas = (canvas: HTMLCanvasElement): string => {
         {/* Equipamento Info */}
         <section className="bg-[#0A0A0A] border border-zinc-800/80 rounded-md p-6 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-            {React.createElement(getDeviceIcon(order.equipment.type), { size: 14, className: "text-zinc-400" })} 
+            {React.createElement(getDeviceIcon(order.equipment?.type ?? ''), { size: 14, className: "text-zinc-400" })} 
             Detalhes do Equipamento
           </h3>
           
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
             <div className="space-y-1">
               <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Dispositivo</span>
-              <p className="text-sm font-bold text-white capitalize">{order.equipment.type}</p>
+              <p className="text-sm font-bold text-white capitalize">{order.equipment?.type}</p>
             </div>
             <div className="space-y-1">
               <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Marca / Modelo</span>
-              <p className="text-sm font-bold text-white capitalize">{order.equipment.brand} {order.equipment.model}</p>
+              <p className="text-sm font-bold text-white capitalize">{order.equipment?.brand} {order.equipment?.model}</p>
             </div>
             {order.service && (
               <div className="col-span-2 space-y-1">
@@ -1028,30 +1028,25 @@ const trimCanvas = (canvas: HTMLCanvasElement): string => {
               <History size={14} className="text-zinc-400" /> Histórico
             </h3>
             <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
-              Entrada: {new Date(order.createdAt).toLocaleDateString('pt-BR')}  {new Date(order.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                            Entrada: {order.createdAt ? `${new Date(order.createdAt).toLocaleDateString('pt-BR')} ${new Date(order.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}` : '—'}
             </span>
           </div>
 
           <div className="relative space-y-6">
             <div className="absolute left-[11px] top-2 bottom-2 w-px bg-zinc-800" />
-            
-            {order.history.slice().reverse().map((event, idx) => (
+            {order.history?.slice().reverse().map((event, idx) => (
               <div key={idx} className="flex gap-4 relative">
-                <div className={`w-6 h-6 rounded-full border-[2px] flex items-center justify-center relative z-10 shrink-0 mt-1 ${
-                  idx === 0 ? 'bg-[#0A0A0A] border-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.2)]' : 'bg-[#0A0A0A] border-zinc-700'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-[#00E676]' : 'bg-zinc-700'}`} />
+                  <div className={`w-6 h-6 rounded-full border-[2px] flex items-center justify-center relative z-10 shrink-0 mt-1 ${
+                    idx === 0 ? 'bg-[#0A0A0A] border-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.2)]' : 'bg-[#0A0A0A] border-zinc-700'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-[#00E676]' : 'bg-zinc-700'}`} />
+                  </div>
+                  <div className="flex-1">
+                    <time className={`text-[9px] font-bold uppercase tracking-widest mb-1 block ${idx === 0 ? 'text-[#00E676]' : 'text-zinc-600'}`}>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(event.date))}</time>
+                    <p className={`text-xs font-bold leading-relaxed ${idx === 0 ? 'text-white' : 'text-zinc-400'}`}>{event.description}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <time className={`text-[9px] font-bold uppercase tracking-widest mb-1 block ${idx === 0 ? 'text-[#00E676]' : 'text-zinc-600'}`}>
-                    {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(event.date))}
-                  </time>
-                  <p className={`text-xs font-bold leading-relaxed ${idx === 0 ? 'text-white' : 'text-zinc-400'}`}>
-                    {event.description}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </section>
 

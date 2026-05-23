@@ -203,34 +203,48 @@ export interface Order {
 // Tipos auxiliares do módulo Caixa
 export interface CashSession {
   id: string;
-  company_id: string;
-  opened_by: string;
-  opened_at: string;
+  company_id?: string;
+  opened_by?: string;
+  opened_at?: string;
   closed_at?: string;
-  initial_amount: number;
+  initial_amount?: number;
   final_amount?: number;
   status: 'open' | 'closed';
+  initialValue?: number;
+  openingTime?: string;
+  openingUser?: string;
+  openingUserName?: string;
+  closingTime?: string;
+  closingUserName?: string;
+  date?: string;
   [key: string]: any;
 }
 
 export interface Sale {
   id: string;
-  company_id: string;
+  company_id?: string;
   session_id?: string;
   total: number;
   payment_method?: string;
-  created_at: string;
+  created_at?: string;
   [key: string]: any;
 }
 
 export interface Transaction {
   id: string;
-  company_id: string;
+  company_id?: string;
   session_id?: string;
-  type: 'income' | 'expense';
-  amount: number;
+  type: 'entrada' | 'saida';
+  amount?: number;
   description?: string;
-  created_at: string;
+  created_at?: string;
+  value?: number;
+  paymentMethod?: string;
+  date?: string;
+  time?: string;
+  osId?: string | null;
+  userId?: string;
+  createdAt?: string;
   [key: string]: any;
 }
 
