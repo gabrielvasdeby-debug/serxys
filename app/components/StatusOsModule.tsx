@@ -1761,8 +1761,8 @@ export default function StatusOsModule({
                    shortName = status.split(' ')[1];
                    if (status.includes('Técnica')) shortName = 'Análise';
                  }
-                 if (status === 'Reparo Concluído') shortName = 'Concluída';
-                 if (status === 'Equipamento Retirado') shortName = 'Retirada';
+                  if (status === 'Reparo Concluído') shortName = 'Concluída';
+                   if (status === 'Equipamento Retirado') shortName = 'RETIRADO';
                  
                  const config = STATUS_CONFIG[status];
 
@@ -1994,7 +1994,7 @@ export default function StatusOsModule({
                 if (status.includes('Técnica')) shortName = 'Análise';
               }
               if (status === 'Reparo Concluído') shortName = 'Concluí­do';
-              if (status === 'Equipamento Retirado') shortName = 'Retirado';
+                  if (status === 'Equipamento Retirado') shortName = 'RETIRADO';
 
               return (
                 <button
@@ -2238,7 +2238,8 @@ export default function StatusOsModule({
                     if (['Em', 'Aguardando'].includes(shortName)) {
                       shortName = order.status.split(' ')[1];
                     }
-                    if (order.status === 'Reparo Concluído') shortName = 'Concluído';
+                     if (order.status === 'Reparo Concluído') shortName = 'Concluído';
+                     if (order.status === 'Equipamento Retirado') shortName = 'RETIRADO';
                     
                     return (
                       <div key={`m-${order.id}`} className="relative bg-[#1A1A1A] rounded-[16px] overflow-hidden shadow-xl border border-[#2A2A2A]">
