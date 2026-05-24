@@ -1,35 +1,48 @@
-create or replace function public.fetch_caixa_data(p_company_id text)
+-- Versão corrigida da função fetch_caixa_data
+-- Aplica cast explícito para texto nas colunas de data (cs.date::text = p_date)
+-- Resolve o problema de colunas mistas no banco (algumas TEXT, outras DATE)
+
+create or replace function public.fetch_caixa_data(p_company_id uuid, p_date text)
 returns jsonb
-language plpgsql
+language sql
+stable
+parallel safe
 as $$
-declare
-  v_products jsonb;
-  v_customers jsonb;
-  v_cash_sessions jsonb;
-  v_sales jsonb;
-  v_transactions jsonb;
-begin
-  select jsonb_agg(to_jsonb(p)) into v_products
-  from public.products p where p.company_id = p_company_id;
-
-  select jsonb_agg(to_jsonb(c)) into v_customers
-  from public.customers c where c.company_id = p_company_id;
-
-  select jsonb_agg(to_jsonb(cs)) into v_cash_sessions
-  from public.cash_sessions cs where cs.company_id = p_company_id;
-
-  select jsonb_agg(to_jsonb(s)) into v_sales
-  from public.sales s where s.company_id = p_company_id;
-
-  select jsonb_agg(to_jsonb(t)) into v_transactions
-  from public.transactions t where t.company_id = p_company_id;
-
-  return jsonb_build_object(
-    'products', coalesce(v_products, '[]'::jsonb),
-    'customers', coalesce(v_customers, '[]'::jsonb),
-    'cash_sessions', coalesce(v_cash_sessions, '[]'::jsonb),
-    'sales', coalesce(v_sales, '[]'::jsonb),
-    'transactions', coalesce(v_transactions, '[]'::jsonb)
+  select jsonb_build_object(
+    'products', coalesce(
+      (select jsonb_agg(to_jsonb(p) order by p.name)
+       from public.products p
+       where p.company_id = p_company_id
+       limit 500),
+      '[]'::jsonb
+    ),
+    'customers', coalesce(
+      (select jsonb_agg(jsonb_build_object('id', c.id, 'name', c.name) order by c.name)
+       from public.customers c
+       where c.company_id = p_company_id
+       limit 1000),
+      '[]'::jsonb
+    ),
+    'cash_sessions', coalesce(
+      (select jsonb_agg(to_jsonb(cs) order by cs.opened_at desc)
+       from public.cash_sessions cs
+       where cs.company_id = p_company_id and cs.date::text = p_date),
+      '[]'::jsonb
+    ),
+    'sales', coalesce(
+      (select jsonb_agg(to_jsonb(s) order by s.created_at desc)
+       from public.sales s
+       where s.company_id = p_company_id and s.date::text = p_date),
+      '[]'::jsonb
+    ),
+    'transactions', coalesce(
+      (select jsonb_agg(to_jsonb(t) order by t.created_at desc)
+       from public.transactions t
+       where t.company_id = p_company_id and t.date::text = p_date),
+      '[]'::jsonb
+    )
   );
-end;
 $$;
+
+grant execute on function public.fetch_caixa_data(uuid, text) to authenticated;
+grant execute on function public.fetch_caixa_data(uuid, text) to service_role;

@@ -3,24 +3,18 @@ import useSWR from 'swr';
 import { supabase } from '../supabase';
 import type { CaixaData } from '../types';
 
-const fetchViaRPC = async (companyId: string, date: string): Promise<CaixaData> => {
-  const { data, error } = await supabase
-    .rpc('fetch_caixa_data', { p_company_id: companyId, p_date: date })
-    .single();
-  if (error) throw error;
-  return data as CaixaData;
-};
-
 const fetchDirect = async (companyId: string, date: string): Promise<CaixaData> => {
   const [productsRes, customersRes, sessionsRes, salesRes, transactionsRes] = await Promise.all([
     supabase
       .from('products')
       .select('id, name, price, stock, category, min_stock, barcode, brand, model, image')
-      .eq('company_id', companyId),
+      .eq('company_id', companyId)
+      .limit(500),
     supabase
       .from('customers')
       .select('id, name')
-      .eq('company_id', companyId),
+      .eq('company_id', companyId)
+      .limit(1000),
     supabase
       .from('cash_sessions')
       .select('*')
@@ -110,13 +104,7 @@ const fetchDirect = async (companyId: string, date: string): Promise<CaixaData> 
 };
 
 const fetcher = async ([companyId, date]: [string, string]): Promise<CaixaData> => {
-  try {
-    return await fetchViaRPC(companyId, date);
-  } catch (rpcError) {
-    // RPC function may not exist in database — fallback to direct queries
-    console.warn('RPC fetch_caixa_data falhou, usando fallback com queries diretas:', rpcError);
-    return await fetchDirect(companyId, date);
-  }
+  return await fetchDirect(companyId, date);
 };
 
 export const useCaixaData = (companyId: string, date: string) => {
@@ -125,7 +113,8 @@ export const useCaixaData = (companyId: string, date: string) => {
     fetcher,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 60000,
+      revalidateOnMount: true,
+      dedupingInterval: 30000,
     }
   );
   return { data, error, isLoading, mutate };
