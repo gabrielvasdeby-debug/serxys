@@ -99,8 +99,21 @@ const fetchDirect = async (companyId: string, date: string): Promise<CaixaData> 
   };
 };
 
+const fetchViaRPC = async (companyId: string, date: string): Promise<CaixaData> => {
+  const { data, error } = await supabase
+    .rpc('fetch_caixa_data', { p_company_id: companyId, p_date: date })
+    .single();
+  if (error) throw error;
+  return data as CaixaData;
+};
+
 const fetcher = async ([companyId, date]: [string, string]): Promise<CaixaData> => {
-  return await fetchDirect(companyId, date);
+  try {
+    return await fetchViaRPC(companyId, date);
+  } catch (rpcError) {
+    console.warn('RPC fetch_caixa_data falhou, usando fallback com queries diretas:', rpcError);
+    return await fetchDirect(companyId, date);
+  }
 };
 
 export const useCaixaData = (companyId: string, date: string) => {
