@@ -1386,10 +1386,11 @@ export default function OrdemServicoModule({
       return;
     }
 
-    // Check if cash session is open if there's a payment
-    if (financials.amountPaid > 0 && !initialOrder) {
-      let sessionToUse = currentCashSession;
-      
+    const isEditing = !!(initialOrder || localOrder);
+    let sessionToUse = currentCashSession;
+
+    // Check if cash session is open if there's a payment and it's a NEW OS
+    if (!isEditing && financials.amountPaid > 0) {
       if (!sessionToUse) {
         // Final real-time check to see if cashier is open (fallback)
         const { data: openSessions } = await supabase
@@ -1565,8 +1566,8 @@ export default function OrdemServicoModule({
         setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
       }
 
-      // Record transaction in Caixa if there's a payment
-      if (financials.paymentStatus !== 'Pendente' && financials.amountPaid > 0) {
+      // Record transaction in Caixa if there's a payment (SOMENTE SE FOR NOVA OS)
+      if (!isEditing && financials.paymentStatus !== 'Pendente' && financials.amountPaid > 0) {
         const methodsToInsert = financials.paymentMethods && financials.paymentMethods.length > 0
           ? financials.paymentMethods.filter((m: any) => m.amount > 0)
           : [{ method: financials.paymentType || 'Dinheiro', amount: financials.amountPaid }];
@@ -1583,14 +1584,14 @@ export default function OrdemServicoModule({
             time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
             os_id: osData.os_number.toString(),
             user_id: profile.id,
-            session_id: currentCashSession?.id
+            session_id: sessionToUse?.id // Usa a sessão correta verificada no topo
           });
         }
       }
 
-      // Create Receivable if there is a balance
+      // Create Receivable if there is a balance (SOMENTE SE FOR NOVA OS)
       const balance = financials.totalValue - (financials.amountPaid || 0);
-      if (balance > 0) {
+      if (!isEditing && balance > 0) {
         await supabase.from('receivables').insert({
           id: crypto.randomUUID(),
           company_id: profile.company_id,
