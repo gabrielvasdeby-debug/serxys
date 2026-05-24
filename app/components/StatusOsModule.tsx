@@ -717,7 +717,7 @@ export default function StatusOsModule({
   // Auto-calculate warranty end date
   useEffect(() => {
     if (warrantyStartDate && warrantyMonths) {
-      const start = new Date(warrantyStartDate);
+      const start = new Date(warrantyStartDate + 'T12:00:00');
       start.setMonth(start.getMonth() + Number(warrantyMonths));
       setWarrantyEndDate(start.toISOString().split('T')[0]);
     }
@@ -4033,7 +4033,7 @@ export default function StatusOsModule({
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-1">Vencimento em</label>
                           <div className="w-full bg-purple-500/10 border border-purple-500/20 rounded-sm px-4 py-2.5 text-sm text-purple-400 font-black flex items-center gap-2">
                              <Calendar size={14} />
-                             {warrantyEndDate ? new Date(warrantyEndDate).toLocaleDateString('pt-BR') : '---'}
+                             {warrantyEndDate ? new Date(warrantyEndDate + 'T12:00:00').toLocaleDateString('pt-BR') : '---'}
                           </div>
                         </div>
                       </div>

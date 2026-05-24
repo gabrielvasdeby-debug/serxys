@@ -76,18 +76,25 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
 
   const compData = order.completionData;
   const rawStartDate = compData?.warrantyStartDate || order.updatedAt || order.createdAt || new Date().toISOString();
-  const warrantyStartDate = new Date(rawStartDate).toLocaleDateString('pt-BR');
+  const extractDateLocal = (isoString: string) => {
+    if (!isoString) return new Date();
+    const [y, m, d] = isoString.split('T')[0].split('-');
+    return new Date(Number(y), Number(m) - 1, Number(d), 12, 0, 0);
+  };
+
+  const safeStartDate = extractDateLocal(rawStartDate);
+  const warrantyStartDate = safeStartDate.toLocaleDateString('pt-BR');
   
   let warrantyEndDate = '';
   if (compData?.warrantyEndDate) {
-    warrantyEndDate = new Date(compData.warrantyEndDate).toLocaleDateString('pt-BR');
+    warrantyEndDate = extractDateLocal(compData.warrantyEndDate).toLocaleDateString('pt-BR');
   } else if (compData?.warrantyDays) {
-    const end = new Date(rawStartDate);
+    const end = extractDateLocal(rawStartDate);
     end.setDate(end.getDate() + compData.warrantyDays);
     warrantyEndDate = end.toLocaleDateString('pt-BR');
   } else {
     // Default 90 days if not specified
-    const end = new Date(rawStartDate);
+    const end = extractDateLocal(rawStartDate);
     end.setDate(end.getDate() + 90);
     warrantyEndDate = end.toLocaleDateString('pt-BR');
   }
