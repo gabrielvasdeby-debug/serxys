@@ -1,7 +1,10 @@
--- Versão corrigida da função fetch_caixa_data
--- Aplica cast explícito para texto nas colunas de data (cs.date::text = p_date)
--- Resolve o problema de colunas mistas no banco (algumas TEXT, outras DATE)
+-- Remove TODAS as versões antigas da função para evitar conflito (ambiguidade)
+DROP FUNCTION IF EXISTS public.fetch_caixa_data(text, date);
+DROP FUNCTION IF EXISTS public.fetch_caixa_data(uuid, date);
+DROP FUNCTION IF EXISTS public.fetch_caixa_data(text, text);
+DROP FUNCTION IF EXISTS public.fetch_caixa_data(uuid, text);
 
+-- Cria a versão final e correta
 create or replace function public.fetch_caixa_data(p_company_id uuid, p_date text)
 returns jsonb
 language sql
