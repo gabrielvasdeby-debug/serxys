@@ -1385,6 +1385,14 @@ export default function OrdemServicoModule({
       onShowToast('É necessário coletar a assinatura do cliente.');
       return;
     }
+    if (financials.paymentStatus === 'Total' && financials.amountPaid < financials.totalValue) {
+      onShowToast('Para pagamento integral, adicione o valor total nos meios de recebimento.');
+      return;
+    }
+    if (financials.paymentStatus === 'Parcial' && financials.amountPaid <= 0) {
+      onShowToast('Para pagamento parcial, adicione ao menos um valor recebido.');
+      return;
+    }
 
     const isEditing = !!(initialOrder || localOrder);
     let sessionToUse = currentCashSession;
@@ -3187,10 +3195,11 @@ export default function OrdemServicoModule({
                                   setFinancials({
                                     ...financials,
                                     paymentStatus: 'Total',
-                                    amountPaid: financials.totalValue,
-                                    paymentMethods: [{ method: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro', amount: financials.totalValue }],
-                                    paymentType: financials.paymentType && financials.paymentType !== 'Múltiplo' ? financials.paymentType : 'Dinheiro'
+                                    amountPaid: 0,
+                                    paymentMethods: [],
+                                    paymentType: ''
                                   });
+                                  setTempAmount(financials.totalValue.toString());
                                 } else if (status === 'Pendente') {
                                   setFinancials({
                                     ...financials,

@@ -116,8 +116,10 @@ export default function ThermalReceiptTemplate({
       {/* VALUES */}
       <div className="space-y-0.5 text-right font-bold">
         <div className="flex justify-between"><span>TOTAL:</span><span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue)}</span></div>
-        <div className="flex justify-between text-[9px] opacity-70"><span>VALOR PAGO:</span><span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span></div>
-        <div className="flex justify-between border-t border-black/10 pt-0.5"><span>RESTANTE:</span><span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(remainingValue)}</span></div>
+        <div className="flex justify-between text-[9px] opacity-70"><span>{order.financials.paymentStatus === 'Total' ? 'VALOR PAGO:' : 'ENTRADA:'}</span><span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.amountPaid || 0)}</span></div>
+        {order.financials.paymentStatus !== 'Total' && (
+          <div className="flex justify-between border-t border-black/10 pt-0.5"><span>RESTANTE:</span><span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(remainingValue)}</span></div>
+        )}
       </div>
 
       <div className="border-t border-dashed border-black my-1" />
