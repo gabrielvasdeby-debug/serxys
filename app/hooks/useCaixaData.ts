@@ -1,4 +1,5 @@
 // app/hooks/useCaixaData.ts
+import React, { useMemo } from 'react';
 import useSWR from 'swr';
 import { supabase } from '../supabase';
 import type { CaixaData } from '../types';
@@ -126,8 +127,12 @@ export const useCaixaData = (companyId: string, date: string) => {
     }
   );
 
+  const combinedData = React.useMemo(() => {
+    return (staticData && dailyData) ? { ...staticData, ...dailyData } : undefined;
+  }, [staticData, dailyData]);
+
   return {
-    data: (staticData && dailyData) ? { ...staticData, ...dailyData } : undefined,
+    data: combinedData,
     error: null,
     isLoading: loadingStatic || loadingDaily,
     mutate
