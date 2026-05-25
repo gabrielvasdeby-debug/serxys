@@ -648,8 +648,8 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                     </div>
                   </div>
                 ) : (
-                   <div className="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-8 custom-scrollbar rounded-xl border border-zinc-800">
-                     <div className="bg-white shadow-2xl mx-auto w-full max-w-[794px] min-h-[500px] sm:max-w-[794px]">
+                   <div className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100 flex flex-col items-center relative custom-scrollbar p-0 sm:p-8 rounded-xl border border-zinc-800">
+                     <div className="w-full max-w-[210mm] shadow-2xl rounded-sm overflow-hidden bg-white mx-auto mb-10 sm:max-w-[794px]">
                        {selectedWarrantyData && (
                          <WarrantyPrintTemplate
                            order={{
