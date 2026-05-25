@@ -648,23 +648,23 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-8 custom-scrollbar rounded-xl border border-zinc-800">
-                    <div className="bg-white shadow-2xl mx-auto w-full max-w-[794px] min-h-[500px]">
-                      {selectedWarrantyData && (
-                        <WarrantyPrintTemplate
-                          order={{
-                            ...selectedWarrantyData.order,
-                            company_id: (selectedWarrantyData.order as any).companyId ?? '',
-                            os_number: (selectedWarrantyData.order as any).osNumber ?? 0,
-                          }}
-                          customer={selectedWarrantyData.customer}
-                          companySettings={companySettings}
-                          osSettings={osSettings}
-                          isPreview={true}
-                        />
-                      )}
-                    </div>
-                  </div>
+                   <div className="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-8 custom-scrollbar rounded-xl border border-zinc-800">
+                     <div className="bg-white shadow-2xl mx-auto w-full max-w-[794px] min-h-[500px] sm:max-w-[794px]">
+                       {selectedWarrantyData && (
+                         <WarrantyPrintTemplate
+                           order={{
+                             ...selectedWarrantyData.order,
+                             company_id: (selectedWarrantyData.order as any).companyId ?? '',
+                             os_number: (selectedWarrantyData.order as any).osNumber ?? 0,
+                           }}
+                           customer={selectedWarrantyData.customer}
+                           companySettings={companySettings}
+                           osSettings={osSettings}
+                           isPreview={true}
+                         />
+                       )}
+                     </div>
+                   </div>
                 )}
               </div>
 

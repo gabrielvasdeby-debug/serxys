@@ -115,16 +115,16 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
         className={`${isPreview ? 'w-full overflow-hidden' : ''}`}
         style={isPreview && scale < 1 && docHeight ? { height: `${docHeight * scale}px` } : {}}
       >
-        {/* A4 document scaled to fit screen width, centered */}
-        <div
-          ref={docRef}
-          className="w-[794px] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white print:shadow-none"
-          style={isPreview && scale < 1 ? {
-            transform: `scale(${scale})`,
-            transformOrigin: 'top center',
-            marginLeft: `calc(50% - 397px)`,
-          } : { margin: '0 auto' }}
-        >
+           {/* A4 document scaled to fit screen width, centered */}
+         <div
+           ref={docRef}
+           className="w-[794px] p-[5mm] min-h-[260mm] flex flex-col box-border bg-white print:shadow-none"
+           style={isPreview && scale < 1 ? {
+             transform: `scale(${scale})`,
+             transformOrigin: 'top center',
+             marginLeft: `calc(50% - 397px * ${scale})`,
+           } : { margin: '0 auto' }}
+         >
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
           <div className="flex justify-between items-center mb-2 pl-2">
