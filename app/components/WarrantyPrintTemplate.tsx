@@ -109,11 +109,11 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
     : '';
 
   return (
-    <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+    <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', width: window.innerWidth < 640 ? '100%' : 'auto', overflowY: window.innerWidth < 640 ? 'auto' : 'visible' }}>
       {/* Viewer: clips overflow, sets height to post-scale height */}
       <div
-        className={`${isPreview ? 'w-full overflow-hidden' : ''}`}
-        style={isPreview && scale < 1 && docHeight ? { height: `${docHeight * scale}px` } : {}}
+        className={`${isPreview ? 'w-full' : ''}`}
+        style={isPreview && scale < 1 && docHeight ? { } : {}}
       >
            {/* A4 document scaled to fit screen width, centered */}
          <div
