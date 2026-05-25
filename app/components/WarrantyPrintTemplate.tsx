@@ -109,7 +109,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
     : '';
 
   return (
-    <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', overflowY: window.innerWidth < 640 ? 'auto' : 'visible' }}>
+    <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', overflowY: window.innerWidth < 640 ? 'auto' : 'visible', overflowX: 'hidden' }}>
       {/* Viewer: clips overflow, sets height to post-scale height */}
       <div
         className={`${isPreview ? 'w-full' : ''}`}
@@ -118,12 +118,13 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
            {/* A4 document scaled to fit screen width, centered */}
          <div
            ref={docRef}
-           className="w-[794px] p-[5mm] flex flex-col box-border bg-white print:shadow-none"
-           style={isPreview && scale < 1 ? {
-             transform: `scale(${scale})`,
-             transformOrigin: 'top center',
-             marginLeft: `calc(50% - 397px * ${scale})`,
-           } : { margin: '0 auto' }}
+           className="p-[5mm] flex flex-col box-border bg-white print:shadow-none"
+style={isPreview && scale < 1 ? {
+              transform: `scale(${scale})`,
+              transformOrigin: 'top center',
+              maxWidth: '794px',
+              width: '100%',
+            } : { margin: '0 auto' }}
          >
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
