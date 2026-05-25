@@ -114,7 +114,7 @@ useEffect(() => {
       {/* Viewer: clips overflow, sets height to post-scale height */}
       <div
         className={`${isPreview ? 'w-full' : ''}`}
-        style={isPreview && scale < 1 && docHeight ? { } : {}}
+        style={isPreview && scale < 1 && docHeight ? { height: docHeight * scale } : {}}
       >
            {/* A4 document scaled to fit screen width, centered */}
          <div
@@ -123,6 +123,7 @@ useEffect(() => {
 style={isPreview && scale < 1 ? {
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
+              width: '794px',
               maxWidth: '794px',
             } : { margin: '0 auto' }}
          >
