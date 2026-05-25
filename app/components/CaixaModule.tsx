@@ -115,48 +115,32 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Produtos já carregados pelo useCaixaData — sem fetch duplicado
-  const loadingProducts = fetchLoading;
-
   // New data fetching using the consolidated RPC via useCaixaData hook
   const { data, error: fetchError, isLoading: fetchLoading } = useCaixaData(profile.company_id as string, selectedDate);
-  const {
-    products: fetchedProducts = [],
-    customers: fetchedCustomers = [],
-    cash_sessions: fetchedSessions = [] as CashSession[],
-    sales: fetchedSales = [],
-    transactions: fetchedTransactions = []
-  } = data || {};
 
-  // Sync fetched data with local state for compatibility with existing UI logic
+  // Fix: loadingProducts declarado DEPOIS do hook para evitar undefined na primeira render
+  const loadingProducts = fetchLoading;
+
+  // Sync fetched data com um único efeito por mudança de `data` — evita múltiplos re-renders
   useEffect(() => {
-    if (!fetchLoading && fetchedProducts) {
-      setProducts(fetchedProducts);
-    }
-    if (!fetchLoading && fetchedCustomers) {
-      setCustomers(fetchedCustomers);
-    }
-    if (!fetchLoading && fetchedSessions) {
-      setSessions(fetchedSessions);
-    }
-    if (!fetchLoading && fetchedSales) {
-      setSales(fetchedSales);
-    }
-    if (!fetchLoading && fetchedTransactions) {
-      setTransactions(fetchedTransactions);
-    }
-    // Set current session based on fetched sessions (open session if exists)
-    if (!fetchLoading && fetchedSessions) {
-      const open = (fetchedSessions as CashSession[]).find((s) => s.status === 'open');
-      setCurrentSession(open || null);
-    }
-    // Propagate loading state
     setLoading(fetchLoading);
     if (fetchError) {
       console.error('Erro ao buscar dados via RPC:', fetchError);
       onShowToast('Erro ao carregar dados do caixa.');
+      return;
     }
-  }, [fetchLoading, fetchedProducts, fetchedCustomers, fetchedSessions, fetchedSales, fetchedTransactions, fetchError]);
+    if (fetchLoading || !data) return;
+
+    // Todos os setStates em sequência dentro do mesmo efeito são batched pelo React 18
+    const { products: p = [], customers: c = [], cash_sessions: s = [], sales: sa = [], transactions: tr = [] } = data as any;
+    setProducts(p);
+    setCustomers(c);
+    setSessions(s as CashSession[]);
+    setSales(sa);
+    setTransactions(tr);
+    const open = (s as CashSession[]).find((sess: CashSession) => sess.status === 'open');
+    setCurrentSession(open || null);
+  }, [fetchLoading, data, fetchError]);
 
   const totals = useMemo<Totals>(() => {
     const initial = currentSession?.initialValue || 0;
@@ -1197,17 +1181,21 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                 const now = new Date();
                 const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 
-                const { data: lastSale } = await supabase
+                // 1. Iniciar busca pelo número da venda
+                const lastSalePromise = supabase
                   .from('sales')
                   .select('sale_number')
                   .eq('company_id', profile.company_id)
                   .order('sale_number', { ascending: false })
                   .limit(1);
-                
+
+                const { data: lastSale } = await lastSalePromise;
                 const nextNumber = (lastSale && lastSale.length > 0) ? (lastSale[0].sale_number + 1) : 1;
                 const saleId = crypto.randomUUID();
+                const transId = crypto.randomUUID();
 
-                const { data: newSale, error: saleError } = await supabase.from('sales').insert({
+                // 2. Montar objetos de banco
+                const newSaleRecord = {
                   id: saleId,
                   company_id: profile.company_id,
                   sale_number: nextNumber,
@@ -1220,12 +1208,10 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   user_id: profile.id,
                   user_name: profile.name,
                   session_id: currentSession?.id || null
-                }).select().single();
+                };
 
-                if (saleError) throw saleError;
-
-                const { data: trans, error: transError } = await supabase.from('transactions').insert({
-                  id: crypto.randomUUID(),
+                const newTransRecord = {
+                  id: transId,
                   company_id: profile.company_id,
                   type: 'entrada',
                   description: `Venda #${String(nextNumber).padStart(8, '0')}${saleData.customerName ? ` - ${saleData.customerName}` : ''}`,
@@ -1236,10 +1222,50 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   user_id: profile.id,
                   session_id: currentSession?.id || null,
                   os_id: null
-                }).select().single();
+                };
 
-                if (transError) throw transError;
-                if (!trans) throw new Error("Falha ao registrar transação financeira.");
+                // 3. Executar inserts pesados (venda, transação) e atualizações de estoque (produtos, histórico) TODOS EM PARALELO
+                // Preparar promises de estoque
+                const stockPromises: Promise<any>[] = [];
+                saleData.items.forEach((item: any) => {
+                  const prod = products.find(p => p.id === item.productId);
+                  if (!prod) return;
+                  const newStock = Math.max(0, prod.stock - item.quantity);
+
+                  // Notificar se o estoque zerou ou atingiu o mínimo
+                  if (newStock <= 0) {
+                     onShowToast(`⚠️ ALERTA: O produto ${prod.name} ESGOTOU!`);
+                  } else if (newStock <= prod.minStock) {
+                     onShowToast(`📢 AVISO: O produto ${prod.name} está com estoque baixo (${newStock} un).`);
+                  }
+
+                  stockPromises.push(supabase.from('products').update({ stock: newStock, updated_at: new Date().toISOString() }).eq('id', prod.id));
+                  stockPromises.push(
+                    supabase.from('product_history').insert({
+                      product_id: prod.id,
+                      company_id: profile.company_id,
+                      type: 'saida',
+                      quantity: item.quantity,
+                      reason: 'venda',
+                      date: selectedDate,
+                      user_id: profile.id,
+                      created_at: new Date().toISOString()
+                    })
+                  );
+                });
+
+                // Disparar Tudo
+                const [saleRes, transRes] = await Promise.all([
+                  supabase.from('sales').insert(newSaleRecord).select().single(),
+                  supabase.from('transactions').insert(newTransRecord).select().single(),
+                  ...stockPromises
+                ]);
+
+                if (saleRes.error) throw saleRes.error;
+                if (transRes.error) throw transRes.error;
+
+                const trans = transRes.data;
+                const newSale = saleRes.data;
 
                 setTransactions(prev => [{
                   id: trans.id,
@@ -1254,33 +1280,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   createdAt: trans.created_at
                 } as Transaction, ...prev]);
 
-                // Atualizar estoque de todos os itens em paralelo (muito mais rápido)
-                await Promise.all(saleData.items.map(async (item: any) => {
-                  const prod = products.find(p => p.id === item.productId);
-                  if (!prod) return;
-                  const newStock = Math.max(0, prod.stock - item.quantity);
-
-                  // Notificar se o estoque zerou ou atingiu o mínimo
-                  if (newStock <= 0) {
-                    onShowToast(`⚠️ ALERTA: O produto ${prod.name} ESGOTOU!`);
-                  } else if (newStock <= prod.minStock) {
-                    onShowToast(`📢 AVISO: O produto ${prod.name} está com estoque baixo (${newStock} un).`);
-                  }
-
-                  await Promise.all([
-                    supabase.from('products').update({ stock: newStock, updated_at: new Date().toISOString() }).eq('id', prod.id),
-                    supabase.from('product_history').insert({
-                      product_id: prod.id,
-                      company_id: profile.company_id,
-                      type: 'saida',
-                      quantity: item.quantity,
-                      reason: 'venda',
-                      date: selectedDate,
-                      user_id: profile.id,
-                      created_at: new Date().toISOString()
-                    })
-                  ]);
-                }));
+                // O estoque já foi atualizado em paralelo no Promise.all acima
 
                 setProducts(prev => prev.map(p => {
                   const sold = saleData.items.find((i: any) => i.productId === p.id);

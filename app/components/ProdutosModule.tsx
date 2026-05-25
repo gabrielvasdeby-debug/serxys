@@ -212,8 +212,8 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
 
   const handleSaveProduct = async (productData: Partial<Product>) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || profile?.user_id || profile?.id;
+      // Usar userId diretamente do profile — evita round-trip desnecessário ao Supabase Auth
+      const userId = (profile?.user_id || profile?.id) as string;
 
       if (!userId) {
         onShowToast('Falha na identificação do administrador. Faça login novamente.');
