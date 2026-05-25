@@ -50,17 +50,17 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   const [docHeight, setDocHeight] = useState<number | null>(null);
   const docRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isPreview) return;
-    const updateScale = () => {
-      const availableWidth = window.innerWidth < 640 ? window.innerWidth - 32 : window.innerWidth - 80;
-      const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
-      setScale(newScale);
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [isPreview]);
+// useEffect(() => {
+//   if (!isPreview) return;
+//   const updateScale = () => {
+//     const availableWidth = window.innerWidth < 640 ? window.innerWidth - 32 : window.innerWidth - 80;
+//     const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
+//     setScale(newScale);
+//   };
+//   updateScale();
+//   window.addEventListener('resize', updateScale);
+//   return () => window.removeEventListener('resize', updateScale);
+// }, [isPreview]);
 
   useEffect(() => {
     if (!isPreview || !docRef.current) return;
@@ -109,7 +109,7 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
     : '';
 
   return (
-    <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight w-full print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', overflowY: window.innerWidth < 640 ? 'auto' : 'visible', overflowX: 'hidden' }}>
+    <div className="print-warranty-content bg-white text-slate-800 p-0 m-0 font-sans leading-tight print-exact-colors print:block print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', overflowY: window.innerWidth < 640 ? 'auto' : 'visible', overflowX: 'hidden' }}>
       {/* Viewer: clips overflow, sets height to post-scale height */}
       <div
         className={`${isPreview ? 'w-full' : ''}`}
@@ -123,7 +123,8 @@ style={isPreview && scale < 1 ? {
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
               maxWidth: '794px',
-            } : { margin: '0 auto' }}
+              width: '794px'
+            } : { margin: '0 auto', width: '794px' }}
          >
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
