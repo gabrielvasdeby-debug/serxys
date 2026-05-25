@@ -50,17 +50,18 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
   const [docHeight, setDocHeight] = useState<number | null>(null);
   const docRef = useRef<HTMLDivElement>(null);
 
-// useEffect(() => {
-//   if (!isPreview) return;
-//   const updateScale = () => {
-//     const availableWidth = window.innerWidth < 640 ? window.innerWidth - 32 : window.innerWidth - 80;
-//     const newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
-//     setScale(newScale);
-//   };
-//   updateScale();
-//   window.addEventListener('resize', updateScale);
-//   return () => window.removeEventListener('resize', updateScale);
-// }, [isPreview]);
+useEffect(() => {
+  if (!isPreview) return;
+  const updateScale = () => {
+    const availableWidth = window.innerWidth < 640 ? window.innerWidth - 32 : window.innerWidth - 80;
+    let newScale = availableWidth < A4_WIDTH_PX ? availableWidth / A4_WIDTH_PX : 1;
+    newScale = Math.min(newScale, 1);
+    setScale(newScale);
+  };
+  updateScale();
+  window.addEventListener('resize', updateScale);
+  return () => window.removeEventListener('resize', updateScale);
+}, [isPreview]);
 
   useEffect(() => {
     if (!isPreview || !docRef.current) return;
@@ -123,8 +124,7 @@ style={isPreview && scale < 1 ? {
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
               maxWidth: '794px',
-              width: '794px'
-            } : { margin: '0 auto', width: '794px' }}
+            } : { margin: '0 auto' }}
          >
         {/* CABEÇALHO PADRÃO OS */}
         <header className="flex flex-col mb-1.5">
