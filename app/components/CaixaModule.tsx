@@ -1776,7 +1776,10 @@ function QuickSaleModal({ products, customers, companySettings, selectedDate, on
   const handleFinalize = async () => {
     if (selectedItems.length === 0 || isSaving) return;
     const saleData: SaleData = {
-      items: selectedItems.map(i => ({ ...i, total: i.price * i.quantity })),
+      items: selectedItems.map(i => {
+        const { productImage, ...rest } = i;
+        return { ...rest, total: i.price * i.quantity };
+      }),
       total,
       paymentMethod,
       customerName: customerName.trim() || undefined
