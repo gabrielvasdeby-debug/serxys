@@ -121,9 +121,8 @@ export default function WarrantyPrintTemplate({ order, customer, companySettings
            className="p-[5mm] flex flex-col box-border bg-white print:shadow-none"
 style={isPreview && scale < 1 ? {
               transform: `scale(${scale})`,
-              transformOrigin: 'top center',
+              transformOrigin: 'top left',
               maxWidth: '794px',
-              width: '100%',
             } : { margin: '0 auto' }}
          >
         {/* CABEÇALHO PADRÃO OS */}
