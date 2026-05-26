@@ -54,6 +54,13 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   const [relatedOrder, setRelatedOrder] = useState<any>(null);
   const [printMode, setPrintMode] = useState<'warranty' | 'warranty-thermal' | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  
+  // New Warranty Flow States
+  const [isNewWarrantyModalOpen, setIsNewWarrantyModalOpen] = useState(false);
+  const [openOrders, setOpenOrders] = useState<any[]>([]);
+  const [searchQueryOs, setSearchQueryOs] = useState('');
+  const [isFetchingOrders, setIsFetchingOrders] = useState(false);
+  const [isCreatingNewWarranty, setIsCreatingNewWarranty] = useState(false);
 
   const selectedWarrantyData = useMemo(() => {
     if (!selectedWarranty) return null;
@@ -343,6 +350,121 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     }
   };
 
+  // Nova Garantia Flow
+  const fetchOpenOrders = async () => {
+    setIsFetchingOrders(true);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          customer:customers(id, name, whatsapp)
+        `)
+        .eq('company_id', profile.company_id)
+        .not('status', 'in', '("Orçamento Cancelado", "Sem Reparo", "Equipamento Retirado")')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOpenOrders(data || []);
+    } catch (err: any) {
+      console.error('Erro ao buscar OS em aberto:', err);
+      onShowToast('Erro ao carregar ordens de serviço');
+    } finally {
+      setIsFetchingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isNewWarrantyModalOpen) {
+      fetchOpenOrders();
+    }
+  }, [isNewWarrantyModalOpen]);
+
+  const handleCreateWarrantyFromOS = async (order: any) => {
+    setIsCreatingNewWarranty(true);
+    try {
+      // 1. Atualizar status da OS
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ status: 'Equipamento Retirado', updated_at: new Date().toISOString() })
+        .eq('id', order.id);
+
+      if (updateError) throw updateError;
+
+      // 2. Criar a Garantia
+      const now = new Date().toISOString();
+      let warrantyDays = order.completion_data?.warrantyDays || 90;
+      if (typeof warrantyDays === 'string') warrantyDays = parseInt(warrantyDays, 10);
+      if (isNaN(warrantyDays)) warrantyDays = 90;
+      
+      const endDate = addDays(new Date(), warrantyDays).toISOString();
+      
+      const customerName = order.customer?.name || 'Cliente';
+      const osNumberStr = (order.os_number || order.osNumber || 0).toString().padStart(4, '0');
+      
+      const equipmentStr = typeof order.equipment === 'string' 
+        ? order.equipment 
+        : `${order.equipment?.brand || ''} ${order.equipment?.model || ''}`.trim() || 'Equipamento';
+
+      const newWarranty = {
+        company_id: profile.company_id,
+        user_id: profile.user_id || profile.id || null,
+        os_id: order.id,
+        os_number: osNumberStr,
+        client_name: customerName,
+        equipment: equipmentStr,
+        service_performed: order.completion_data?.servicesPerformed || order.service || 'Serviço técnico',
+        start_date: now,
+        end_date: endDate,
+        duration_days: warrantyDays,
+        notes: order.completion_data?.technicianObservations || '',
+        status: 'Ativa'
+      };
+
+      const { data: insertedData, error: warrantyError } = await supabase
+        .from('warranties')
+        .insert(newWarranty)
+        .select('*')
+        .single();
+
+      if (warrantyError) throw warrantyError;
+
+      onShowToast('Garantia gerada com sucesso!');
+      
+      // Atualizar estado
+      setWarranties(prev => [insertedData, ...prev]);
+      setIsNewWarrantyModalOpen(false);
+      
+      // Abrir o modal de preview da nova garantia
+      setSelectedWarranty(insertedData);
+
+      if (onLogActivity) {
+        await onLogActivity('Garantia', 'Criada manualmente a partir de OS', {
+          os_id: order.id,
+          warranty_id: insertedData.id
+        });
+      }
+
+    } catch (err: any) {
+      console.error('Erro ao criar garantia:', err);
+      onShowToast('Erro ao criar garantia');
+    } finally {
+      setIsCreatingNewWarranty(false);
+    }
+  };
+
+  const filteredOpenOrders = openOrders.filter(o => {
+    if (!searchQueryOs) return true;
+    const term = searchQueryOs.toLowerCase();
+    const osNum = (o.os_number || o.osNumber || '').toString();
+    const clientMatch = o.customer?.name?.toLowerCase().includes(term) || false;
+    const equipBrand = o.equipment?.brand?.toLowerCase() || '';
+    const equipModel = o.equipment?.model?.toLowerCase() || '';
+    const equipString = typeof o.equipment === 'string' ? o.equipment.toLowerCase() : '';
+    
+    return osNum.includes(term) || clientMatch || equipBrand.includes(term) || equipModel.includes(term) || equipString.includes(term);
+  });
+
   const stats = useMemo(() => {
     return {
       active: warranties.filter(w => w.status === 'Ativa').length,
@@ -374,6 +496,13 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
             </div>
 
             <div className="flex items-center gap-2">
+               <button
+                 onClick={() => setIsNewWarrantyModalOpen(true)}
+                 className="flex items-center gap-1.5 bg-[#00E676]/10 text-[#00E676] hover:bg-[#00E676]/20 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all"
+               >
+                 <ShieldCheck size={16} />
+                 <span className="hidden sm:inline">Nova</span> Garantia
+               </button>
                <div className="hidden sm:flex bg-zinc-900/50 border border-zinc-800 rounded-sm px-3 py-1.5 items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
                   <span className="text-[10px] font-bold text-zinc-400 uppercase">{stats.active} Ativas</span>
@@ -800,6 +929,127 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
               <div className="text-center">
                 <p className="text-white font-black uppercase tracking-widest text-xs">Preparando Documento</p>
                 <p className="text-zinc-500 text-[10px] uppercase mt-1">Aguarde um instante...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* New Warranty Modal */}
+      <AnimatePresence>
+        {isNewWarrantyModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-md flex flex-col sm:items-center sm:justify-center p-4 sm:p-6"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-2xl bg-[#141414] border border-zinc-800 rounded-xl flex flex-col overflow-hidden max-h-full shadow-2xl"
+            >
+              {/* Modal Header */}
+              <div className="p-4 sm:p-6 border-b border-zinc-800/80 flex items-center justify-between sticky top-0 bg-[#141414]/90 backdrop-blur-md z-10">
+                <div>
+                  <h2 className="text-lg font-black flex items-center gap-2">
+                    <ShieldCheck className="text-[#00E676]" size={20} />
+                    Criar Nova Garantia
+                  </h2>
+                  <p className="text-zinc-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1">
+                    Selecione uma OS em aberto
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsNewWarrantyModalOpen(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
+                <div className="relative group mb-6">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#00E676] transition-colors" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Buscar por OS, cliente ou equipamento..."
+                    value={searchQueryOs}
+                    onChange={e => setSearchQueryOs(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-md pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all outline-none"
+                    autoFocus
+                  />
+                </div>
+
+                {isFetchingOrders ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
+                    <div className="w-8 h-8 border-2 border-zinc-800 border-t-[#00E676] rounded-full animate-spin mb-4" />
+                    <p className="text-xs font-bold uppercase tracking-widest">Buscando Ordens de Serviço...</p>
+                  </div>
+                ) : filteredOpenOrders.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-zinc-500 text-center">
+                    <Search size={32} className="mb-4 opacity-50" />
+                    <p className="text-sm font-bold">Nenhuma OS encontrada</p>
+                    <p className="text-xs mt-1">Tente buscar por outro termo ou número.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredOpenOrders.map((order) => {
+                      const osNum = (order.os_number || order.osNumber || 0).toString().padStart(4, '0');
+                      const equipName = typeof order.equipment === 'string' ? order.equipment : `${order.equipment?.brand || ''} ${order.equipment?.model || ''}`.trim() || 'Equipamento';
+                      
+                      return (
+                        <button
+                          key={order.id}
+                          onClick={() => handleCreateWarrantyFromOS(order)}
+                          disabled={isCreatingNewWarranty}
+                          className="w-full bg-[#0A0A0A] hover:bg-zinc-800/80 border border-zinc-800 hover:border-[#00E676]/30 p-4 rounded-md text-left transition-all group flex flex-col sm:flex-row sm:items-center gap-3 disabled:opacity-50"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-black bg-[#00E676]/10 text-[#00E676] px-2 py-0.5 rounded-sm uppercase tracking-wider">
+                                OS {osNum}
+                              </span>
+                              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2 py-0.5 bg-zinc-800 rounded-sm">
+                                {order.status}
+                              </span>
+                            </div>
+                            <p className="font-bold text-sm text-white group-hover:text-[#00E676] transition-colors line-clamp-1">
+                              {order.customer?.name || 'Cliente'}
+                            </p>
+                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider line-clamp-1 mt-0.5">
+                              {equipName}
+                            </p>
+                          </div>
+                          
+                          <div className="hidden sm:flex shrink-0 w-8 h-8 rounded-full bg-zinc-800 items-center justify-center group-hover:bg-[#00E676] group-hover:text-black transition-colors">
+                            <ChevronLeft className="rotate-180" size={16} />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Loading de Nova Garantia */}
+      <AnimatePresence>
+        {isCreatingNewWarranty && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+              <div className="text-center">
+                <p className="text-white font-black uppercase tracking-widest text-xs">Gerando Garantia</p>
+                <p className="text-zinc-500 text-[10px] uppercase mt-1">Atualizando status da OS...</p>
               </div>
             </div>
           </motion.div>
