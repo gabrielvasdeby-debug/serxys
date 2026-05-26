@@ -1038,7 +1038,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Card Layout */}
-                <div className="md:hidden space-y-3 mt-4">
+                <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
                   {(() => {
                     const now = new Date();
                     let start: Date, end: Date;
@@ -1064,25 +1064,23 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     .sort((a, b) => new Date(b.date + 'T' + (b.time || '00:00')).getTime() - new Date(a.date + 'T' + (a.time || '00:00')).getTime());
 
                     if (list.length === 0) {
-                      return <div className="p-12 text-center text-zinc-500 text-sm glass-panel rounded-2xl">Nenhuma movimentação encontrada.</div>;
+                      return <div className="p-8 text-center text-zinc-500 text-sm">Nenhuma movimentação encontrada.</div>;
                     }
 
                     return list.map((m: any) => (
-                      <div key={m.id} className="bg-[#141414] border border-zinc-800/50 p-4 rounded-2xl shadow-sm flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-zinc-500 font-bold">{format(parseISO(m.date), 'dd/MM/yyyy')}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${m.type === 'entrada' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-red-500/10 text-red-400'}`}>
-                            {m.type === 'entrada' ? 'Entrada' : 'Saída'}
-                          </span>
+                      <div key={m.id} className="p-4 hover:bg-white/[0.02] transition-colors flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-zinc-900 border border-zinc-800/50 ${m.type === 'entrada' ? 'text-[#00E676]' : 'text-red-400'}`}>
+                          {m.type === 'entrada' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
                         </div>
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white leading-tight capitalize truncate">{m.description}</p>
-                            <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-widest font-medium truncate">{m.paymentMethod} {m.source === 'caixa' && '• Caixa'}</p>
-                          </div>
-                          <div className={`text-base font-black text-right shrink-0 ${m.type === 'entrada' ? 'text-[#00E676]' : 'text-red-400'}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{m.description}</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5 font-medium uppercase tracking-widest truncate">{m.paymentMethod} {m.source === 'caixa' && '• Caixa'}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className={`text-sm font-black ${m.type === 'entrada' ? 'text-[#00E676]' : 'text-red-400'}`}>
                             {m.type === 'entrada' ? '+' : '-'} R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </div>
+                          </p>
+                          <p className="text-[10px] text-zinc-500 font-medium mt-0.5">{format(parseISO(m.date), 'dd/MM/yyyy')}</p>
                         </div>
                       </div>
                     ));
@@ -1239,7 +1237,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Cards for Receivables */}
-                <div className="md:hidden space-y-3 mt-4">
+                <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
                   {(() => {
                     const filtered = receivables.filter(r => {
                       const search = receivablesSearch.toLowerCase();
@@ -1248,45 +1246,56 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     });
 
                     if (filtered.length === 0) {
-                      return <div className="p-12 text-center text-zinc-500 text-sm glass-panel rounded-2xl">Nenhum recebimento encontrado.</div>;
+                      return <div className="p-8 text-center text-zinc-500 text-sm">Nenhum recebimento encontrado.</div>;
                     }
 
                     return filtered.map(r => (
-                      <div key={r.id} className="bg-[#141414] border border-zinc-800/50 p-4 rounded-2xl shadow-sm flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-zinc-500 font-bold">{format(parseISO(r.dueDate), 'dd/MM/yyyy')}</span>
-                          {r.osNumber > 0 ? (
-                            <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">OS {String(r.osNumber).padStart(4, '0')}</span>
-                          ) : (
-                            <span className="text-[9px] font-black text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-widest">Manual</span>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-start justify-between gap-4">
+                      <div key={r.id} className="p-4 hover:bg-white/[0.02] transition-colors flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-zinc-900 border border-zinc-800/50 ${r.remainingAmount > 0 ? 'text-amber-500' : 'text-[#00E676]'}`}>
+                             <ArrowUpRight size={18} />
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate">{r.customerName}</p>
-                            <div className="mt-2" onClick={() => handleToggleReceivableStatus(r)}>
-                              <span className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-full ${r.remainingAmount > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-[#00E676]/10 text-[#00E676]'}`}>
-                                {r.remainingAmount > 0 ? 'Pendente' : 'Recebido'}
-                              </span>
+                            <div className="flex items-center justify-between gap-2">
+                               <p className="text-sm font-bold text-white truncate">{r.customerName}</p>
+                               <span className="text-[10px] text-zinc-500 font-medium shrink-0">{format(parseISO(r.dueDate), 'dd/MM/yyyy')}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                               <div className="flex items-center gap-2">
+                                 {r.osNumber > 0 ? (
+                                    <span className="text-[9px] font-bold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-widest">OS {String(r.osNumber).padStart(4, '0')}</span>
+                                  ) : (
+                                    <span className="text-[9px] font-bold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-widest">Manual</span>
+                                  )}
+                               </div>
+                               <div className="text-right shrink-0">
+                                  <p className={`text-sm font-black ${r.remainingAmount > 0 ? 'text-amber-500' : 'text-[#00E676]'}`}>
+                                    R$ {r.remainingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  </p>
+                                  {r.paidAmount > 0 && r.remainingAmount > 0 && (
+                                     <p className="text-[9px] text-zinc-500 font-medium mt-0.5">Total R$ {r.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                  )}
+                               </div>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <p className={`text-base font-black ${r.remainingAmount > 0 ? 'text-amber-500' : 'text-[#00E676]'}`}>
-                              R$ {r.remainingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </p>
-                            {r.paidAmount > 0 && r.remainingAmount > 0 && (
-                               <p className="text-[9px] text-zinc-500 font-bold uppercase mt-1">Total R$ {r.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                            )}
-                          </div>
                         </div>
-
-                        <button 
-                          onClick={() => { setSelectedReceivable(r); setIsPaymentModalOpen(true); }}
-                          className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 bg-zinc-800 hover:bg-[#00E676] text-white hover:text-black rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest border border-zinc-700/50"
-                        >
-                          <CreditCard size={14} /> Registrar Pagamento
-                        </button>
+                        
+                        <div className="flex items-center gap-2 mt-1 pt-3 border-t border-zinc-800/50">
+                           <button 
+                             onClick={() => handleToggleReceivableStatus(r)}
+                             className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${r.remainingAmount > 0 ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/20'}`}
+                           >
+                             {r.remainingAmount > 0 ? 'Marcar Recebido' : 'Marcar Pendente'}
+                           </button>
+                           {r.remainingAmount > 0 && (
+                             <button 
+                               onClick={() => { setSelectedReceivable(r); setIsPaymentModalOpen(true); }}
+                               className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
+                             >
+                               <CreditCard size={14} /> Pagar
+                             </button>
+                           )}
+                        </div>
                       </div>
                     ));
                   })()}
@@ -1413,7 +1422,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Card View for Expenses */}
-                <div className="md:hidden space-y-3 mt-4">
+                <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
                   {(() => {
                     const sortedExpenses = [...expenses].sort((a, b) => {
                       if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
@@ -1424,35 +1433,41 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     });
 
                     if (sortedExpenses.length === 0) {
-                      return <div className="p-12 text-center text-zinc-500 text-sm glass-panel rounded-2xl">Nenhuma despesa para exibir.</div>;
+                      return <div className="p-8 text-center text-zinc-500 text-sm">Nenhuma despesa para exibir.</div>;
                     }
 
                     return sortedExpenses.map(exp => (
-                      <div key={exp.id} className="bg-[#141414] border border-zinc-800/50 p-4 rounded-2xl shadow-sm flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-zinc-500 font-bold">{format(parseISO(exp.date), 'dd/MM/yyyy')}</span>
-                          <span className="text-[9px] font-bold uppercase tracking-widest bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-400">{exp.category}</span>
-                        </div>
-                        
-                        <div className="flex items-start justify-between gap-4">
+                      <div key={exp.id} className="p-4 hover:bg-white/[0.02] transition-colors flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-zinc-900 border border-zinc-800/50 ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
+                             <ArrowDownRight size={18} />
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate">{exp.description}</p>
-                            <div className="flex items-center gap-3 mt-2">
-                               <div 
-                                  onClick={() => handleToggleExpensePaid(exp)}
-                                  className="flex items-center gap-2 cursor-pointer"
-                                >
-                                  <span className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-full ${exp.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-[#00E676]/10 text-[#00E676]'}`}>
-                                    {exp.status === 'PENDING' ? 'Pendente' : 'Pago'}
-                                  </span>
-                                </div>
-                                {exp.supplier && <span className="text-[9px] text-zinc-600 uppercase tracking-widest italic truncate">• {exp.supplier}</span>}
+                            <div className="flex items-center justify-between gap-2">
+                               <p className="text-sm font-bold text-white truncate">{exp.description}</p>
+                               <span className="text-[10px] text-zinc-500 font-medium shrink-0">{format(parseISO(exp.date), 'dd/MM/yyyy')}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                               <div className="flex items-center gap-2 min-w-0">
+                                  <span className="text-[9px] font-bold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-widest truncate">{exp.category}</span>
+                                  {exp.supplier && <span className="text-[9px] text-zinc-500 truncate">• {exp.supplier}</span>}
+                               </div>
+                               <div className="text-right shrink-0">
+                                  <p className={`text-sm font-black ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
+                                    R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  </p>
+                               </div>
                             </div>
                           </div>
-                          
-                          <div className={`text-base font-black text-right shrink-0 ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
-                            R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </div>
+                        </div>
+
+                        <div className="mt-1 pt-3 border-t border-zinc-800/50">
+                           <button 
+                             onClick={() => handleToggleExpensePaid(exp)}
+                             className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${exp.status === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/20'}`}
+                           >
+                             {exp.status === 'PENDING' ? 'Marcar Pago' : 'Marcar Pendente'}
+                           </button>
                         </div>
                       </div>
                     ));
