@@ -61,6 +61,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   const [searchQueryOs, setSearchQueryOs] = useState('');
   const [isFetchingOrders, setIsFetchingOrders] = useState(false);
   const [isCreatingNewWarranty, setIsCreatingNewWarranty] = useState(false);
+  const [osToConfirm, setOsToConfirm] = useState<any>(null);
 
   const selectedWarrantyData = useMemo(() => {
     if (!selectedWarranty) return null;
@@ -188,7 +189,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
       const formattedEndDate = format(newEndDate, 'yyyy-MM-dd');
       const isExpired = isBefore(newEndDate, now);
 
-      const updates = {
+      const updates: any = {
         client_name: editForm.client_name,
         equipment: editForm.equipment,
         service_performed: editForm.service_performed,
@@ -200,32 +201,73 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('warranties')
-        .update(updates)
-        .eq('id', editForm.id)
-        .eq('company_id', profile.company_id);
+      if (editForm.id === 'NEW') {
+        // 1. Atualizar a OS para Reparo Concluído
+        const { error: osError } = await supabase
+          .from('orders')
+          .update({ status: 'Reparo Concluído', updated_at: new Date().toISOString() })
+          .eq('id', editForm.os_id);
 
-      if (error) throw error;
-      
-      onLogActivity?.('GARANTIA', 'EDITOU GARANTIA', {
-        warrantyId: editForm.id,
-        osNumber: selectedWarranty.os_number,
-        clientName: editForm.client_name,
-        startDate: editForm.start_date,
-        endDate: formattedEndDate,
-        description: `Atualizou os termos de garantia da OS #${selectedWarranty.os_number} para ${editForm.client_name}`
-      });
+        if (osError) throw osError;
 
-      onShowToast('Garantia atualizada com sucesso!');
-      setIsEditing(false);
-      fetchWarranties();
-      
-      // Update selected warranty with current data
-      setSelectedWarranty(prev => prev ? { ...prev, ...updates } as Warranty : null);
+        // 2. Inserir a nova Garantia
+        const insertData = {
+          ...updates,
+          company_id: editForm.company_id || profile.company_id,
+          user_id: editForm.user_id || profile.user_id || profile.id || null,
+          os_id: editForm.os_id,
+          os_number: editForm.os_number,
+          created_at: new Date().toISOString()
+        };
+
+        const { data: insertedData, error } = await supabase
+          .from('warranties')
+          .insert(insertData)
+          .select('*')
+          .single();
+
+        if (error) throw error;
+
+        onLogActivity?.('GARANTIA', 'CRIOU GARANTIA DA OS', {
+          warrantyId: insertedData.id,
+          osNumber: insertedData.os_number,
+          clientName: insertedData.client_name,
+          description: `Criou garantia da OS #${insertedData.os_number} para ${insertedData.client_name}`
+        });
+
+        onShowToast('Garantia criada com sucesso!');
+        setIsEditing(false);
+        setWarranties(prev => [insertedData, ...prev]);
+        setSelectedWarranty(insertedData);
+
+      } else {
+        const { error } = await supabase
+          .from('warranties')
+          .update(updates)
+          .eq('id', editForm.id)
+          .eq('company_id', profile.company_id);
+
+        if (error) throw error;
+        
+        onLogActivity?.('GARANTIA', 'EDITOU GARANTIA', {
+          warrantyId: editForm.id,
+          osNumber: selectedWarranty.os_number,
+          clientName: editForm.client_name,
+          startDate: editForm.start_date,
+          endDate: formattedEndDate,
+          description: `Atualizou os termos de garantia da OS #${selectedWarranty.os_number} para ${editForm.client_name}`
+        });
+
+        onShowToast('Garantia atualizada com sucesso!');
+        setIsEditing(false);
+        fetchWarranties();
+        
+        // Update selected warranty with current data
+        setSelectedWarranty(prev => prev ? { ...prev, ...updates } as Warranty : null);
+      }
     } catch (err: any) {
-      console.error('Update error:', err);
-      onShowToast('Erro ao atualizar garantia');
+      console.error('Update/Insert error:', err);
+      onShowToast('Erro ao salvar garantia');
     } finally {
       setIsSaving(false);
     }
@@ -380,18 +422,17 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     }
   }, [isNewWarrantyModalOpen]);
 
-  const handleCreateWarrantyFromOS = async (order: any) => {
-    setIsCreatingNewWarranty(true);
+  const handleCreateWarrantyFromOS = (order: any) => {
+    setOsToConfirm(order);
+  };
+
+  const confirmCreateWarrantyFromOS = async () => {
+    if (!osToConfirm) return;
+    const order = osToConfirm;
+    setOsToConfirm(null);
+    setIsNewWarrantyModalOpen(false);
+
     try {
-      // 1. Atualizar status da OS
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({ status: 'Equipamento Retirado', updated_at: new Date().toISOString() })
-        .eq('id', order.id);
-
-      if (updateError) throw updateError;
-
-      // 2. Criar a Garantia
       const now = new Date().toISOString();
       let warrantyDays = order.completion_data?.warrantyDays || 90;
       if (typeof warrantyDays === 'string') warrantyDays = parseInt(warrantyDays, 10);
@@ -406,7 +447,9 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         ? order.equipment 
         : `${order.equipment?.brand || ''} ${order.equipment?.model || ''}`.trim() || 'Equipamento';
 
-      const newWarranty = {
+      // Criamos um objeto "mock" para abrir a tela de edição em modo de inserção
+      const newWarrantyObj = {
+        id: 'NEW', // flag especial
         company_id: profile.company_id,
         user_id: profile.user_id || profile.id || null,
         os_id: order.id,
@@ -421,35 +464,13 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         status: 'Ativa'
       };
 
-      const { data: insertedData, error: warrantyError } = await supabase
-        .from('warranties')
-        .insert(newWarranty)
-        .select('*')
-        .single();
-
-      if (warrantyError) throw warrantyError;
-
-      onShowToast('Garantia gerada com sucesso!');
-      
-      // Atualizar estado
-      setWarranties(prev => [insertedData, ...prev]);
-      setIsNewWarrantyModalOpen(false);
-      
-      // Abrir o modal de preview da nova garantia
-      setSelectedWarranty(insertedData);
-
-      if (onLogActivity) {
-        await onLogActivity('Garantia', 'Criada manualmente a partir de OS', {
-          os_id: order.id,
-          warranty_id: insertedData.id
-        });
-      }
+      setEditForm(newWarrantyObj);
+      setSelectedWarranty(newWarrantyObj as any);
+      setIsEditing(true);
 
     } catch (err: any) {
-      console.error('Erro ao criar garantia:', err);
-      onShowToast('Erro ao criar garantia');
-    } finally {
-      setIsCreatingNewWarranty(false);
+      console.error('Erro ao preparar garantia:', err);
+      onShowToast('Erro ao preparar tela de garantia');
     }
   };
 
@@ -501,7 +522,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                  className="flex items-center gap-1.5 bg-[#00E676]/10 text-[#00E676] hover:bg-[#00E676]/20 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all"
                >
                  <ShieldCheck size={16} />
-                 <span className="hidden sm:inline">Nova</span> Garantia
+                 <span>Nova Garantia</span>
                </button>
                <div className="hidden sm:flex bg-zinc-900/50 border border-zinc-800 rounded-sm px-3 py-1.5 items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
@@ -1030,6 +1051,49 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                     })}
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmation Modal para OS Selecionada */}
+      <AnimatePresence>
+        {osToConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[160] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-[#141414] border border-zinc-800 rounded-xl flex flex-col overflow-hidden shadow-2xl p-6"
+            >
+              <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <ShieldAlert size={24} />
+              </div>
+              <h3 className="text-center font-black text-white text-lg mb-2">Atenção ao Status</h3>
+              <p className="text-zinc-400 text-sm text-center mb-6 leading-relaxed">
+                A OS <strong className="text-white">{(osToConfirm.os_number || osToConfirm.osNumber || 0).toString().padStart(4, '0')}</strong> está atualmente com o status <strong className="text-white">{osToConfirm.status}</strong>.<br/><br/>
+                Ao continuar, a tela de criação de garantia será aberta, e quando você clicar em <strong>"Salvar Alterações"</strong>, o status desta OS será alterado automaticamente para <strong className="text-[#00E676]">Reparo Concluído</strong>. Deseja continuar?
+              </p>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setOsToConfirm(null)}
+                  className="flex-1 py-3 text-sm font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-md transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmCreateWarrantyFromOS}
+                  className="flex-1 py-3 text-sm font-black text-black bg-[#00E676] hover:bg-[#00C853] rounded-md uppercase tracking-wider transition-colors shadow-lg shadow-[#00E676]/20"
+                >
+                  Continuar
+                </button>
               </div>
             </motion.div>
           </motion.div>
