@@ -888,7 +888,15 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                               <Info size={14} strokeWidth={2.5} />
                                             </button>
                                          )}
-                                         {canAction && (<button onClick={() => handleDeleteTransaction(t.id)} className="p-2 text-zinc-600 hover:text-zinc-400 transition-all sm:opacity-0 sm:group-hover:opacity-100 active:scale-95"><Trash2 size={18} /></button>)}
+                                         {canAction && (
+                                            <button 
+                                              title="Estornar / Excluir Lançamento"
+                                              onClick={() => handleDeleteTransaction(t.id)} 
+                                              className="p-2 text-red-500/70 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all active:scale-95"
+                                            >
+                                              <Trash2 size={16} />
+                                            </button>
+                                         )}
                                       </div>
                                    </div>
                                    {matchingSale && expandedSales[matchingSale.id] && (

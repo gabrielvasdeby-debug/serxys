@@ -1609,6 +1609,26 @@ export default function OrdemServicoModule({
             session_id: sessionToUse?.id // Usa a sessão correta verificada no topo
           });
         }
+      } else if (amountDiff < 0) {
+        // Estorno: O valor pago diminuiu, gerar uma saída
+        const estornoValue = Math.abs(amountDiff);
+        const pmToUse = financials.paymentMethods && financials.paymentMethods.length > 0
+              ? financials.paymentMethods[financials.paymentMethods.length - 1].method
+              : (financials.paymentType || 'Dinheiro');
+
+        await supabase.from('transactions').insert({
+            id: crypto.randomUUID(),
+            company_id: profile.company_id,
+            type: 'saida',
+            description: `Estorno Pagamento OS ${osData.os_number} - ${selectedCustomer.name} (${pmToUse})`,
+            value: estornoValue,
+            payment_method: (['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].includes(pmToUse) ? pmToUse : 'Dinheiro'),
+            date: localDateStr,
+            time: today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            os_id: osData.os_number.toString(),
+            user_id: profile.id,
+            session_id: sessionToUse?.id
+        });
       }
 
       // Create Receivable if there is a balance (SOMENTE SE FOR NOVA OS)
