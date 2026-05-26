@@ -213,6 +213,59 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           onShowToast('Caixa carregado.');
           return;
         }
+
+        // Se já existe sessão FECHADA para esta data, reabrir com saldo original
+        if (existingForDate.status === 'closed') {
+          const { error: reopenErr } = await supabase.from('cash_sessions').update({
+            status: 'open',
+            closed_at: null,
+            closed_by: null,
+            closing_balance: null
+          }).eq('id', existingForDate.id);
+
+          if (reopenErr) throw reopenErr;
+
+          // Buscar transações existentes desta sessão
+          const { data: existingTrans } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('company_id', profile.company_id)
+            .eq('date', date)
+            .order('created_at', { ascending: false });
+
+          const mappedTrans = (existingTrans || []).map((tr: any) => ({
+            id: tr.id,
+            type: tr.type,
+            description: tr.description,
+            value: tr.value,
+            paymentMethod: tr.payment_method,
+            date: tr.date,
+            time: tr.time,
+            osId: tr.os_id,
+            userId: tr.user_id,
+            createdAt: tr.created_at
+          } as Transaction));
+
+          setCurrentSession({
+            id: existingForDate.id,
+            date: existingForDate.date,
+            status: 'open',
+            openingTime: existingForDate.opened_at ? new Date(existingForDate.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
+            openingUser: existingForDate.opened_by,
+            openingUserName: existingForDate.opened_by_name || profile.name as string,
+            initialValue: existingForDate.opening_balance
+          } as CashSession);
+          setTransactions(mappedTrans);
+          setSelectedDate(date);
+          setIsOpeningModalOpen(false);
+          onShowToast('Caixa reaberto com saldo original mantido.');
+          onLogActivity?.('CAIXA', 'REABRIU CAIXA', {
+            date,
+            initialValue: existingForDate.opening_balance,
+            description: `Reabriu o caixa do dia ${date} mantendo saldo original de R$ ${(existingForDate.opening_balance || 0).toFixed(2)}`
+          });
+          return;
+        }
       }
 
       const { data: staleOpen } = await supabase
@@ -363,6 +416,15 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       return;
     }
     try {
+      // Buscar dados originais da sessão no banco para restaurar opening_balance
+      const { data: sessionData, error: fetchErr } = await supabase
+        .from('cash_sessions')
+        .select('*')
+        .eq('id', session.id)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
       const updatePayload = {
         status: 'open',
         closed_at: null,
@@ -384,8 +446,41 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
         if (fallbackError) throw fallbackError;
       }
 
-      setCurrentSession(prev => prev ? { ...prev, status: 'open' } : null);
-      onShowToast('Caixa reaberto');
+      // Buscar transações existentes desta sessão para restaurar estado completo
+      const { data: existingTrans } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .eq('date', session.date)
+        .order('created_at', { ascending: false });
+
+      const mappedTrans = (existingTrans || []).map((tr: any) => ({
+        id: tr.id,
+        type: tr.type,
+        description: tr.description,
+        value: tr.value,
+        paymentMethod: tr.payment_method,
+        date: tr.date,
+        time: tr.time,
+        osId: tr.os_id,
+        userId: tr.user_id,
+        createdAt: tr.created_at
+      } as Transaction));
+
+      // Restaurar sessão com opening_balance original do banco
+      setCurrentSession(prev => prev ? {
+        ...prev,
+        status: 'open',
+        initialValue: sessionData?.opening_balance ?? prev.initialValue
+      } : null);
+      setTransactions(mappedTrans);
+      onShowToast('Caixa reaberto com saldo original mantido');
+
+      onLogActivity?.('CAIXA', 'REABRIU CAIXA', {
+        date: session.date,
+        initialValue: sessionData?.opening_balance || 0,
+        description: `Reabriu o caixa do dia ${session.date} mantendo saldo original de R$ ${(sessionData?.opening_balance || 0).toFixed(2)}`
+      });
     } catch (error: any) {
       console.error('Erro ao reabrir:', error);
       onShowToast(`Erro ao reabrir: ${error?.message || 'Verifique o console'}`);
@@ -449,10 +544,6 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
   };
 
   const handleDeleteTransaction = async (t: any) => {
-    if (currentSession?.status === 'closed') {
-      onShowToast('Módulo bloqueado (Caixa Fechado)');
-      return;
-    }
     const osId = t.osId || t.os_id;
     setConfirmModal({
       isOpen: true,
@@ -948,15 +1039,13 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                               <Info size={14} strokeWidth={2.5} />
                                             </button>
                                          )}
-                                         {canAction && (
-                                            <button 
-                                              title="Estornar / Excluir Lançamento"
-                                              onClick={() => handleDeleteTransaction(t)} 
-                                              className="p-2 text-red-500/70 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all active:scale-95"
-                                            >
-                                              <Trash2 size={16} />
-                                            </button>
-                                         )}
+                                         <button 
+                                            title="Estornar / Excluir Lançamento"
+                                            onClick={() => handleDeleteTransaction(t)} 
+                                            className="p-2 text-red-500/70 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all active:scale-95"
+                                         >
+                                           <Trash2 size={16} />
+                                         </button>
                                       </div>
                                    </div>
                                    {matchingSale && expandedSales[matchingSale.id] && (
