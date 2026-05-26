@@ -688,19 +688,25 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                 ) : (
                   <>
                     <div className="flex flex-1 gap-2.5">
+                      {/* Desktop A4 Button */}
                       <button 
-                        onClick={() => {
-                          if (window.innerWidth < 640) {
-                            handleSharePDF();
-                          } else {
-                            triggerPrint('warranty');
-                          }
-                        }}
-                        className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
+                        onClick={() => triggerPrint('warranty')}
+                        className="hidden sm:flex flex-1 h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 items-center justify-center gap-2"
                       >
-                        {window.innerWidth < 640 ? <FileText size={18} className="text-zinc-400" /> : <Printer size={18} className="text-zinc-400" />}
-                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
+                        <Printer size={18} className="text-zinc-400" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">A4</span>
                       </button>
+
+                      {/* Mobile Export PDF Button */}
+                      <button 
+                        onClick={handleSharePDF}
+                        className="flex sm:hidden flex-1 h-[54px] bg-red-500 hover:bg-red-400 text-white rounded-sm transition-all shadow-lg items-center justify-center gap-2"
+                      >
+                        <FileText size={18} />
+                        <span className="text-[9px] font-black uppercase tracking-widest">Exportar PDF</span>
+                      </button>
+
+                      {/* Thermal Button (Both) */}
                       <button 
                         onClick={() => triggerPrint('warranty-thermal')}
                         className="flex-1 h-[54px] sm:h-[48px] bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-sm transition-all border border-zinc-700/50 flex items-center justify-center gap-2"
@@ -740,10 +746,10 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                         link.click();
                         document.body.removeChild(link);
                       }}
-                      className="w-full sm:flex-[1.2] h-[54px] sm:h-[48px] bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all flex items-center justify-center gap-2 px-6 group shadow-lg"
+                      className="hidden sm:flex w-full sm:flex-[1.2] h-[54px] sm:h-[48px] bg-[#00E676] hover:bg-[#00C853] text-black rounded-sm transition-all items-center justify-center gap-2 px-6 group shadow-lg"
                     >
                       <MessageCircle size={18} className="shrink-0" />
-                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-center">Enviar WhatsApp</span>
+                      <span className="text-xs font-black uppercase tracking-widest text-center">Enviar WhatsApp</span>
                     </button>
                   </>
                 )}
