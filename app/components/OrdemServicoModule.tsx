@@ -3884,58 +3884,78 @@ export default function OrdemServicoModule({
                   Visualização do Documento
                 </span>
 
-                <button
-                  onClick={async () => {
-                    if (!selectedCustomer) return;
-                    
-                    const portalUrl = companySettings.publicSlug 
-                      ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder?.id || printOrder?.id}`
-                      : `${window.location.origin}/os/${localOrder?.id || printOrder?.id}`;
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (!pdfPreviewModal.pdfBlob) return;
+                      const url = URL.createObjectURL(pdfPreviewModal.pdfBlob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${pdfPreviewModal.filename || 'documento'}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95"
+                  >
+                    <FileText size={14} />
+                    Exportar PDF
+                  </button>
 
-                    const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
-                      `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
-                    
-                    let message = template
-                      .replace(/\\n/g, '\n')
-                      .replace(/\[nome_cliente\]/g, selectedCustomer.name)
-                      .replace(/{cliente}/g, selectedCustomer.name)
-                      .replace(/\[numero_os\]/g, (localOrder?.osNumber || printOrder?.osNumber || 0).toString().padStart(4, '0'))
-                      .replace(/{os}/g, (localOrder?.osNumber || printOrder?.osNumber || 0).toString().padStart(4, '0'))
-                      .replace(/\[link_os\]/g, portalUrl)
-                      .replace(/{link}/g, portalUrl)
-                      .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
-                      .replace(/{empresa}/g, companySettings.name || 'Servyx');
-
-                    let cleanPhone = selectedCustomer.whatsapp.replace(/\D/g, '');
-                    if (!cleanPhone.startsWith('55')) cleanPhone = `55${cleanPhone}`;
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
-
-                    // Web Share API nativa para Mobile (anexa o PDF real)
-                    if (navigator.share && pdfPreviewModal.pdfBlob) {
-                      const file = new File([pdfPreviewModal.pdfBlob], `${pdfPreviewModal.filename}.pdf`, { type: 'application/pdf' });
+                  <button
+                    onClick={async () => {
+                      if (!selectedCustomer) return;
                       
-                      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                          await navigator.share({
-                            files: [file],
-                            title: pdfPreviewModal.filename,
-                            text: message // Agora envia o texto do portal junto com o PDF anexado!
-                          });
-                          return; // Sai da função após o sucesso do compartilhamento
-                        } catch (shareErr) {
-                          console.log('Compartilhamento nativo cancelado ou falhou, abrindo WhatsApp Direct.', shareErr);
+                      const portalUrl = companySettings.publicSlug 
+                        ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder?.id || printOrder?.id}`
+                        : `${window.location.origin}/os/${localOrder?.id || printOrder?.id}`;
+
+                      const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
+                        `Olá, {cliente} 👋\n\nJá está disponível o acompanhamento da sua OS {os}.\nVocê pode visualizar todas as atualizações em tempo real pelo link abaixo:\n\n{link}\n\n{empresa}\nAgradecemos pela confiança em nossos serviços.`;
+                      
+                      let message = template
+                        .replace(/\\n/g, '\n')
+                        .replace(/\[nome_cliente\]/g, selectedCustomer.name)
+                        .replace(/{cliente}/g, selectedCustomer.name)
+                        .replace(/\[numero_os\]/g, (localOrder?.osNumber || printOrder?.osNumber || 0).toString().padStart(4, '0'))
+                        .replace(/{os}/g, (localOrder?.osNumber || printOrder?.osNumber || 0).toString().padStart(4, '0'))
+                        .replace(/\[link_os\]/g, portalUrl)
+                        .replace(/{link}/g, portalUrl)
+                        .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
+                        .replace(/{empresa}/g, companySettings.name || 'Servyx');
+
+                      let cleanPhone = selectedCustomer.whatsapp.replace(/\D/g, '');
+                      if (!cleanPhone.startsWith('55')) cleanPhone = `55${cleanPhone}`;
+                      const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+
+                      // Web Share API nativa para Mobile (anexa o PDF real)
+                      if (navigator.share && pdfPreviewModal.pdfBlob) {
+                        const file = new File([pdfPreviewModal.pdfBlob], `${pdfPreviewModal.filename}.pdf`, { type: 'application/pdf' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                          try {
+                            await navigator.share({
+                              files: [file],
+                              title: pdfPreviewModal.filename,
+                              text: message
+                            });
+                            return;
+                          } catch (shareErr) {
+                            console.log('Compartilhamento nativo cancelado ou falhou, abrindo WhatsApp Direct.', shareErr);
+                          }
                         }
                       }
-                    }
-                    
-                    // Fallback (PC ou celular sem suporte a arquivos via Share)
-                    window.open(whatsappUrl, '_blank');
-                  }}
-                  className="flex items-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-[#00E676]/20 active:scale-95"
-                >
-                  <MessageCircle size={14} fill="black" />
-                  Compartilhar via WhatsApp
-                </button>
+                      
+                      // Fallback (PC ou celular sem suporte a arquivos via Share)
+                      window.open(whatsappUrl, '_blank');
+                    }}
+                    className="flex items-center gap-2 bg-[#00E676] hover:bg-[#00C853] text-black px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-[#00E676]/20 active:scale-95"
+                  >
+                    <MessageCircle size={14} fill="black" />
+                    <span className="hidden sm:inline">Compartilhar via</span> WhatsApp
+                  </button>
+                </div>
               </div>
 
               {/* Documento Renderizado */}
