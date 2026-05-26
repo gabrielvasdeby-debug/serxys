@@ -1574,11 +1574,25 @@ export default function OrdemServicoModule({
         setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
       }
 
-      // Record transaction in Caixa if there's a payment (SOMENTE SE FOR NOVA OS)
-      if (!isEditing && financials.paymentStatus !== 'Pendente' && financials.amountPaid > 0) {
-        const methodsToInsert = financials.paymentMethods && financials.paymentMethods.length > 0
-          ? financials.paymentMethods.filter((m: any) => m.amount > 0)
-          : [{ method: financials.paymentType || 'Dinheiro', amount: financials.amountPaid }];
+      // Record transaction in Caixa if there's a payment
+      const oldAmountPaid = initialOrder?.financials?.amountPaid || localOrder?.financials?.amountPaid || 0;
+      const amountDiff = isEditing ? (financials.amountPaid - oldAmountPaid) : financials.amountPaid;
+
+      const today = new Date();
+      const localDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+      if (amountDiff > 0 && financials.paymentStatus !== 'Pendente') {
+        let methodsToInsert: any[] = [];
+        
+        if (!isEditing && financials.paymentMethods && financials.paymentMethods.length > 0) {
+           methodsToInsert = financials.paymentMethods.filter((m: any) => m.amount > 0);
+        } else {
+           // Se é edição ou não tem array de métodos, usa o diff e o método atual/último
+           const pmToUse = financials.paymentMethods && financials.paymentMethods.length > 0
+              ? financials.paymentMethods[financials.paymentMethods.length - 1].method
+              : (financials.paymentType || 'Dinheiro');
+           methodsToInsert = [{ method: pmToUse, amount: amountDiff }];
+        }
 
         for (const pm of methodsToInsert) {
           await supabase.from('transactions').insert({
@@ -1588,8 +1602,8 @@ export default function OrdemServicoModule({
             description: `Pagamento OS ${osData.os_number} - ${selectedCustomer.name} (${pm.method})`,
             value: pm.amount,
             payment_method: (['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].includes(pm.method) ? pm.method : 'Dinheiro'),
-            date: now.split('T')[0],
-            time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            date: localDateStr,
+            time: today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
             os_id: osData.os_number.toString(),
             user_id: profile.id,
             session_id: sessionToUse?.id // Usa a sessão correta verificada no topo
@@ -1605,7 +1619,7 @@ export default function OrdemServicoModule({
           company_id: profile.company_id,
           description: `Saldo OS ${osData.os_number} - ${equipment.type} ${equipment.brand}`,
           value: balance,
-          due_date: now.split('T')[0],
+          due_date: localDateStr,
           status: 'pendente',
           customer_name: selectedCustomer.name,
           os_id: orderId

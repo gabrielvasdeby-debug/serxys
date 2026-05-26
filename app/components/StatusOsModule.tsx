@@ -1557,17 +1557,21 @@ export default function StatusOsModule({
 
       // 2. Record transaction in Fluxo de Caixa
       const customer = customers.find(c => c.id === selectedOrder.customerId);
+      const today = new Date();
+      const localDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
       const { error: transError } = await supabase.from('transactions').insert({
         id: crypto.randomUUID(),
         type: 'entrada',
         description: `Recebimento OS ${selectedOrder.osNumber} - ${customer?.name || 'Cliente'}`,
         value: amount,
         payment_method: paymentMethod,
-        date: now.split('T')[0],
-        time: format(new Date(), 'HH:mm'),
+        date: localDateStr,
+        time: today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         user_id: profile.id,
         session_id: sessionToUse.id,
-        company_id: profile.company_id
+        company_id: profile.company_id,
+        os_id: selectedOrder.osNumber?.toString() || selectedOrder.id
       });
 
       if (transError) console.error('Transaction Error:', transError);
