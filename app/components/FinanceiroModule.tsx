@@ -101,6 +101,7 @@ type Period = 'today' | 'week' | 'month' | 'year' | 'custom';
 
 export default function FinanceiroModuleView({ profile, onBack, onShowToast, companySettings, orders, customers, onLogActivity }: FinanceiroModuleProps) {
   const [activeTab, setActiveTab] = useState<Tab>('EXTRATO');
+  const [extratoFilter, setExtratoFilter] = useState<'ALL' | 'ENTRADAS' | 'SAIDAS'>('ALL');
   const [receivables, setReceivables] = useState<Receivable[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -867,8 +868,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         {/* Stat Cards from Resumo - Agora Globais e responsivas em Grid no mobile */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <div 
-            onClick={() => setActiveTab('EXTRATO')}
-            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/5 hover:border-emerald-500/20'}`}
+            onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('ENTRADAS'); }}
+            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'ENTRADAS' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/5 hover:border-emerald-500/20'}`}
           >
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
@@ -881,8 +882,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           </div>
 
           <div 
-            onClick={() => setActiveTab('EXTRATO')}
-            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' ? 'border-red-500/50 bg-red-500/5' : 'border-white/5 hover:border-red-500/20'}`}
+            onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('SAIDAS'); }}
+            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'SAIDAS' ? 'border-red-500/50 bg-red-500/5' : 'border-white/5 hover:border-red-500/20'}`}
           >
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
@@ -923,8 +924,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           </div>
 
           <div 
-            onClick={() => setActiveTab('EXTRATO')}
-            className="cursor-pointer col-span-2 lg:col-span-1 bg-[#00E676]/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-[#00E676]/20 relative overflow-hidden group hover:border-[#00E676]/50 transition-colors"
+            onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('ALL'); }}
+            className={`cursor-pointer col-span-2 lg:col-span-1 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border relative overflow-hidden group transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'ALL' ? 'bg-[#00E676]/10 border-[#00E676]/50' : 'bg-[#00E676]/5 border-[#00E676]/20 hover:border-[#00E676]/50'}`}
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-[#00E676]/10 blur-3xl -mr-12 -mt-12 rounded-full group-hover:bg-[#00E676]/20 transition-all" />
             <div className="relative z-10 flex flex-col h-full justify-between">
@@ -1061,6 +1062,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                       ]
                       .filter(m => {
                         try {
+                          if (extratoFilter === 'ENTRADAS' && m.type !== 'entrada') return false;
+                          if (extratoFilter === 'SAIDAS' && m.type !== 'saida') return false;
                           return isWithinInterval(parseISO(m.date), { start, end });
                         } catch { return false; }
                       })
@@ -1125,7 +1128,11 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                       }))
                     ]
                     .filter(m => {
-                      try { return isWithinInterval(parseISO(m.date), { start, end }); } 
+                      try { 
+                        if (extratoFilter === 'ENTRADAS' && m.type !== 'entrada') return false;
+                        if (extratoFilter === 'SAIDAS' && m.type !== 'saida') return false;
+                        return isWithinInterval(parseISO(m.date), { start, end }); 
+                      } 
                       catch { return false; }
                     })
                     .sort((a, b) => new Date(b.date + 'T' + (b.time || '00:00')).getTime() - new Date(a.date + 'T' + (a.time || '00:00')).getTime());
@@ -1195,15 +1202,15 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Total a Receber</p>
-                  <p className="text-xl font-black text-white">R$ {receivables.reduce((acc, r) => acc + r.totalAmount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-xl font-black text-white">R$ {receivables.filter(r => r.remainingAmount > 0).reduce((acc, r) => acc + r.totalAmount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
                   <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Recebido</p>
-                  <p className="text-xl font-black text-emerald-500">R$ {receivables.reduce((acc, r) => acc + r.paidAmount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-xl font-black text-emerald-500">R$ {receivables.filter(r => r.remainingAmount > 0).reduce((acc, r) => acc + r.paidAmount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
                   <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Pendente</p>
-                  <p className="text-xl font-black text-amber-500">R$ {receivables.reduce((acc, r) => acc + r.remainingAmount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-xl font-black text-amber-500">R$ {receivables.filter(r => r.remainingAmount > 0).reduce((acc, r) => acc + r.remainingAmount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
 
@@ -1224,6 +1231,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                     {(() => {
                       const sortedReceivables = [...receivables]
                         .filter(r => {
+                          if (r.remainingAmount <= 0) return false;
                           const search = receivablesSearch.toLowerCase();
                           return r.customerName.toLowerCase().includes(search) || 
                                  r.osNumber.toString().includes(search) ||
@@ -1307,6 +1315,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
                   {(() => {
                     const filtered = receivables.filter(r => {
+                      if (r.remainingAmount <= 0) return false;
                       const search = receivablesSearch.toLowerCase();
                       return r.customerName.toLowerCase().includes(search) || 
                              r.osNumber.toString().includes(search);
