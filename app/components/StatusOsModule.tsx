@@ -3928,7 +3928,7 @@ export default function StatusOsModule({
                 </section>
 
                 {/* 3. Catalog & Parts */}
-                <section className="space-y-4">
+                <section className="hidden sm:block space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
                       <Package size={14} className="text-blue-500" /> Peças Utilizadas
@@ -4086,7 +4086,7 @@ export default function StatusOsModule({
 
 
                 {/* 7. Final Checklist */}
-                <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-md p-6">
+                <section className="hidden sm:block bg-zinc-900/40 border border-zinc-800/80 rounded-md p-6">
                    <h3 className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                      <CheckCircle2 size={16} className="text-[#00E676]" /> Checklist de Confirmação
                    </h3>
@@ -4738,17 +4738,45 @@ export default function StatusOsModule({
                 </div>
               </div>
 
-              <div className="p-6 border-t border-zinc-200 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 sm:p-6 border-t border-zinc-200 bg-white grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   onClick={() => triggerPrint('warranty')}
-                  className="flex-1 py-4 bg-[#2B323D] hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full py-4 bg-[#2B323D] hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
                   <FileText size={20} />
                   Imprimir A4
                 </button>
                 <button
+                  onClick={async () => {
+                    const html2pdf = (await import('html2pdf.js')).default;
+                    const element = document.querySelector('.print-warranty-content');
+                    if (!element) return;
+                    
+                    // Temporarily remove scaling for PDF generation
+                    const originalTransform = (element.parentElement as HTMLElement).style.transform;
+                    (element.parentElement as HTMLElement).style.transform = 'none';
+                    
+                    const opt = {
+                      margin: 0,
+                      filename: `garantia-os-${selectedOrder.osNumber.toString().padStart(4, '0')}.pdf`,
+                      image: { type: 'jpeg', quality: 0.98 },
+                      html2canvas: { scale: 2, useCORS: true },
+                      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    
+                    await html2pdf().set(opt).from(element).save();
+                    
+                    // Restore scaling
+                    (element.parentElement as HTMLElement).style.transform = originalTransform;
+                  }}
+                  className="w-full py-4 bg-red-500 hover:bg-red-400 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                  <FileText size={20} />
+                  Exportar PDF
+                </button>
+                <button
                   onClick={() => triggerPrint('warranty-thermal')}
-                  className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   <Printer size={20} />
                   Imprimir Cupom
