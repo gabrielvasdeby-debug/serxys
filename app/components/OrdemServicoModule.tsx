@@ -1941,7 +1941,14 @@ export default function OrdemServicoModule({
         });
       }
 
-      await generateAndSharePDF(templateElement, filename, onShowToast, { forceShowOnly: false });
+      const { pdfBlob, imgData } = await generatePDFData(templateElement);
+
+      setPdfPreviewModal({
+        isOpen: true,
+        imgDataUrl: imgData,
+        pdfBlob: pdfBlob,
+        filename: filename
+      });
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
