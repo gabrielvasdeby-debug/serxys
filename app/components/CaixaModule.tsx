@@ -448,23 +448,83 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     setTimeout(() => { printWin.print(); printWin.close(); }, 500);
   };
 
-  const handleDeleteTransaction = async (id: string) => {
+  const handleDeleteTransaction = async (t: any) => {
     if (currentSession?.status === 'closed') {
       onShowToast('Módulo bloqueado (Caixa Fechado)');
       return;
     }
+    const osId = t.osId || t.os_id;
     setConfirmModal({
       isOpen: true,
-      title: 'Excluir Transação',
-      message: 'Deseja realmente excluir esta transação?',
+      title: osId ? 'Estornar Pagamento da OS' : 'Excluir Lançamento',
+      message: osId 
+        ? `Deseja excluir este lançamento e estornar o valor de R$ ${t.value} da OS #${osId}?` 
+        : 'Deseja realmente excluir este lançamento?',
       onConfirm: async () => {
         try {
-          const { error } = await supabase.from('transactions').delete().eq('id', id);
+          if (osId) {
+            // Tenta buscar a OS pelo número
+            const { data: osList, error: osListErr } = await supabase
+              .from('orders')
+              .select('*')
+              .eq('company_id', profile.company_id)
+              .eq('os_number', osId);
+              
+            if (osListErr) throw osListErr;
+            const targetOs = osList && osList.length > 0 ? osList[0] : null;
+
+            if (targetOs) {
+              const currentFin = targetOs.financials || {};
+              const currentAmountPaid = currentFin.amountPaid || 0;
+              const newAmountPaid = Math.max(0, currentAmountPaid - (t.value || 0));
+              
+              let newPaymentStatus = 'Parcial';
+              if (newAmountPaid <= 0) newPaymentStatus = 'Pendente';
+              else if (newAmountPaid >= (currentFin.totalValue || 0)) newPaymentStatus = 'Total';
+
+              const updatedHistory = [
+                ...(targetOs.history || []),
+                {
+                  date: new Date().toISOString(),
+                  user: profile.name,
+                  description: `Estorno de Pagamento (Caixa): O lançamento de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.value || 0)} foi excluído do caixa e abatido desta OS.`
+                }
+              ];
+
+              const updatedFin = {
+                ...currentFin,
+                amountPaid: newAmountPaid,
+                paymentStatus: newPaymentStatus
+              };
+
+              const { error: updateErr } = await supabase
+                .from('orders')
+                .update({ 
+                  financials: updatedFin,
+                  history: updatedHistory,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', targetOs.id);
+                
+              if (updateErr) throw updateErr;
+            }
+          }
+
+          const { error } = await supabase.from('transactions').delete().eq('id', t.id);
           if (error) throw error;
-          setTransactions(prev => prev.filter(t => t.id !== id));
-          onShowToast('Transação excluída');
+          
+          setTransactions(prev => prev.filter(tr => tr.id !== t.id));
+          onShowToast(osId ? 'Estorno realizado e OS atualizada!' : 'Transação excluída');
+          
+          onLogActivity?.('CAIXA', 'EXCLUIU LANCAMENTO', {
+            transactionId: t.id,
+            description: osId 
+              ? `Estornou pagamento da OS #${osId} no valor de ${t.value}` 
+              : `Excluiu lançamento: ${t.description}`
+          });
         } catch (error) {
-          onShowToast('Erro ao excluir');
+          console.error('Erro ao excluir/estornar:', error);
+          onShowToast('Erro ao excluir ou estornar');
         }
         setConfirmModal(null);
       }
@@ -891,7 +951,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                                          {canAction && (
                                             <button 
                                               title="Estornar / Excluir Lançamento"
-                                              onClick={() => handleDeleteTransaction(t.id)} 
+                                              onClick={() => handleDeleteTransaction(t)} 
                                               className="p-2 text-red-500/70 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all active:scale-95"
                                             >
                                               <Trash2 size={16} />
