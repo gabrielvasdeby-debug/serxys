@@ -336,7 +336,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         isPreview: false,
       });
 
-      await generateAndSharePDF(templateElement, filename, onShowToast);
+      await generateAndSharePDF(templateElement, filename, onShowToast, { forceShowOnly: false });
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
