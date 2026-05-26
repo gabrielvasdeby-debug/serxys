@@ -945,17 +945,17 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           </div>
         </div>
 
-        {/* Period Filters - Global and in one line */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 custom-scrollbar flex-1">
+        {/* Period Filters - Global */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-center gap-3 w-full mx-auto max-w-4xl">
+          <div className="bg-[#141414] p-1 sm:p-1.5 rounded-2xl border border-zinc-800/50 flex w-full overflow-x-auto custom-scrollbar sm:scrollbar-hide items-center gap-1">
             {(['today', 'week', 'month', 'year', 'custom'] as Period[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-4 sm:px-5 py-2 rounded-full text-[10px] sm:text-xs font-bold border transition-all ${
+                className={`flex-1 min-w-[70px] sm:min-w-fit px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all text-center ${
                   period === p 
-                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
-                    : 'bg-white/5 border-white/5 text-zinc-500 hover:text-white'
+                    ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' 
+                    : 'text-zinc-500 hover:text-white bg-transparent hover:bg-white/5'
                 }`}
               >
                 {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : p === 'year' ? 'Ano' : 'Personalizado'}
@@ -966,26 +966,31 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           <AnimatePresence>
             {period === 'custom' && (
               <motion.div 
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 'auto' }}
-                exit={{ opacity: 0, width: 0 }}
-                className="flex items-center gap-2 overflow-hidden whitespace-nowrap shrink-0"
+                initial={{ opacity: 0, height: 0, scale: 0.9 }}
+                animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                exit={{ opacity: 0, height: 0, scale: 0.9 }}
+                className="flex items-center justify-center w-full lg:w-auto overflow-hidden shrink-0"
               >
-                <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-full px-3 py-1">
-                  <Calendar size={14} className="text-zinc-500" />
-                  <input 
-                    type="date" 
-                    value={customStartDate} 
-                    onChange={e => setCustomStartDate(e.target.value)} 
-                    className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[100px]"
-                  />
-                  <span className="text-zinc-500 text-[10px]">-</span>
-                  <input 
-                    type="date" 
-                    value={customEndDate} 
-                    onChange={e => setCustomEndDate(e.target.value)} 
-                    className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[100px]"
-                  />
+                <div className="flex items-center justify-center w-full sm:w-auto gap-2 bg-[#141414] border border-zinc-800/50 rounded-2xl p-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-1.5">
+                    <Calendar size={14} className="text-[#00E676]" />
+                    <input 
+                      type="date" 
+                      value={customStartDate} 
+                      onChange={e => setCustomStartDate(e.target.value)} 
+                      className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[90px] sm:w-[100px]"
+                    />
+                  </div>
+                  <span className="text-zinc-600 font-bold text-[10px] uppercase">Até</span>
+                  <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-1.5">
+                    <Calendar size={14} className="text-red-400" />
+                    <input 
+                      type="date" 
+                      value={customEndDate} 
+                      onChange={e => setCustomEndDate(e.target.value)} 
+                      className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[90px] sm:w-[100px]"
+                    />
+                  </div>
                 </div>
               </motion.div>
             )}
