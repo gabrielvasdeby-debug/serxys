@@ -1941,14 +1941,7 @@ export default function OrdemServicoModule({
         });
       }
 
-      const { pdfBlob, imgData } = await generatePDFData(templateElement);
-
-      setPdfPreviewModal({
-        isOpen: true,
-        imgDataUrl: imgData,
-        pdfBlob: pdfBlob,
-        filename: filename
-      });
+      await generateAndSharePDF(templateElement, filename, onShowToast, { forceShowOnly: false });
     } catch (error: any) {
       console.error('Erro PDF:', error);
       onShowToast(`Erro ao gerar PDF: ${(error.message || 'Erro desconhecido').substring(0, 50)}`);
@@ -3563,72 +3556,72 @@ export default function OrdemServicoModule({
  
                      <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
                       {/* Secondary Actions Group */}
-                      <div className="flex items-center justify-center bg-zinc-900/50 p-1.5 rounded-md border border-white/5 gap-1 w-full sm:w-auto">
-                        <button 
-                          onClick={() => {
-                            if (!selectedCustomer?.whatsapp) {
-                              onShowToast('Cliente sem WhatsApp cadastrado');
-                              return;
-                            }
-                            const osNumberFormatted = (localOrder ? localOrder.osNumber : osSettings.nextOsNumber).toString().padStart(4, '0');
-                            const orderId = localOrder?.id || '';
-                            
-                            const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
-                              `Olá, [nome_cliente]! 👋\nSua OS [numero_os] foi registrada com sucesso.\nAcompanhe por aqui: [link_os]\n\n[nome_assistencia]`;
-                            
-                            const portalUrl = companySettings.publicSlug 
-                              ? `${window.location.origin}/${companySettings.publicSlug}/${orderId}`
-                              : `${window.location.origin}/os/${orderId}`;
+                      {localOrder?.id && (
+                        <div className="flex items-center justify-center bg-zinc-900/50 p-1.5 rounded-md border border-white/5 gap-1 w-full sm:w-auto">
+                          <button 
+                            onClick={() => {
+                              if (!selectedCustomer) {
+                                onShowToast('Selecione um cliente primeiro');
+                                return;
+                              }
+                              
+                              const portalUrl = companySettings.publicSlug 
+                                ? `${window.location.origin}/${companySettings.publicSlug}/${localOrder?.id}`
+                                : `${window.location.origin}/os/${localOrder?.id}`;
 
-                            const message = template
-                              .replace(/\\n/g, '\n')
-                              .replace(/\[nome_cliente\]/g, selectedCustomer.name)
-                              .replace(/{cliente}/g, selectedCustomer.name)
-                              .replace(/\[numero_os\]/g, osNumberFormatted)
-                              .replace(/{os}/g, osNumberFormatted)
-                              .replace(/\[marca\]/g, equipment.brand)
-                              .replace(/\[modelo\]/g, equipment.model)
-                              .replace(/\[defeito\]/g, defect)
-                              .replace(/\[status\]/g, localOrder?.status || 'Entrada')
-                              .replace(/\[data_entrada\]/g, new Date().toLocaleDateString('pt-BR'))
-                              .replace(/\[link_os\]/g, portalUrl)
-                              .replace(/{link}/g, portalUrl)
-                              .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
-                              .replace(/{empresa}/g, companySettings.name || 'Servyx');
+                              const template = osSettings.whatsappMessages?.['Entrada Registrada'] || 
+                                `Olá, {cliente} 👋\n\nSua OS {os} foi registrada com sucesso!\nVocê pode acompanhar o status pelo link:\n{link}\n\n{empresa}`;
+                              
+                              const message = template
+                                .replace(/\\n/g, '\n')
+                                .replace(/\[nome_cliente\]/g, selectedCustomer.name)
+                                .replace(/{cliente}/g, selectedCustomer.name)
+                                .replace(/\[numero_os\]/g, (localOrder?.osNumber || 0).toString().padStart(4, '0'))
+                                .replace(/{os}/g, (localOrder?.osNumber || 0).toString().padStart(4, '0'))
+                                .replace(/\[marca\]/g, equipment.brand)
+                                .replace(/\[modelo\]/g, equipment.model)
+                                .replace(/\[defeito\]/g, defect)
+                                .replace(/\[status\]/g, localOrder?.status || 'Entrada')
+                                .replace(/\[data_entrada\]/g, new Date().toLocaleDateString('pt-BR'))
+                                .replace(/\[link_os\]/g, portalUrl)
+                                .replace(/{link}/g, portalUrl)
+                                .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
+                                .replace(/{empresa}/g, companySettings.name || 'Servyx');
 
-                            setWhatsappModal({ isOpen: true, message, customerPhone: selectedCustomer.whatsapp });
-                          }}
-                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-emerald-400 hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
-                          title="Enviar via WhatsApp"
-                        >
-                          <MessageCircle size={14} />
-                          <span className="sm:hidden">WhatsApp</span>
-                        </button>
-                        <button 
-                          onClick={() => {
-                            if (window.innerWidth < 640) {
-                              handleSharePDF();
-                            } else {
-                              triggerPrint('a4');
-                            }
-                          }}
-                          disabled={isSaving}
-                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
-                          title={window.innerWidth < 640 ? "Visualizar PDF" : "Imprimir A4"}
-                        >
-                          {window.innerWidth < 640 ? <FileText size={14} /> : <Printer size={14} />}
-                          <span className="sm:hidden">{window.innerWidth < 640 ? "PDF" : "A4"}</span>
-                        </button>
-                        <button 
-                          onClick={() => triggerPrint('thermal')}
-                          disabled={isSaving}
-                          className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
-                          title="Imprimir Cupom"
-                        >
-                          <Printer size={14} />
-                          <span className="sm:hidden">Cupom</span>
-                        </button>
-                      </div>
+                              setWhatsappModal({ isOpen: true, message, customerPhone: selectedCustomer.whatsapp });
+                            }}
+                            className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
+                            title="Enviar via WhatsApp"
+                          >
+                            <MessageCircle size={14} className="text-emerald-500" />
+                            <span className="sm:hidden">WhatsApp</span>
+                          </button>
+                          <button 
+                            onClick={() => {
+                              if (window.innerWidth < 640) {
+                                handleSharePDF();
+                              } else {
+                                triggerPrint('a4');
+                              }
+                            }}
+                            disabled={isSaving}
+                            className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-zinc-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
+                            title={window.innerWidth < 640 ? "Exportar PDF" : "Imprimir A4"}
+                          >
+                            {window.innerWidth < 640 ? <FileText size={14} className="text-red-500" /> : <Printer size={14} />}
+                            <span className="sm:hidden text-red-500">{window.innerWidth < 640 ? "Exportar PDF" : "A4"}</span>
+                          </button>
+                          <button 
+                            onClick={() => triggerPrint('thermal')}
+                            disabled={isSaving}
+                            className="flex-1 sm:flex-none px-3 h-9 flex items-center justify-center gap-2 rounded-sm text-orange-400/80 hover:text-orange-400 transition-all text-[10px] font-black uppercase tracking-widest border-l border-white/5 disabled:opacity-30"
+                            title="Impressora Térmica"
+                          >
+                            <Printer size={14} />
+                            <span className="sm:hidden">Térmica</span>
+                          </button>
+                        </div>
+                      )}
 
                       <button 
                         onClick={() => handleSaveOS()}
