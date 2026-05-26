@@ -946,19 +946,24 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         </div>
 
         {/* Period Filters - Global */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-center gap-3 w-full mx-auto max-w-4xl">
-          <div className="bg-[#141414] p-1 sm:p-1.5 rounded-2xl border border-zinc-800/50 flex w-full overflow-x-auto custom-scrollbar sm:scrollbar-hide items-center gap-1">
+        <div className="flex flex-col gap-3 w-full mx-auto max-w-4xl">
+          <div className="bg-[#141414] p-1 sm:p-1.5 rounded-2xl border border-zinc-800/50 flex w-full items-center gap-1">
             {(['today', 'week', 'month', 'year', 'custom'] as Period[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`flex-1 min-w-[70px] sm:min-w-fit px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all text-center ${
+                className={`flex-1 px-1 sm:px-5 py-2.5 rounded-xl text-[10px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest transition-all text-center whitespace-nowrap ${
                   period === p 
                     ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' 
                     : 'text-zinc-500 hover:text-white bg-transparent hover:bg-white/5'
                 }`}
               >
-                {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : p === 'year' ? 'Ano' : 'Personalizado'}
+                {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : p === 'year' ? 'Ano' : (
+                  <>
+                    <span className="sm:hidden flex items-center justify-center"><Calendar size={14} /></span>
+                    <span className="hidden sm:inline">Personalizado</span>
+                  </>
+                )}
               </button>
             ))}
           </div>
@@ -966,29 +971,29 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           <AnimatePresence>
             {period === 'custom' && (
               <motion.div 
-                initial={{ opacity: 0, height: 0, scale: 0.9 }}
-                animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                exit={{ opacity: 0, height: 0, scale: 0.9 }}
-                className="flex items-center justify-center w-full lg:w-auto overflow-hidden shrink-0"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="w-full overflow-hidden"
               >
-                <div className="flex items-center justify-center w-full sm:w-auto gap-2 bg-[#141414] border border-zinc-800/50 rounded-2xl p-1.5 shadow-sm">
-                  <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-1.5">
-                    <Calendar size={14} className="text-[#00E676]" />
+                <div className="flex items-center justify-center w-full gap-2 bg-[#141414] border border-zinc-800/50 rounded-2xl p-2 shadow-sm">
+                  <div className="flex items-center gap-1.5 bg-white/5 rounded-xl px-2.5 py-2 flex-1 sm:flex-none">
+                    <Calendar size={14} className="text-[#00E676] shrink-0" />
                     <input 
                       type="date" 
                       value={customStartDate} 
                       onChange={e => setCustomStartDate(e.target.value)} 
-                      className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[90px] sm:w-[100px]"
+                      className="bg-transparent text-[11px] sm:text-xs text-white font-bold focus:outline-none w-full sm:w-[120px]"
                     />
                   </div>
-                  <span className="text-zinc-600 font-bold text-[10px] uppercase">Até</span>
-                  <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-1.5">
-                    <Calendar size={14} className="text-red-400" />
+                  <span className="text-zinc-600 font-bold text-[10px] uppercase shrink-0">até</span>
+                  <div className="flex items-center gap-1.5 bg-white/5 rounded-xl px-2.5 py-2 flex-1 sm:flex-none">
+                    <Calendar size={14} className="text-red-400 shrink-0" />
                     <input 
                       type="date" 
                       value={customEndDate} 
                       onChange={e => setCustomEndDate(e.target.value)} 
-                      className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[90px] sm:w-[100px]"
+                      className="bg-transparent text-[11px] sm:text-xs text-white font-bold focus:outline-none w-full sm:w-[120px]"
                     />
                   </div>
                 </div>
