@@ -110,6 +110,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedReceivable, setSelectedReceivable] = useState<Receivable | null>(null);
   const [period, setPeriod] = useState<Period>('month');
+  const [customStartDate, setCustomStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [customEndDate, setCustomEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [receivablesSearch, setReceivablesSearch] = useState('');
 
   // Bloqueio de acesso para não-ADM
@@ -508,6 +510,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
       case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
       case 'year': start = startOfYear(now); end = endOfYear(now); break;
+      case 'custom':
+        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
+        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
+        break;
       default: start = startOfMonth(now); end = endOfMonth(now); break;
     }
 
@@ -716,6 +722,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         start = startOfYear(now);
         end = endOfYear(now);
         break;
+      case 'custom':
+        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
+        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
+        break;
       default:
         start = startOfMonth(now);
         end = endOfMonth(now);
@@ -775,6 +785,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
       case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
       case 'year': start = startOfYear(now); end = endOfYear(now); break;
+      case 'custom':
+        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
+        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
+        break;
       default: start = startOfMonth(now); end = endOfMonth(now); break;
     }
 
@@ -823,7 +837,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
             </div>
           </div>
           
-          <div className="flex w-full sm:w-auto bg-[#121212] p-1 rounded-2xl border border-zinc-800/50 overflow-hidden">
+          <div className="hidden md:flex w-full sm:w-auto bg-[#121212] p-1 rounded-2xl border border-zinc-800/50 overflow-hidden">
             <div className="flex w-full overflow-x-auto custom-scrollbar sm:scrollbar-hide shrink-0 gap-1">
               <button 
                 onClick={() => setActiveTab('EXTRATO')} 
@@ -848,7 +862,135 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6 sm:space-y-8">
+        
+        {/* Stat Cards from Resumo - Agora Globais e responsivas em Grid no mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div 
+            onClick={() => setActiveTab('EXTRATO')}
+            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/5 hover:border-emerald-500/20'}`}
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
+                <TrendingUp size={16} className="sm:hidden" /><TrendingUp size={20} className="hidden sm:block" />
+              </div>
+              <span className="text-[8px] sm:text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-2 py-1 rounded-lg">Entradas</span>
+            </div>
+            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">Recebido</h3>
+            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('EXTRATO')}
+            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' ? 'border-red-500/50 bg-red-500/5' : 'border-white/5 hover:border-red-500/20'}`}
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
+                <TrendingDown size={16} className="sm:hidden" /><TrendingDown size={20} className="hidden sm:block" />
+              </div>
+              <span className="text-[8px] sm:text-[9px] font-bold text-red-500 uppercase tracking-widest bg-red-500/5 px-2 py-1 rounded-lg">Saídas</span>
+            </div>
+            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">Pago</h3>
+            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {stats.expenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('PAGAR')}
+            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5 hover:border-amber-500/20'}`}
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center">
+                <History size={16} className="sm:hidden" /><History size={20} className="hidden sm:block" />
+              </div>
+              <span className="text-[8px] sm:text-[9px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/5 px-2 py-1 rounded-lg truncate max-w-[60px]">Pendência</span>
+            </div>
+            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">A Pagar</h3>
+            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('RECEBER')}
+            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'RECEBER' ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 hover:border-blue-500/20'}`}
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
+                <ArrowUpRight size={16} className="sm:hidden" /><ArrowUpRight size={20} className="hidden sm:block" />
+              </div>
+              <span className="text-[8px] sm:text-[9px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/5 px-2 py-1 rounded-lg">Futuras</span>
+            </div>
+            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">A Receber</h3>
+            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {((stats as any).pendingReceivables || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('EXTRATO')}
+            className="cursor-pointer col-span-2 lg:col-span-1 bg-[#00E676]/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-[#00E676]/20 relative overflow-hidden group hover:border-[#00E676]/50 transition-colors"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[#00E676]/10 blur-3xl -mr-12 -mt-12 rounded-full group-hover:bg-[#00E676]/20 transition-all" />
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#00E676]/20 text-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,230,118,0.2)]">
+                  <DollarSign size={16} className="sm:hidden" /><DollarSign size={20} className="hidden sm:block" />
+                </div>
+                <span className="text-[8px] sm:text-[9px] font-bold text-[#00E676] uppercase tracking-widest bg-[#00E676]/10 px-2 py-1 rounded-lg">Saldo</span>
+              </div>
+              <div>
+                <h3 className="text-[#00E676]/70 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">Lucro Líquido</h3>
+                <p className={`text-xl sm:text-2xl font-black tracking-tight truncate ${stats.profit >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
+                  R$ {stats.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Period Filters - Global and in one line */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 custom-scrollbar flex-1">
+            {(['today', 'week', 'month', 'year', 'custom'] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-4 sm:px-5 py-2 rounded-full text-[10px] sm:text-xs font-bold border transition-all ${
+                  period === p 
+                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
+                    : 'bg-white/5 border-white/5 text-zinc-500 hover:text-white'
+                }`}
+              >
+                {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : p === 'year' ? 'Ano' : 'Personalizado'}
+              </button>
+            ))}
+          </div>
+          
+          <AnimatePresence>
+            {period === 'custom' && (
+              <motion.div 
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                className="flex items-center gap-2 overflow-hidden whitespace-nowrap shrink-0"
+              >
+                <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-full px-3 py-1">
+                  <Calendar size={14} className="text-zinc-500" />
+                  <input 
+                    type="date" 
+                    value={customStartDate} 
+                    onChange={e => setCustomStartDate(e.target.value)} 
+                    className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[100px]"
+                  />
+                  <span className="text-zinc-500 text-[10px]">-</span>
+                  <input 
+                    type="date" 
+                    value={customEndDate} 
+                    onChange={e => setCustomEndDate(e.target.value)} 
+                    className="bg-transparent text-[10px] sm:text-xs text-white font-bold focus:outline-none w-[100px]"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         <AnimatePresence mode="wait">
           {/* Removida aba RESUMO isolada para unificar no Fluxo de Caixa */}
           
@@ -860,85 +1002,6 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
               exit={{ opacity: 0, scale: 0.98 }}
               className="space-y-6"
             >
-              {/* Period Filters */}
-              <div className="flex flex-wrap items-center gap-2 pb-4">
-                {(['today', 'week', 'month', 'year', 'custom'] as Period[]).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPeriod(p)}
-                    className={`px-5 py-2 rounded-full text-xs font-bold border transition-all whitespace-nowrap ${
-                      period === p 
-                        ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
-                        : 'bg-white/5 border-white/5 text-zinc-500 hover:text-white'
-                    }`}
-                  >
-                    {p === 'today' ? 'Hoje' : p === 'week' ? 'Esta Semana' : p === 'month' ? 'Este Mês' : p === 'year' ? 'Este Ano' : 'Personalizado'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Stat Cards from Resumo */}
-              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:pb-0 custom-scrollbar">
-                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-emerald-500/20 transition-colors shrink-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                      <TrendingUp size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-2 py-1 rounded-lg">Entradas</span>
-                  </div>
-                  <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Recebido</h3>
-                  <p className="text-xl font-bold text-white tracking-tight">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-
-                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-red-500/20 transition-colors shrink-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
-                      <TrendingDown size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-widest bg-red-500/5 px-2 py-1 rounded-lg">Saídas</span>
-                  </div>
-                  <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Pago</h3>
-                  <p className="text-xl font-bold text-white tracking-tight">R$ {stats.expenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-
-                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-amber-500/20 transition-colors shrink-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center">
-                      <History size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/5 px-2 py-1 rounded-lg">Pendência</span>
-                  </div>
-                  <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">A Pagar</h3>
-                  <p className="text-xl font-bold text-white tracking-tight">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-
-                <div className="min-w-[240px] sm:min-w-0 snap-center glass-panel p-6 rounded-[32px] border border-white/5 hover:border-blue-500/20 transition-colors shrink-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
-                      <ArrowUpRight size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/5 px-2 py-1 rounded-lg">Futuras</span>
-                  </div>
-                  <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">A Receber</h3>
-                  <p className="text-xl font-bold text-white tracking-tight">R$ {((stats as any).pendingReceivables || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-
-                <div className="min-w-[240px] sm:min-w-0 snap-center bg-[#00E676]/5 p-6 rounded-[32px] border border-[#00E676]/20 relative overflow-hidden group shrink-0">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#00E676]/10 blur-3xl -mr-12 -mt-12 rounded-full group-hover:bg-[#00E676]/20 transition-all" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 bg-[#00E676]/20 text-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,230,118,0.2)]">
-                        <DollarSign size={20} />
-                      </div>
-                      <span className="text-[9px] font-bold text-[#00E676] uppercase tracking-widest bg-[#00E676]/10 px-2 py-1 rounded-lg">Saldo</span>
-                    </div>
-                    <h3 className="text-[#00E676]/70 text-[10px] font-bold uppercase tracking-widest mb-1">Lucro Líquido</h3>
-                    <p className={`text-xl font-black tracking-tight ${stats.profit >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
-                      R$ {stats.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </div>
-              </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-4">
@@ -1047,6 +1110,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                       case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
                       case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
                       case 'year': start = startOfYear(now); end = endOfYear(now); break;
+                      case 'custom':
+                        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
+                        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
+                        break;
                       default: start = startOfMonth(now); end = endOfMonth(now); break;
                     }
 
