@@ -202,10 +202,26 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
       };
 
       if (editForm.id === 'NEW') {
-        // 1. Atualizar a OS para Reparo Concluído
+        // 1. Atualizar a OS para Reparo Concluído e salvar os termos de garantia
+        const { data: orderData } = await supabase
+          .from('orders')
+          .select('completion_data')
+          .eq('id', editForm.os_id)
+          .single();
+
+        const newCompletionData = {
+          ...(orderData?.completion_data || {}),
+          warrantyDays: editForm.duration_days,
+          warrantyTerms: (editForm as any)._warranty_terms
+        };
+
         const { error: osError } = await supabase
           .from('orders')
-          .update({ status: 'Reparo Concluído', updated_at: new Date().toISOString() })
+          .update({ 
+            status: 'Reparo Concluído', 
+            completion_data: newCompletionData,
+            updated_at: new Date().toISOString() 
+          })
           .eq('id', editForm.os_id);
 
         if (osError) throw osError;
@@ -400,7 +416,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         .from('orders')
         .select(`
           *,
-          customer:customers(id, name, whatsapp)
+          customer:customers(*)
         `)
         .eq('company_id', profile.company_id)
         .not('status', 'in', '("Orçamento Cancelado", "Sem Reparo", "Equipamento Retirado")')
@@ -423,13 +439,24 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   }, [isNewWarrantyModalOpen]);
 
   const handleCreateWarrantyFromOS = (order: any) => {
-    setOsToConfirm(order);
+    // Se já está com status Reparo Concluído, pular confirmação
+    if (order.status === 'Reparo Concluído') {
+      setOsToConfirm(null);
+      // Vai direto para a preparação do form
+      prepareNewWarrantyForm(order);
+    } else {
+      setOsToConfirm(order);
+    }
   };
 
   const confirmCreateWarrantyFromOS = async () => {
     if (!osToConfirm) return;
     const order = osToConfirm;
     setOsToConfirm(null);
+    prepareNewWarrantyForm(order);
+  };
+
+  const prepareNewWarrantyForm = (order: any) => {
     setIsNewWarrantyModalOpen(false);
 
     try {
@@ -440,15 +467,26 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
       
       const endDate = addDays(new Date(), warrantyDays).toISOString();
       
-      const customerName = order.customer?.name || 'Cliente';
+      const customer = order.customer || {};
+      const customerName = customer.name || 'Cliente';
       const osNumberStr = (order.os_number || order.osNumber || 0).toString().padStart(4, '0');
       
       const equipmentStr = typeof order.equipment === 'string' 
         ? order.equipment 
         : `${order.equipment?.brand || ''} ${order.equipment?.model || ''}`.trim() || 'Equipamento';
 
+      // Texto dos termos padrão
+      const defaultTerms = osSettings?.warrantyTerms || (
+        "• A garantia tem cobertura exclusiva aos serviços e peças componentes do reparo atual descritos neste documento.\n" +
+        "• Ocorrerá a perda imediata da garantia em caso de rompimento, ausência ou violação dos selos de segurança.\n" +
+        "• A garantia não abrange novos defeitos não relacionados à natureza do problema original reparado.\n" +
+        "• Danos gerados por mau uso, quebras estruturais, exposição a umidade, líquidos, quedas acidentais ou flutuação extrema de energia elétrica em carregadores genéricos anulam automaticamente qualquer cobertura.\n" +
+        "• Não nos responsabilizamos por perdas de dados, softwares, fotos ou informações contidas sob posse do dispositivo em caso de falha de hardware.\n" +
+        "• Para acionar a garantia nos meses supracitados, é indispensável a exibição deste termo assim como das peças em questão."
+      );
+
       // Criamos um objeto "mock" para abrir a tela de edição em modo de inserção
-      const newWarrantyObj = {
+      const newWarrantyObj: any = {
         id: 'NEW', // flag especial
         company_id: profile.company_id,
         user_id: profile.user_id || profile.id || null,
@@ -461,7 +499,21 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         end_date: endDate,
         duration_days: warrantyDays,
         notes: order.completion_data?.technicianObservations || '',
-        status: 'Ativa'
+        status: 'Ativa',
+        // Dados extras para exibição no form
+        _customer_phone: customer.whatsapp || customer.phone || '',
+        _customer_email: customer.email || '',
+        _customer_document: customer.document || '',
+        _customer_address: customer.address ? `${customer.address.street || ''}${customer.address.number ? ', ' + customer.address.number : ''} - ${customer.address.neighborhood || ''} - ${customer.address.city || ''}/${customer.address.state || ''}` : '',
+        _equipment_type: order.equipment?.type || '',
+        _equipment_brand: order.equipment?.brand || '',
+        _equipment_model: order.equipment?.model || '',
+        _equipment_serial: order.equipment?.serial || '',
+        _equipment_color: order.equipment?.color || '',
+        _defect: order.defect || '',
+        _warranty_terms: defaultTerms,
+        _technician_signature: order.completion_data?.signatures?.technician || order.signatures?.technician || null,
+        _os_status: order.status
       };
 
       setEditForm(newWarrantyObj);
@@ -728,27 +780,95 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
               <div className="p-6 sm:p-8 overflow-y-auto max-h-[70vh] space-y-6">
                 {isEditing ? (
                   <div className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Cliente</label>
-                        <input 
-                          type="text"
-                          value={editForm.client_name || ''}
-                          onChange={e => setEditForm({ ...editForm, client_name: e.target.value })}
-                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
-                        />
+                    {/* SEÇÃO: DADOS DO CLIENTE */}
+                    <div className="bg-zinc-900/30 border border-zinc-800/60 rounded-md p-4 space-y-4">
+                      <p className="text-[10px] font-black text-[#00E676] uppercase tracking-widest flex items-center gap-2">
+                        <User size={12} /> Dados do Cliente
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Nome</label>
+                          <input 
+                            type="text"
+                            value={editForm.client_name || ''}
+                            onChange={e => setEditForm({ ...editForm, client_name: e.target.value })}
+                            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                          />
+                        </div>
+                        {(editForm as any)?._customer_document && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">CPF / CNPJ</label>
+                            <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._customer_document}</div>
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Equipamento</label>
-                        <input 
-                          type="text"
-                          value={editForm.equipment || ''}
-                          onChange={e => setEditForm({ ...editForm, equipment: e.target.value })}
-                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {(editForm as any)?._customer_phone && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Telefone / WhatsApp</label>
+                            <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._customer_phone}</div>
+                          </div>
+                        )}
+                        {(editForm as any)?._customer_email && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Email</label>
+                            <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._customer_email}</div>
+                          </div>
+                        )}
                       </div>
+                      {(editForm as any)?._customer_address && (
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Endereço</label>
+                          <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._customer_address}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* SEÇÃO: DADOS DO EQUIPAMENTO */}
+                    <div className="bg-zinc-900/30 border border-zinc-800/60 rounded-md p-4 space-y-4">
+                      <p className="text-[10px] font-black text-[#00E676] uppercase tracking-widest flex items-center gap-2">
+                        <Smartphone size={12} /> Equipamento
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Equipamento (Marca + Modelo)</label>
+                          <input 
+                            type="text"
+                            value={editForm.equipment || ''}
+                            onChange={e => setEditForm({ ...editForm, equipment: e.target.value })}
+                            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                          />
+                        </div>
+                        {(editForm as any)?._equipment_type && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Tipo</label>
+                            <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._equipment_type}</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {(editForm as any)?._equipment_serial && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">IMEI / Serial</label>
+                            <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300 font-mono">{(editForm as any)._equipment_serial}</div>
+                          </div>
+                        )}
+                        {(editForm as any)?._equipment_color && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Cor</label>
+                            <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._equipment_color}</div>
+                          </div>
+                        )}
+                      </div>
+                      {(editForm as any)?._defect && (
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Defeito Relatado</label>
+                          <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm text-zinc-300">{(editForm as any)._defect}</div>
+                        </div>
+                      )}
                     </div>
                     
+                    {/* SEÇÃO: SERVIÇO */}
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Serviço Realizado</label>
                       <textarea 
@@ -759,34 +879,84 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* SEÇÃO: DURAÇÃO DA GARANTIA */}
+                    <div className="space-y-3">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Início</label>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Início da Garantia</label>
                         <input 
                           type="date"
-                          value={editForm.start_date || ''}
+                          value={editForm.start_date ? editForm.start_date.split('T')[0] : ''}
                           onChange={e => setEditForm({ ...editForm, start_date: e.target.value })}
                           className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
                         />
                       </div>
+
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Duração (Dias)</label>
-                        <input 
-                          type="number"
-                          value={editForm.duration_days || ''}
-                          onChange={e => setEditForm({ ...editForm, duration_days: parseInt(e.target.value) || 0 })}
-                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all"
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Período de Garantia (Dias)</label>
+                        <div className="flex flex-wrap gap-2">
+                          {[30, 60, 90, 120, 180].map(days => (
+                            <button
+                              key={days}
+                              type="button"
+                              onClick={() => setEditForm({ ...editForm, duration_days: days })}
+                              className={`px-4 py-2.5 rounded-sm text-xs font-black uppercase tracking-wider transition-all border ${
+                                editForm.duration_days === days
+                                  ? 'bg-[#00E676] text-black border-[#00E676] shadow-lg shadow-[#00E676]/20'
+                                  : 'bg-zinc-900/50 text-zinc-300 border-zinc-800 hover:border-zinc-600'
+                              }`}
+                            >
+                              {days} dias
+                            </button>
+                          ))}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-zinc-500 font-bold uppercase">Outro:</span>
+                            <input 
+                              type="number"
+                              value={![30, 60, 90, 120, 180].includes(editForm.duration_days || 0) ? (editForm.duration_days || '') : ''}
+                              onChange={e => setEditForm({ ...editForm, duration_days: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 45"
+                              className={`w-20 bg-zinc-900/50 border rounded-sm px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all ${
+                                ![30, 60, 90, 120, 180].includes(editForm.duration_days || 0) && editForm.duration_days
+                                  ? 'border-[#00E676]'
+                                  : 'border-zinc-800'
+                              }`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Vencimento Calculado</label>
+                        <div className="w-full bg-black/40 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm font-bold text-[#00E676]">
+                          {format(addDays(parseISO((editForm.start_date || selectedWarranty.start_date || new Date().toISOString()).split('T')[0] || new Date().toISOString()), editForm.duration_days || 0), 'dd/MM/yyyy')}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SEÇÃO: TERMOS E CONDIÇÕES */}
+                    {(editForm as any)?._warranty_terms !== undefined && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Termos e Condições da Garantia (texto impresso)</label>
+                        <textarea 
+                          rows={6}
+                          value={(editForm as any)._warranty_terms || ''}
+                          onChange={e => setEditForm({ ...editForm, _warranty_terms: e.target.value } as any)}
+                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-xs text-zinc-300 focus:outline-none focus:border-[#00E676] transition-all resize-none leading-relaxed"
                         />
                       </div>
-                    </div>
+                    )}
 
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Vencimento Calculado</label>
-                      <div className="w-full bg-black/40 border border-zinc-800/50 rounded-sm px-4 py-3 text-sm font-bold text-[#00E676]">
-                        {format(addDays(parseISO(editForm.start_date || selectedWarranty.start_date), editForm.duration_days || 0), 'dd/MM/yyyy')}
+                    {/* SEÇÃO: ASSINATURA DO TÉCNICO */}
+                    {(editForm as any)?._technician_signature && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Assinatura do Técnico</label>
+                        <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 flex items-center justify-center">
+                          <img src={(editForm as any)._technician_signature} alt="Assinatura Técnico" className="max-h-20 object-contain" />
+                        </div>
                       </div>
-                    </div>
+                    )}
 
+                    {/* SEÇÃO: OBSERVAÇÕES */}
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Observações</label>
                       <textarea 
