@@ -769,13 +769,15 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => setIsEditing(!isEditing)}
-                    className={`p-2.5 rounded-md transition-all ${isEditing ? 'bg-zinc-800 text-white' : 'hover:bg-zinc-800 text-zinc-400 hover:text-white'}`}
-                    title={isEditing ? "Cancelar Edição" : "Editar Garantia"}
-                  >
-                    {isEditing ? <X size={20} /> : <Wrench size={20} />}
-                  </button>
+                  {editForm?.id !== 'NEW' && (
+                    <button 
+                      onClick={() => setIsEditing(!isEditing)}
+                      className={`p-2.5 rounded-md transition-all ${isEditing ? 'bg-zinc-800 text-white' : 'hover:bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                      title={isEditing ? "Cancelar Edição" : "Editar Garantia"}
+                    >
+                      {isEditing ? <X size={20} /> : <Wrench size={20} />}
+                    </button>
+                  )}
                   <button 
                     onClick={() => setSelectedWarranty(null)}
                     className="p-2.5 hover:bg-zinc-800 rounded-md transition-all text-zinc-500 hover:text-white"
@@ -996,9 +998,9 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                           </button>
                           
                           {(editForm as any)._technician_signature && (
-                            <div className="flex items-center gap-2">
-                              <div className="bg-white rounded-sm border border-zinc-700 h-10 px-2 flex items-center justify-center">
-                                <img src={(editForm as any)._technician_signature} alt="Assinatura" className="h-8 object-contain" />
+                            <div className="flex items-center gap-2 max-w-full overflow-hidden">
+                              <div className="bg-white rounded-sm border border-zinc-700 h-10 px-2 flex items-center justify-center max-w-[200px] overflow-hidden">
+                                <img src={(editForm as any)._technician_signature} alt="Assinatura" className="h-8 w-auto object-contain" />
                               </div>
                               <button
                                 type="button"
