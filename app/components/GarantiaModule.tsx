@@ -41,9 +41,11 @@ interface GarantiaModuleProps {
   companySettings: any;
   osSettings?: any;
   onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
+  initialOrderToCreate?: any;
+  onClearInitialOrder?: () => void;
 }
 
-export default function GarantiaModule({ profile, onBack, onShowToast, companySettings, osSettings, onLogActivity }: GarantiaModuleProps) {
+export default function GarantiaModule({ profile, onBack, onShowToast, companySettings, osSettings, onLogActivity, initialOrderToCreate, onClearInitialOrder }: GarantiaModuleProps) {
   const [warranties, setWarranties] = useState<Warranty[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,6 +130,14 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   useEffect(() => {
     fetchWarranties();
   }, []);
+
+  useEffect(() => {
+    if (initialOrderToCreate) {
+      setIsNewWarrantyModalOpen(true);
+      prepareNewWarrantyForm(initialOrderToCreate);
+      if (onClearInitialOrder) onClearInitialOrder();
+    }
+  }, [initialOrderToCreate]);
 
   const fetchWarranties = async () => {
     setLoading(true);

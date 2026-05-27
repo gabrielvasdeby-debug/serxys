@@ -70,6 +70,7 @@ export default function ServyxApp() {
 
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [activeBanner, setActiveBanner] = React.useState<any>(null);
+  const [warrantyInitialOrder, setWarrantyInitialOrder] = React.useState<any>(null);
 
   // Auto-banner logic for new unread notifications
   React.useEffect(() => {
@@ -315,6 +316,10 @@ export default function ServyxApp() {
                   setEditingOrder(order); 
                   setView('NOVA_OS'); 
                 }} 
+                onNavigateToGarantia={(order) => {
+                  setWarrantyInitialOrder(order);
+                  setView('GARANTIA');
+                }}
                 onLogActivity={logActivity}
               />
             </motion.div>
@@ -356,7 +361,16 @@ export default function ServyxApp() {
           )}
           {view === 'GARANTIA' && selectedProfile && (
             <motion.div key="garantia" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute inset-0 overflow-y-auto">
-              <GarantiaModule profile={selectedProfile} onBack={() => setView('DASHBOARD')} onShowToast={setToastMessage} companySettings={companySettings} osSettings={osSettings} onLogActivity={logActivity} />
+              <GarantiaModule 
+                profile={selectedProfile} 
+                onBack={() => setView('DASHBOARD')} 
+                onShowToast={setToastMessage} 
+                companySettings={companySettings} 
+                osSettings={osSettings} 
+                onLogActivity={logActivity}
+                initialOrderToCreate={warrantyInitialOrder}
+                onClearInitialOrder={() => setWarrantyInitialOrder(null)}
+              />
             </motion.div>
           )}
           {view === 'RELACIONAMENTO' && selectedProfile && (

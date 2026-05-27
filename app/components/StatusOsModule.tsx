@@ -371,6 +371,7 @@ interface StatusOsModuleProps {
   osSettings: any;
   companySettings: any;
   onEdit?: (order: Order) => void;
+  onNavigateToGarantia?: (order: any) => void;
   onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
 }
 
@@ -416,6 +417,7 @@ export default function StatusOsModule({
   osSettings,
   companySettings,
   onEdit,
+  onNavigateToGarantia,
   onLogActivity
 }: StatusOsModuleProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -2666,7 +2668,7 @@ export default function StatusOsModule({
                             return;
                           }
                           if (newStatus === 'Reparo Concluído') {
-                            setIsFinishing(true);
+                            if (onNavigateToGarantia) onNavigateToGarantia(selectedOrder);
                           } else {
                             updateOrderStatus(selectedOrder, newStatus);
                             setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
@@ -3730,7 +3732,7 @@ export default function StatusOsModule({
                           return;
                         }
                         if (newStatus === 'Reparo Concluído') {
-                          setIsFinishing(true);
+                          if (onNavigateToGarantia) onNavigateToGarantia(selectedOrder);
                         } else {
                           updateOrderStatus(selectedOrder, newStatus);
                           setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
@@ -4953,8 +4955,7 @@ export default function StatusOsModule({
                           }
                           updateOrderStatus(orderToQuickStatus, 'Equipamento Retirado');
                         } else if (newStatus === 'Reparo Concluído') {
-                          setSelectedOrder(orderToQuickStatus);
-                          setIsFinishing(true);
+                          if (onNavigateToGarantia) onNavigateToGarantia(orderToQuickStatus);
                         } else {
                           updateOrderStatus(orderToQuickStatus, newStatus);
                         }
