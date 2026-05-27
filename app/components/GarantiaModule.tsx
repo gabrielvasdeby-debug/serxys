@@ -427,11 +427,16 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
           customer:customers(*)
         `)
         .eq('company_id', profile.company_id)
-        .not('status', 'in', '("Orçamento Cancelado", "Sem Reparo", "Equipamento Retirado")')
+        .not('status', 'in', '("Orçamento Cancelado","Sem Reparo","Equipamento Retirado")')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOpenOrders(data || []);
+      
+      // Filtrar ordens que já possuem garantia
+      const existingOsIds = warranties.map(w => w.os_id);
+      const filteredOrders = (data || []).filter((order: any) => !existingOsIds.includes(order.id));
+      
+      setOpenOrders(filteredOrders);
     } catch (err: any) {
       console.error('Erro ao buscar OS em aberto:', err);
       onShowToast('Erro ao carregar ordens de serviço');
