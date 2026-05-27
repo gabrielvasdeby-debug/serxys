@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Search, ShieldCheck, ShieldAlert, Filter, 
   Calendar, User, Smartphone, FileText, CheckCircle2, XCircle, 
-  Eye, Printer, MessageCircle, Clock, Save, ChevronDown, Wrench, X, Share2
+  Eye, Printer, MessageCircle, Clock, Save, ChevronDown, Wrench, X, Share2, Pen
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { format, isAfter, isBefore, addDays, parseISO } from 'date-fns';
@@ -64,6 +64,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   const [isCreatingNewWarranty, setIsCreatingNewWarranty] = useState(false);
   const [osToConfirm, setOsToConfirm] = useState<any>(null);
   const [showDurationPicker, setShowDurationPicker] = useState(false);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const sigCanvasRef = useRef<any>(null);
 
   const selectedWarrantyData = useMemo(() => {
@@ -980,39 +981,35 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                       />
                     </div>
 
-                    {/* SEÇÃO: ASSINATURA DO TÉCNICO (pad interativo) */}
+                    {/* SEÇÃO: ASSINATURA DO TÉCNICO (botão abrindo modal) */}
                     {editForm.id === 'NEW' && (
                       <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Assinatura do Técnico</label>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Assinatura do Técnico</label>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                           <button
                             type="button"
-                            onClick={() => {
-                              if (sigCanvasRef.current) sigCanvasRef.current.clear();
-                              setEditForm({ ...editForm, _technician_signature: null } as any);
-                            }}
-                            className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors"
+                            onClick={() => setIsSignatureModalOpen(true)}
+                            className="bg-[#00E676] hover:bg-[#00c853] text-black font-bold py-2.5 px-4 rounded-sm text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
                           >
-                            Limpar
+                            <Pen size={14} /> 
+                            {editForm._technician_signature ? 'Alterar Assinatura' : 'Coletar Assinatura'}
                           </button>
+                          
+                          {(editForm as any)._technician_signature && (
+                            <div className="flex items-center gap-2">
+                              <div className="bg-white rounded-sm border border-zinc-700 h-10 px-2 flex items-center justify-center">
+                                <img src={(editForm as any)._technician_signature} alt="Assinatura" className="h-8 object-contain" />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setEditForm({ ...editForm, _technician_signature: null } as any)}
+                                className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors"
+                              >
+                                Limpar
+                              </button>
+                            </div>
+                          )}
                         </div>
-                        <div className="w-full bg-white rounded-sm border border-zinc-700 overflow-hidden" style={{ touchAction: 'none' }}>
-                          <SignatureCanvas
-                            ref={sigCanvasRef}
-                            penColor="#1a1a1a"
-                            canvasProps={{
-                              className: 'w-full',
-                              style: { width: '100%', height: '120px' }
-                            }}
-                            onEnd={() => {
-                              if (sigCanvasRef.current) {
-                                const dataUrl = sigCanvasRef.current.getTrimmedCanvas().toDataURL('image/png');
-                                setEditForm({ ...editForm, _technician_signature: dataUrl } as any);
-                              }
-                            }}
-                          />
-                        </div>
-                        <p className="text-[9px] text-zinc-600 ml-2">Assine com o dedo ou mouse acima</p>
                       </div>
                     )}
                   </div>
@@ -1336,6 +1333,86 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Signature Modal */}
+      <AnimatePresence>
+        {isSignatureModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsSignatureModalOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#1a1a1a] border border-zinc-800 rounded-lg shadow-2xl w-full max-w-lg relative z-10 overflow-hidden flex flex-col"
+            >
+              <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-[#141414]">
+                <div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                    <Pen size={16} className="text-[#00E676]" /> Coletar Assinatura
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-1">Assine com o dedo ou mouse na área abaixo.</p>
+                </div>
+                <button
+                  onClick={() => setIsSignatureModalOpen(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-4 bg-zinc-900/50">
+                <div className="w-full bg-white rounded-md border-2 border-dashed border-zinc-500 overflow-hidden" style={{ touchAction: 'none' }}>
+                  <SignatureCanvas
+                    ref={sigCanvasRef}
+                    penColor="#1a1a1a"
+                    canvasProps={{
+                      className: 'w-full',
+                      style: { width: '100%', height: '250px' }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-zinc-800 flex justify-between items-center bg-[#141414]">
+                <button
+                  onClick={() => {
+                    if (sigCanvasRef.current) sigCanvasRef.current.clear();
+                  }}
+                  className="px-4 py-2 text-sm text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors"
+                >
+                  Limpar
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsSignatureModalOpen(false)}
+                    className="px-4 py-2 rounded-sm bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+                        const dataUrl = sigCanvasRef.current.getTrimmedCanvas().toDataURL('image/png');
+                        setEditForm({ ...editForm, _technician_signature: dataUrl } as any);
+                      }
+                      setIsSignatureModalOpen(false);
+                    }}
+                    className="px-6 py-2 rounded-sm bg-[#00E676] hover:bg-[#00c853] text-black text-xs font-bold uppercase tracking-wider transition-colors shadow-lg shadow-[#00E676]/20 flex items-center gap-2"
+                  >
+                    <Save size={14} /> Salvar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
