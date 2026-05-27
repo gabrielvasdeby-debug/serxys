@@ -5,10 +5,7 @@ const nextConfig: NextConfig = {
     // Ignora erros de tipo do TypeScript no build de produção da Vercel
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // Ignora avisos/erros do ESLint durante o build de produção
-    ignoreDuringBuilds: true,
-  },
+
   images: {
     remotePatterns: [
       {
