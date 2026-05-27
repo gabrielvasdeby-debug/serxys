@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,6 +11,7 @@ import { format, isAfter, isBefore, addDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import WarrantyPrintTemplate from './WarrantyPrintTemplate';
 import WarrantyThermalTemplate from './WarrantyThermalTemplate';
+import SignatureCanvas from 'react-signature-canvas';
 
 interface Warranty {
   id: string;
@@ -62,6 +63,8 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
   const [isFetchingOrders, setIsFetchingOrders] = useState(false);
   const [isCreatingNewWarranty, setIsCreatingNewWarranty] = useState(false);
   const [osToConfirm, setOsToConfirm] = useState<any>(null);
+  const [showDurationPicker, setShowDurationPicker] = useState(false);
+  const sigCanvasRef = useRef<any>(null);
 
   const selectedWarrantyData = useMemo(() => {
     if (!selectedWarranty) return null;
@@ -212,7 +215,11 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         const newCompletionData = {
           ...(orderData?.completion_data || {}),
           warrantyDays: editForm.duration_days,
-          warrantyTerms: (editForm as any)._warranty_terms
+          warrantyTerms: (editForm as any)._warranty_terms,
+          signatures: {
+            ...(orderData?.completion_data?.signatures || {}),
+            technician: (editForm as any)._technician_signature || orderData?.completion_data?.signatures?.technician || null
+          }
         };
 
         const { error: osError } = await supabase
@@ -512,7 +519,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
         _equipment_color: order.equipment?.color || '',
         _defect: order.defect || '',
         _warranty_terms: defaultTerms,
-        _technician_signature: order.completion_data?.signatures?.technician || order.signatures?.technician || null,
+        _technician_signature: null,
         _os_status: order.status
       };
 
@@ -879,49 +886,65 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                       />
                     </div>
 
-                    {/* SEÇÃO: DURAÇÃO DA GARANTIA */}
+                    {/* SEÇÃO: GARANTIA - Data + Período lado a lado */}
                     <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Início da Garantia</label>
-                        <input 
-                          type="date"
-                          value={editForm.start_date ? editForm.start_date.split('T')[0] : ''}
-                          onChange={e => setEditForm({ ...editForm, start_date: e.target.value })}
-                          className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Período de Garantia (Dias)</label>
-                        <div className="flex flex-wrap gap-2">
-                          {[30, 60, 90, 120, 180].map(days => (
-                            <button
-                              key={days}
-                              type="button"
-                              onClick={() => setEditForm({ ...editForm, duration_days: days })}
-                              className={`px-4 py-2.5 rounded-sm text-xs font-black uppercase tracking-wider transition-all border ${
-                                editForm.duration_days === days
-                                  ? 'bg-[#00E676] text-black border-[#00E676] shadow-lg shadow-[#00E676]/20'
-                                  : 'bg-zinc-900/50 text-zinc-300 border-zinc-800 hover:border-zinc-600'
-                              }`}
-                            >
-                              {days} dias
-                            </button>
-                          ))}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-zinc-500 font-bold uppercase">Outro:</span>
-                            <input 
-                              type="number"
-                              value={![30, 60, 90, 120, 180].includes(editForm.duration_days || 0) ? (editForm.duration_days || '') : ''}
-                              onChange={e => setEditForm({ ...editForm, duration_days: parseInt(e.target.value) || 0 })}
-                              placeholder="Ex: 45"
-                              className={`w-20 bg-zinc-900/50 border rounded-sm px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all ${
-                                ![30, 60, 90, 120, 180].includes(editForm.duration_days || 0) && editForm.duration_days
-                                  ? 'border-[#00E676]'
-                                  : 'border-zinc-800'
-                              }`}
-                            />
-                          </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Início</label>
+                          <input 
+                            type="date"
+                            value={editForm.start_date ? editForm.start_date.split('T')[0] : ''}
+                            onChange={e => setEditForm({ ...editForm, start_date: e.target.value })}
+                            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                          />
+                        </div>
+                        <div className="space-y-1.5 relative">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Período</label>
+                          <button
+                            type="button"
+                            onClick={() => setShowDurationPicker(!showDurationPicker)}
+                            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none hover:border-zinc-600 transition-all flex items-center justify-between"
+                          >
+                            <span className="font-bold">{editForm.duration_days || 90} dias</span>
+                            <ChevronDown size={16} className={`text-zinc-500 transition-transform ${showDurationPicker ? 'rotate-180' : ''}`} />
+                          </button>
+                          <AnimatePresence>
+                            {showDurationPicker && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -5 }}
+                                className="absolute top-full left-0 right-0 mt-1 bg-[#1A1A1A] border border-zinc-700 rounded-md shadow-2xl shadow-black/60 z-20 overflow-hidden"
+                              >
+                                {[30, 60, 90, 120, 180].map(days => (
+                                  <button
+                                    key={days}
+                                    type="button"
+                                    onClick={() => { setEditForm({ ...editForm, duration_days: days }); setShowDurationPicker(false); }}
+                                    className={`w-full px-4 py-2.5 text-left text-sm font-bold transition-colors flex items-center justify-between ${
+                                      editForm.duration_days === days
+                                        ? 'bg-[#00E676]/10 text-[#00E676]'
+                                        : 'text-zinc-300 hover:bg-zinc-800'
+                                    }`}
+                                  >
+                                    <span>{days} dias</span>
+                                    {editForm.duration_days === days && <CheckCircle2 size={14} />}
+                                  </button>
+                                ))}
+                                <div className="border-t border-zinc-800 px-4 py-2.5 flex items-center gap-2">
+                                  <span className="text-[10px] text-zinc-500 font-bold uppercase shrink-0">Outro:</span>
+                                  <input 
+                                    type="number"
+                                    value={![30, 60, 90, 120, 180].includes(editForm.duration_days || 0) ? (editForm.duration_days || '') : ''}
+                                    onChange={e => { setEditForm({ ...editForm, duration_days: parseInt(e.target.value) || 0 }); }}
+                                    onKeyDown={e => { if (e.key === 'Enter') setShowDurationPicker(false); }}
+                                    placeholder="Ex: 45"
+                                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded-sm px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#00E676] transition-all"
+                                  />
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
 
@@ -946,17 +969,7 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                       </div>
                     )}
 
-                    {/* SEÇÃO: ASSINATURA DO TÉCNICO */}
-                    {(editForm as any)?._technician_signature && (
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Assinatura do Técnico</label>
-                        <div className="w-full bg-black/30 border border-zinc-800/50 rounded-sm px-4 py-3 flex items-center justify-center">
-                          <img src={(editForm as any)._technician_signature} alt="Assinatura Técnico" className="max-h-20 object-contain" />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* SEÇÃO: OBSERVAÇÕES */}
+                    {/* SEÇÃO: OBSERVAÇÕES (abaixo dos termos) */}
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Observações</label>
                       <textarea 
@@ -966,6 +979,42 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
                         className="w-full bg-zinc-900/50 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all resize-none"
                       />
                     </div>
+
+                    {/* SEÇÃO: ASSINATURA DO TÉCNICO (pad interativo) */}
+                    {editForm.id === 'NEW' && (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Assinatura do Técnico</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (sigCanvasRef.current) sigCanvasRef.current.clear();
+                              setEditForm({ ...editForm, _technician_signature: null } as any);
+                            }}
+                            className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors"
+                          >
+                            Limpar
+                          </button>
+                        </div>
+                        <div className="w-full bg-white rounded-sm border border-zinc-700 overflow-hidden" style={{ touchAction: 'none' }}>
+                          <SignatureCanvas
+                            ref={sigCanvasRef}
+                            penColor="#1a1a1a"
+                            canvasProps={{
+                              className: 'w-full',
+                              style: { width: '100%', height: '120px' }
+                            }}
+                            onEnd={() => {
+                              if (sigCanvasRef.current) {
+                                const dataUrl = sigCanvasRef.current.getTrimmedCanvas().toDataURL('image/png');
+                                setEditForm({ ...editForm, _technician_signature: dataUrl } as any);
+                              }
+                            }}
+                          />
+                        </div>
+                        <p className="text-[9px] text-zinc-600 ml-2">Assine com o dedo ou mouse acima</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                    <div className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100 flex flex-col items-center relative custom-scrollbar p-0 sm:p-8 rounded-xl border border-zinc-800">
