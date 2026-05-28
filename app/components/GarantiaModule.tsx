@@ -114,15 +114,27 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
       updatedAt: selectedWarranty.start_date || new Date().toISOString()
     };
 
-    const customer = {
-      id: '',
-      name: selectedWarranty.client_name,
-      phone: '',
-      email: '',
-      document: '',
-      address: '',
-      createdAt: ''
-    };
+    const customer = relatedOrder?.customer
+      ? {
+          id: relatedOrder.customer.id || '',
+          name: relatedOrder.customer.name || selectedWarranty.client_name,
+          phone: relatedOrder.customer.phone || '',
+          whatsapp: relatedOrder.customer.whatsapp || '',
+          email: relatedOrder.customer.email || '',
+          document: relatedOrder.customer.document || '',
+          address: relatedOrder.customer.address || null,
+          createdAt: relatedOrder.customer.created_at || ''
+        }
+      : {
+          id: '',
+          name: selectedWarranty.client_name,
+          phone: '',
+          whatsapp: '',
+          email: '',
+          document: '',
+          address: null,
+          createdAt: ''
+        };
 
     return { order, customer };
   }, [selectedWarranty, companySettings, relatedOrder]);
@@ -181,7 +193,10 @@ export default function GarantiaModule({ profile, onBack, onShowToast, companySe
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          customer:customers(*)
+        `)
         .eq('id', osId)
         .single();
       
