@@ -2511,7 +2511,8 @@ export default function StatusOsModule({
                           setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                           if (newStatus === 'Reparo Concluído') {
                             if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
-                              if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus });
+                              const fullCustomer = customers.find(c => c.id === selectedOrder.customerId);
+                              if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus, customer: fullCustomer });
                             }
                           }
                         }}
@@ -3576,7 +3577,8 @@ export default function StatusOsModule({
                         setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                         if (newStatus === 'Reparo Concluído') {
                           if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
-                            if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus });
+                            const fullCustomer = customers.find(c => c.id === selectedOrder.customerId);
+                            if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus, customer: fullCustomer });
                           }
                         }
                       }}
@@ -4476,7 +4478,8 @@ export default function StatusOsModule({
                           updateOrderStatus(orderToQuickStatus, newStatus);
                           if (newStatus === 'Reparo Concluído') {
                             if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
-                              if (onNavigateToGarantia) onNavigateToGarantia({ ...orderToQuickStatus, status: newStatus });
+                              const fullCustomer = customers.find(c => c.id === orderToQuickStatus.customerId);
+                              if (onNavigateToGarantia) onNavigateToGarantia({ ...orderToQuickStatus, status: newStatus, customer: fullCustomer });
                             }
                           }
                         }
