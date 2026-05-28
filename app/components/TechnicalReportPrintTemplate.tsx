@@ -138,7 +138,7 @@ export default function TechnicalReportPrintTemplate({
             <h3 className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-2 border-l-2 border-zinc-300 pl-2">DADOS DO CLIENTE</h3>
             <div className="space-y-1 pl-2.5">
               <p className="text-xs shrink-0"><span className="text-[8px] font-bold text-zinc-400 uppercase mr-2">NOME:</span> <span className="font-bold">{customer?.name}</span></p>
-              <p className="text-xs shrink-0"><span className="text-[8px] font-bold text-zinc-400 uppercase mr-2">CONTATO:</span> {customer?.whatsapp || customer?.phone || '---'}</p>
+              <p className="text-xs shrink-0"><span className="text-[8px] font-bold text-zinc-400 uppercase mr-2">CONTATO:</span> {Array.from(new Set([customer?.whatsapp, customer?.phone].filter(Boolean))).join(' / ') || '---'}</p>
               <p className="text-xs shrink-0"><span className="text-[8px] font-bold text-zinc-400 uppercase mr-2">E-MAIL:</span> {customer?.email || '---'}</p>
             </div>
           </section>

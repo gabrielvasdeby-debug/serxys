@@ -61,7 +61,7 @@ export default function ThermalReceiptTemplate({
       {/* CUSTOMER INFO */}
       <div className="space-y-0.5">
         <p><strong>CLIENTE:</strong> {customer?.name || 'Não Identificado'}</p>
-        <p><strong>TEL:</strong> {customer?.phone || customer?.whatsapp || customer?.email || 'N/A'}</p>
+        <p><strong>TEL:</strong> {Array.from(new Set([customer?.phone, customer?.whatsapp].filter(Boolean))).join(' / ') || customer?.email || 'N/A'}</p>
       </div>
 
       <div className="border-t border-dashed border-black my-1" />

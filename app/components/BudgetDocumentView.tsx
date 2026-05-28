@@ -290,7 +290,7 @@ export default function BudgetDocumentView({
                 </div>
                 <div className="col-span-3 p-2 flex flex-col gap-0.5">
                   <span className="text-slate-400 font-bold uppercase">Telefone</span>
-                  <span className="font-bold text-slate-700">{customer?.whatsapp || customer?.phone || '—'}</span>
+                  <span className="font-bold text-slate-700">{Array.from(new Set([customer?.whatsapp, customer?.phone].filter(Boolean))).join(' / ') || '—'}</span>
                 </div>
                 <div className="col-span-3 p-2 flex flex-col gap-0.5">
                   <span className="text-slate-400 font-bold uppercase">E-mail</span>
