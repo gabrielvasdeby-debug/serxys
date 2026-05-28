@@ -17,6 +17,7 @@ import { subDays, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { capFirst } from '../utils/capFirst';
 import InfoTooltip from './InfoTooltip';
+import { mutate } from 'swr';
 
 
 
@@ -353,6 +354,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
       setViewMode('catalog');
       setIsProductModalOpen(false);
       setEditingProduct(null);
+      mutate(['caixa_static', profile.company_id]);
     } catch (error: any) {
       console.error('Error saving product:', error);
       const errorMessage = error.message || error.details || error.hint || JSON.stringify(error);
@@ -380,6 +382,7 @@ export default function ProdutosModule({ profile, onBack, onShowToast, products,
           });
           
           onShowToast('Produto excluído');
+          mutate(['caixa_static', profile.company_id]);
         } catch (error: any) {
           console.error('Error deleting product:', error);
           onShowToast('Erro ao excluir: ' + error.message);

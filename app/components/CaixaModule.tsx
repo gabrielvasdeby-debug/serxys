@@ -15,6 +15,7 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { capFirst } from '../utils/capFirst';
 import CountryCodePicker, { countries, Country } from './CountryCodePicker';
+import { mutate } from 'swr';
 import { formatPhone } from '../utils/formatPhone';
 import InfoTooltip from './InfoTooltip';
 import { Product, CashSession, Transaction, Sale } from '../types';
@@ -313,6 +314,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           initialValue,
           description: `Abriu o caixa do dia ${date} com saldo inicial de R$ ${initialValue.toFixed(2)}`
         });
+        mutate(['caixa_daily', profile.company_id, date]);
         if (onUpdateChecklist) onUpdateChecklist();
 
         const tourStep = localStorage.getItem('servyx_tour_step');
@@ -369,6 +371,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       });
       setCurrentSession(prev => prev ? { ...prev, status: 'closed', finalValue: closingData.finalValue } : null);
       setIsClosingModalOpen(false);
+      mutate(['caixa_daily', profile.company_id, currentSession.date]);
     } catch (error: any) {
       console.error('Erro ao fechar caixa:', error);
       onShowToast(`Erro ao fechar caixa: ${error?.message || 'Verifique o console'}`);
@@ -475,6 +478,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       } : null);
       setTransactions(mappedTrans);
       onShowToast('Caixa reaberto com saldo original mantido');
+      mutate(['caixa_daily', profile.company_id, session.date]);
 
       onLogActivity?.('CAIXA', 'REABRIU CAIXA', {
         date: session.date,
@@ -606,6 +610,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           
           setTransactions(prev => prev.filter(tr => tr.id !== t.id));
           onShowToast(osId ? 'Estorno realizado e OS atualizada!' : 'Transação excluída');
+          mutate(['caixa_daily', profile.company_id, selectedDate]);
           
           onLogActivity?.('CAIXA', 'EXCLUIU LANCAMENTO', {
             transactionId: t.id,
@@ -687,6 +692,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           setSales(prev => prev.filter(s => s.id !== sale.id));
           setSelectedSale(null);
           onShowToast('Venda cancelada e produtos devolvidos ao estoque');
+          mutate(['caixa_daily', profile.company_id, selectedDate]);
+          mutate(['caixa_static', profile.company_id]);
           
           const productsList = sale.items && sale.items.length > 0
             ? sale.items.map((item: any) => `${item.productName} (${item.quantity}x)`).join(', ')
@@ -1316,6 +1323,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
                 onShowToast('Lançamento realizado');
                 setIsTransactionModalOpen(false);
+                mutate(['caixa_daily', profile.company_id, selectedDate]);
               } catch (e: any) { 
                 console.error('ERRO AO SALVAR TRANSAÇÃO:', e);
                 onShowToast(`Erro ao salvar: ${e.message || 'Verifique o console'}`); 
@@ -1480,6 +1488,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                    itemCount: saleData.items.length,
                    description: `Venda #${String(nextNumber).padStart(8, '0')} para ${saleData.customerName || 'Balcão'} — R$ ${saleData.total.toFixed(2)} (${saleData.paymentMethod})${productsList ? ` [${productsList}]` : ''}`
                  });
+                mutate(['caixa_daily', profile.company_id, selectedDate]);
+                mutate(['caixa_static', profile.company_id]);
                 return saleObj;
               } catch (e: any) { 
                 console.error('Erro na venda:', e);
