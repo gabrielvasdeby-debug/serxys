@@ -3649,7 +3649,7 @@ export default function StatusOsModule({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-5xl aspect-video sm:aspect-auto sm:h-[85vh] bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden flex flex-col"
+              className="relative w-full max-w-5xl h-[85vh] bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden flex flex-col"
             >
               <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-black/20">
                 <div className="flex items-center gap-3">
