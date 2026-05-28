@@ -23,6 +23,7 @@ export function useServyxApp() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const isPopState = useRef(false);
+  const isLoadingData = useRef(false);
 
   
   // Auto-clear toast messages after 4 seconds
@@ -261,6 +262,9 @@ export function useServyxApp() {
   }, []);
 
   const loadDataFromSupabase = useCallback(async () => {
+    // Guard: evitar chamadas simultâneas (ex: getSession + onAuthStateChange juntos)
+    if (isLoadingData.current) return [];
+    isLoadingData.current = true;
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
@@ -439,13 +443,18 @@ export function useServyxApp() {
     } catch (err: any) {
       console.error('Error loading data:', err.message || err);
       return [];
+    } finally {
+      isLoadingData.current = false;
     }
-  }, [handleLogout]);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+      // Só deslogar em SIGNED_OUT real.
+      // TOKEN_REFRESHED com session===null é transitório (Supabase renovando token)
+      // e NÃO deve causar logout — era a principal causa do redirect para PROFILES.
+      if (event === 'SIGNED_OUT') {
         if (mounted) handleLogout();
       }
     });
@@ -499,8 +508,8 @@ export function useServyxApp() {
       }
     });
 
-    return () => { 
-      mounted = false; 
+    return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [handleLogout, loadDataFromSupabase]);

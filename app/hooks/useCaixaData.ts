@@ -1,5 +1,5 @@
 // app/hooks/useCaixaData.ts
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import useSWR from 'swr';
 import { supabase } from '../supabase';
 import type { CaixaData } from '../types';
@@ -12,7 +12,7 @@ export const useCaixaData = (companyId: string, date: string) => {
       const [productsRes, customersRes] = await Promise.all([
         supabase
           .from('products')
-          .select('id, name, price, stock, category, min_stock, barcode, brand, model, image')
+          .select('id, name, price, stock, category, min_stock, barcode, brand, model')
           .eq('company_id', companyId)
           .limit(500),
         supabase
@@ -32,7 +32,6 @@ export const useCaixaData = (companyId: string, date: string) => {
         barcode: p.barcode,
         brand: p.brand,
         model: p.model,
-        image: p.image,
       }));
 
       return {
@@ -127,8 +126,9 @@ export const useCaixaData = (companyId: string, date: string) => {
     }
   );
 
-  const combinedData = React.useMemo(() => {
-    return (staticData && dailyData) ? { ...staticData, ...dailyData } : undefined;
+  const combinedData = useMemo(() => {
+    if (!staticData || !dailyData) return undefined;
+    return { ...staticData, ...dailyData };
   }, [staticData, dailyData]);
 
   return {
