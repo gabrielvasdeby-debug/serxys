@@ -3213,7 +3213,7 @@ export default function StatusOsModule({
                           <div className="grid grid-cols-3 gap-2">
                              {reportPhotos.map((photo, idx) => (
                                <div key={idx} className="aspect-square bg-zinc-900 rounded-sm border border-zinc-800 overflow-hidden relative group">
-                                 <img src={photo} alt="Evidência" className="w-full h-full object-cover" />
+                                 <img src={photo} alt="Evidência" className="w-full h-full object-contain bg-black/20" />
                                  <button onClick={() => setReportPhotos(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 p-1 bg-red-500 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
                                 </div>
                              ))}
@@ -3409,7 +3409,7 @@ export default function StatusOsModule({
                            <div className="grid grid-cols-2 gap-2">
                              {budgetPhotos.map((photo, idx) => (
                                <div key={idx} className="relative aspect-square rounded-sm overflow-hidden border border-zinc-800 group">
-                                 <img src={photo} alt="Foto" className="w-full h-full object-cover" />
+                                 <img src={photo} alt="Foto" className="w-full h-full object-contain bg-black/20" />
                                  <button onClick={() => setBudgetPhotos(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 p-1 bg-red-500 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
                                </div>
                              ))}
@@ -3680,7 +3680,7 @@ export default function StatusOsModule({
                       <img 
                         src={photo} 
                         alt={`Foto de Entrada ${idx + 1}`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-contain bg-black/40 group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
@@ -4281,8 +4281,8 @@ export default function StatusOsModule({
                     const opt = {
                       margin: 0,
                       filename: `garantia-os-${selectedOrder.osNumber.toString().padStart(4, '0')}.pdf`,
-                      image: { type: 'jpeg', quality: 0.98 },
-                      html2canvas: { scale: 2, useCORS: true },
+                      image: { type: 'jpeg', quality: 0.95 },
+                      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
                       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
                     

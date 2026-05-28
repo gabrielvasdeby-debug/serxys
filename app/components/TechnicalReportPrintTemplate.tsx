@@ -200,7 +200,7 @@ export default function TechnicalReportPrintTemplate({
               <div className="grid grid-cols-3 gap-4">
                 {report.photos.map((photo, idx) => (
                   <div key={idx} className="aspect-square bg-zinc-100 border border-zinc-200 rounded-lg overflow-hidden">
-                    <img src={photo} crossOrigin="anonymous" alt={`Anexo ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={photo} crossOrigin="anonymous" alt={`Anexo ${idx + 1}`} className="w-full h-full object-contain bg-zinc-100" />
                   </div>
                 ))}
               </div>

@@ -44,7 +44,7 @@ export async function generatePDFData(
   templateElement: ReactElement,
   opts: SharePDFOptions = {}
 ): Promise<{ pdfBlob: Blob; url: string; imgData: string }> {
-  const { width = 794, scale = 1.5, renderDelay = 600 } = opts;
+  const { width = 794, scale = 2, renderDelay = 800 } = opts;
 
   // 1. Off-screen container (visible but behind content via z-index)
   const offscreen = document.createElement('div');
@@ -66,7 +66,7 @@ export async function generatePDFData(
     const { toJpeg } = await import('html-to-image');
 
     const imgData = await toJpeg(offscreen, {
-      quality: 0.92,
+      quality: 0.95,
       backgroundColor: '#ffffff',
       width: width,
       pixelRatio: scale,

@@ -390,7 +390,7 @@ export default function BudgetDocumentView({
                       onClick={() => openLightbox(i)}
                       className="aspect-video bg-slate-100 rounded-sm overflow-hidden relative group border border-slate-200 hover:border-slate-400 transition-colors"
                     >
-                      <img src={photo} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                      <img src={photo} alt={`Foto ${i + 1}`} className="w-full h-full object-contain bg-zinc-100" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                         <ZoomIn size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
