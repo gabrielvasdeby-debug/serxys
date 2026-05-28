@@ -2423,7 +2423,7 @@ export default function StatusOsModule({
 
       {/* OS Details Modal */}
       <AnimatePresence>
-        {selectedOrder && !isFinishing && (
+        {selectedOrder && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -2449,7 +2449,7 @@ export default function StatusOsModule({
                     </button>
                     <div className="flex items-center gap-2 bg-zinc-900/80 px-3 py-2 rounded-sm border border-zinc-800 shadow-inner">
                       <span className="text-[16px] sm:text-[18px] font-black font-mono text-[#00E676] tracking-wider uppercase">
-                        OS {selectedOrder.osNumber.toString().padStart(4, '0')}
+                        OS {selectedOrder.osNumber?.toString().padStart(4, '0') || '---'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 ml-1">
@@ -2493,7 +2493,7 @@ export default function StatusOsModule({
                         onChange={(e) => {
                           const newStatus = e.target.value as OrderStatus;
                           if (newStatus === 'Equipamento Retirado') {
-                            const balance = selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0);
+                            const balance = (selectedOrder.financials?.totalValue || 0) - (selectedOrder.financials?.amountPaid || 0);
                             const hasWarrantyInOrder = selectedOrder.completionData?.warrantyDays || selectedOrder.completionData?.hasWarranty;
                             if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
                             if (balance > 0) {
@@ -2927,7 +2927,7 @@ export default function StatusOsModule({
                            <h3 className="text-sm font-black text-zinc-300 uppercase tracking-[0.2em] flex items-center gap-2">
                              <Banknote size={18} className="text-emerald-400" /> Valores e Serviço
                            </h3>
-                           {selectedOrder.financials.paymentStatus !== 'Total' && (
+                           {selectedOrder.financials?.paymentStatus !== 'Total' && (
                              <button
                                onClick={() => setIsPaymentModalOpen(true)}
                                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-sm text-xs font-bold uppercase transition-all flex items-center gap-2 w-fit"
@@ -2959,7 +2959,7 @@ export default function StatusOsModule({
                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Valor Total</p>
                              </div>
                              <p className="text-base font-bold text-white">
-                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials.totalValue)}
+                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials?.totalValue || 0)}
                              </p>
                            </div>
 
@@ -2971,11 +2971,11 @@ export default function StatusOsModule({
                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Valor Pago</p>
                              </div>
                              <p className="text-base font-bold text-emerald-500">
-                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials.amountPaid || 0)}
+                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials?.amountPaid || 0)}
                              </p>
                            </div>
 
-                            {selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0) > 0 && (
+                            {(selectedOrder.financials?.totalValue || 0) - (selectedOrder.financials?.amountPaid || 0) > 0 && (
                               <div className="flex items-center justify-between p-3.5 bg-orange-500/5 border border-orange-500/10 rounded-sm">
                                 <div className="flex items-center gap-3">
                                   <div className="p-2 bg-orange-500/10 rounded-sm text-orange-500">
@@ -2984,7 +2984,7 @@ export default function StatusOsModule({
                                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Saldo Restante</p>
                                 </div>
                                 <p className="text-base font-black text-orange-400">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0))}
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((selectedOrder.financials?.totalValue || 0) - (selectedOrder.financials?.amountPaid || 0))}
                                 </p>
                               </div>
                             )}
@@ -2997,7 +2997,7 @@ export default function StatusOsModule({
                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status Pag.</p>
                              </div>
                              <select
-                               value={selectedOrder.financials.paymentStatus}
+                               value={selectedOrder.financials?.paymentStatus || 'Pendente'}
                                onChange={(e) => {
                                  const newStatus = e.target.value as 'Total' | 'Parcial' | 'Pendente';
                                  updatePaymentStatus(selectedOrder, newStatus);
@@ -3007,8 +3007,8 @@ export default function StatusOsModule({
                                  } : null);
                                }}
                                className={`text-[10px] font-black uppercase tracking-wider bg-[#141414] border border-zinc-800 rounded-sm px-2 py-1 focus:outline-none focus:border-[#00E676] transition-colors appearance-none cursor-pointer text-right ${
-                                 selectedOrder.financials.paymentStatus === 'Total' ? 'text-emerald-500' :
-                                 selectedOrder.financials.paymentStatus === 'Parcial' ? 'text-blue-400' :
+                                 selectedOrder.financials?.paymentStatus === 'Total' ? 'text-emerald-500' :
+                                 selectedOrder.financials?.paymentStatus === 'Parcial' ? 'text-blue-400' :
                                  'text-red-400'
                                }`}
                              >
@@ -3557,7 +3557,7 @@ export default function StatusOsModule({
                       onChange={(e) => {
                         const newStatus = e.target.value as OrderStatus;
                         if (newStatus === 'Equipamento Retirado') {
-                          const balance = selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0);
+                          const balance = (selectedOrder.financials?.totalValue || 0) - (selectedOrder.financials?.amountPaid || 0);
                           const hasWarrantyInOrder = selectedOrder.completionData?.warrantyDays || selectedOrder.completionData?.hasWarranty;
                           if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
                           if (balance > 0) {
@@ -3795,8 +3795,8 @@ export default function StatusOsModule({
                   <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Resumo Financeiro</p>
                   <div className="flex justify-between items-end">
                     <div>
-                      <p className="text-sm text-zinc-400">Original: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials.totalValue)}</p>
-                      <p className="text-sm text-emerald-500">Pago: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials.amountPaid || 0)}</p>
+                      <p className="text-sm text-zinc-400">Original: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials?.totalValue || 0)}</p>
+                      <p className="text-sm text-emerald-500">Pago: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.financials?.amountPaid || 0)}</p>
                       {parseFloat(discount) > 0 && (
                         <p className="text-sm text-orange-500">Desconto: -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(discount))}</p>
                       )}
@@ -3804,7 +3804,7 @@ export default function StatusOsModule({
                     <div className="text-right">
                       <p className="text-xs text-zinc-500 uppercase font-bold">Saldo para Quitar</p>
                       <p className="text-xl font-black text-white">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.max(0, selectedOrder.financials.totalValue - (selectedOrder.financials.amountPaid || 0) - parseFloat(discount || '0')))}
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.max(0, (selectedOrder.financials?.totalValue || 0) - (selectedOrder.financials?.amountPaid || 0) - parseFloat(discount || '0')))}
                       </p>
                     </div>
                   </div>
@@ -3977,7 +3977,7 @@ export default function StatusOsModule({
                     Visualização do Documento
                   </h2>
                   <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-                    OS {previewOrder.osNumber.toString().padStart(4, '0')} | {customers.find(c => c.id === previewOrder.customerId)?.name}
+                    OS {previewOrder.osNumber?.toString().padStart(4, '0') || '---'} | {customers.find(c => c.id === previewOrder.customerId)?.name}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -4180,7 +4180,7 @@ export default function StatusOsModule({
                   <div>
                     <h2 className="text-base font-black text-white uppercase tracking-wide">Documentos da OS</h2>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
-                      OS Nº {selectedOrder.osNumber.toString().padStart(4, '0')} · {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
+                      OS Nº {selectedOrder.osNumber?.toString().padStart(4, '0') || '---'} · {docs.length} {docs.length === 1 ? 'documento' : 'documentos'}
                     </p>
                   </div>
                   <button
@@ -4456,7 +4456,7 @@ export default function StatusOsModule({
                       onClick={() => {
                         const newStatus = status as OrderStatus;
                         if (newStatus === 'Equipamento Retirado') {
-                          const balance = orderToQuickStatus.financials.totalValue - (orderToQuickStatus.financials.amountPaid || 0);
+                          const balance = (orderToQuickStatus.financials?.totalValue || 0) - (orderToQuickStatus.financials?.amountPaid || 0);
                           const hasWarrantyInOrder = orderToQuickStatus.completionData?.warrantyDays || orderToQuickStatus.completionData?.hasWarranty;
                           if (!hasWarrantyInOrder && !confirm("⚠️ Esta OS ainda não possui Termo de Garantia emitido. Deseja entregar o equipamento mesmo assim?")) return;
                           if (balance > 0) {
