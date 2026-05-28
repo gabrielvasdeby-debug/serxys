@@ -2507,11 +2507,12 @@ export default function StatusOsModule({
                             updateOrderStatus(selectedOrder, 'Equipamento Retirado');
                             return;
                           }
+                          updateOrderStatus(selectedOrder, newStatus);
+                          setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                           if (newStatus === 'Reparo Concluído') {
-                            if (onNavigateToGarantia) onNavigateToGarantia(selectedOrder);
-                          } else {
-                            updateOrderStatus(selectedOrder, newStatus);
-                            setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+                            if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
+                              if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus });
+                            }
                           }
                         }}
                         className="bg-[#1A1A1A] border border-zinc-800 text-[#00E676] text-[10px] font-black uppercase tracking-widest px-4 h-10 rounded-sm appearance-none pr-10 focus:border-[#00E676] transition-all cursor-pointer"
@@ -3571,11 +3572,12 @@ export default function StatusOsModule({
                           updateOrderStatus(selectedOrder, 'Equipamento Retirado');
                           return;
                         }
+                        updateOrderStatus(selectedOrder, newStatus);
+                        setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                         if (newStatus === 'Reparo Concluído') {
-                          if (onNavigateToGarantia) onNavigateToGarantia(selectedOrder);
-                        } else {
-                          updateOrderStatus(selectedOrder, newStatus);
-                          setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+                          if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
+                            if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus });
+                          }
                         }
                       }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -4470,10 +4472,13 @@ export default function StatusOsModule({
                             return;
                           }
                           updateOrderStatus(orderToQuickStatus, 'Equipamento Retirado');
-                        } else if (newStatus === 'Reparo Concluído') {
-                          if (onNavigateToGarantia) onNavigateToGarantia(orderToQuickStatus);
                         } else {
                           updateOrderStatus(orderToQuickStatus, newStatus);
+                          if (newStatus === 'Reparo Concluído') {
+                            if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
+                              if (onNavigateToGarantia) onNavigateToGarantia({ ...orderToQuickStatus, status: newStatus });
+                            }
+                          }
                         }
                         setOrderToQuickStatus(null);
                       }}
