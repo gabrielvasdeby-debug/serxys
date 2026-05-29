@@ -747,6 +747,7 @@ export default function OrdemServicoModule({
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   
   const [whatsappCountry, setWhatsappCountry] = useState<Country>(countries[0]);
   const [phoneCountry, setPhoneCountry] = useState<Country>(countries[0]);
@@ -1985,9 +1986,9 @@ export default function OrdemServicoModule({
         <div className="nova-os-ui flex flex-col flex-1 h-full w-full overflow-hidden">
         {/* Header */}
       <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center justify-between w-full sm:w-auto">
-            <div className="flex items-center gap-2 sm:gap-3">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 relative">
+          <div className="flex items-center w-full sm:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3 z-10">
               <button 
                 onClick={onBack}
                 className="w-10 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
@@ -1997,20 +1998,20 @@ export default function OrdemServicoModule({
               </button>
             </div>
 
-            <div className="flex flex-col items-end sm:items-start text-right sm:text-left">
-              <div className="flex items-center gap-3 sm:gap-2">
-                <span className="text-white text-base sm:text-sm font-bold tracking-tight sm:hidden uppercase">
+            <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left sm:ml-4 -ml-12 sm:-ml-0">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <span className="text-white text-base font-bold tracking-tight sm:hidden uppercase">
                   {step === 'CLIENT' && !localOrder ? 'Seleção de Cliente' : (localOrder ? 'Editar' : 'Nova OS')}
                 </span>
-                <span className="hidden sm:inline text-zinc-500 text-[10px] sm:text-sm font-black uppercase tracking-widest">
+                <span className="hidden sm:inline text-zinc-500 text-sm font-black uppercase tracking-widest">
                   {localOrder ? 'Editar' : 'Nova OS'}
                 </span>
-                <span className="text-base sm:text-xs font-black font-mono bg-zinc-900 border border-white/5 text-[#00E676] sm:text-zinc-400 px-3 py-1.5 sm:px-2 sm:py-1 rounded-lg shadow-inner">
+                <span className="text-sm font-black font-mono bg-zinc-900 border border-white/5 text-[#00E676] sm:text-zinc-400 px-2 py-1 rounded-lg shadow-inner">
                   OS {localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(4, '0') : 
                       (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
                 </span>
               </div>
-              <h1 className="hidden sm:block text-xl font-black text-white tracking-tight">
+              <h1 className="hidden sm:block text-xl font-black text-white tracking-tight mt-1">
                 {localOrder ? 'Editar Ordem de Serviço' : 'Nova Ordem de Serviço'}
               </h1>
             </div>
@@ -2371,7 +2372,7 @@ export default function OrdemServicoModule({
                         </div>
                       ) : (
                         filteredCustomers.map((customer, idx) => {
-                          const [isExpanded, setIsExpanded] = React.useState(false);
+                          const isExpanded = expandedCardId === customer.id;
                           return (
                             <motion.div 
                               key={customer.id}
@@ -2379,7 +2380,7 @@ export default function OrdemServicoModule({
                               animate={{ opacity: 1, y: 0 }}
                               onClick={() => {
                                 if (window.innerWidth < 640) {
-                                  setIsExpanded(!isExpanded);
+                                  setExpandedCardId(isExpanded ? null : customer.id);
                                 } else {
                                   setSelectedCustomer(customer);
                                   setStep('DETAILS');
