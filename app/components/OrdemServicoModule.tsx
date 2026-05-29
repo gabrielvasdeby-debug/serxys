@@ -2029,8 +2029,9 @@ export default function OrdemServicoModule({
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6"
             >
-              <div className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <div className="bg-[#141414] border border-zinc-800 rounded-md p-0 sm:p-6 shadow-xl sm:bg-[#141414] bg-transparent sm:border-solid border-none">
+                {/* Desktop Header */}
+                <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                   <div>
                     <h2 className="text-2xl font-black text-white flex items-center gap-3">
                       <div className="w-12 h-12 rounded-sm bg-[#00E676]/10 flex items-center justify-center">
@@ -2057,7 +2058,7 @@ export default function OrdemServicoModule({
                       }
                       setIsCreatingCustomer(!isCreatingCustomer);
                     }}
-                    className={`flex items-center justify-center gap-2 px-8 h-[60px] sm:h-[54px] rounded-md font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${
+                    className={`flex items-center justify-center gap-2 px-8 h-[54px] rounded-md font-black text-xs uppercase tracking-widest transition-all active:scale-95 ${
                       isCreatingCustomer 
                         ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700' 
                         : 'bg-[#00E676] text-black hover:bg-[#00C853] shadow-lg shadow-[#00E676]/20'
@@ -2076,6 +2077,28 @@ export default function OrdemServicoModule({
                     )}
                   </button>
                 </div>
+
+                {/* Mobile Header (Only visible when NOT creating/editing) */}
+                {!isCreatingCustomer && (
+                  <div className="sm:hidden flex items-center gap-3 mb-6 px-1">
+                    <button onClick={onBack} className="text-white p-1">
+                      <ChevronLeft size={24} />
+                    </button>
+                    <h2 className="text-xl font-bold text-white tracking-tight">Seleção de Cliente</h2>
+                  </div>
+                )}
+                
+                {/* Mobile Header (Only visible when creating/editing) */}
+                {isCreatingCustomer && (
+                  <div className="sm:hidden flex items-center justify-between mb-6 px-1">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setIsCreatingCustomer(false)} className="text-white p-1">
+                        <ChevronLeft size={24} />
+                      </button>
+                      <h2 className="text-xl font-bold text-white tracking-tight">{editingCustomerId ? 'Editar Cliente' : 'Novo Cliente'}</h2>
+                    </div>
+                  </div>
+                )}
 
                 {isCreatingCustomer ? (
                   <form onSubmit={handleCreateCustomer} className="space-y-6">
@@ -2308,21 +2331,39 @@ export default function OrdemServicoModule({
                     </div>
                   </form>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div className="relative group">
-                      <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#00E676] transition-colors" />
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-500">
+                        <Search size={16} className="sm:w-5 sm:h-5 group-focus-within:text-[#00E676] transition-colors" />
+                      </div>
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="Buscar por nome, CPF ou WhatsApp..."
-                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border-2 border-zinc-800/50 rounded-[22px] pl-14 pr-6 py-5 text-base text-white focus:outline-none focus:border-[#00E676] transition-all shadow-xl placeholder:text-zinc-600"
+                        placeholder="Buscar por nome ou CPF"
+                        className="w-full bg-[#1A1A1A] sm:bg-[#0A0A0A] border border-zinc-800 sm:border-2 sm:border-zinc-800/50 rounded-md sm:rounded-[22px] pl-10 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-5 text-sm sm:text-base text-white focus:outline-none focus:border-[#00E676] transition-all sm:shadow-xl placeholder:text-zinc-500 sm:placeholder:text-zinc-600"
                       />
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pb-4">
+                    <button
+                      onClick={() => {
+                        setEditingCustomerId(null);
+                        setNewCustomer({
+                          name: '', phone: '', whatsapp: '', email: '', document: '',
+                          address: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
+                          notes: '', birthDate: '', displayBirthDate: '', customer_origin: ''
+                        });
+                        setIsCreatingCustomer(true);
+                      }}
+                      className="sm:hidden w-full flex items-center justify-center gap-2 bg-[#00ff00] active:bg-[#00cc00] active:scale-[0.98] text-black px-5 py-3 rounded-lg font-bold text-[15px] transition-all"
+                    >
+                      <Plus size={18} />
+                      Novo Cliente
+                    </button>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] sm:max-h-[500px] overflow-y-auto sm:pr-2 custom-scrollbar pb-10">
                       {filteredCustomers.length === 0 ? (
-                        <div className="sm:col-span-2 text-center py-16 bg-black/20 rounded-[32px] border-2 border-dashed border-zinc-800/50">
+                        <div className="sm:col-span-2 text-center py-16 bg-black/20 rounded-xl sm:rounded-[32px] border-2 border-dashed border-zinc-800/50">
                           <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-800">
                             <Search size={32} className="text-zinc-700" />
                           </div>
@@ -2331,50 +2372,111 @@ export default function OrdemServicoModule({
                         </div>
                       ) : (
                         filteredCustomers.map((customer, idx) => {
+                          const [isExpanded, setIsExpanded] = React.useState(false);
                           return (
                             <motion.div 
                               key={customer.id}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               onClick={() => {
-                                setSelectedCustomer(customer);
-                                setStep('DETAILS');
+                                if (window.innerWidth < 640) {
+                                  setIsExpanded(!isExpanded);
+                                } else {
+                                  setSelectedCustomer(customer);
+                                  setStep('DETAILS');
+                                }
                               }}
-                              className="bg-[#0A0A0A] border border-zinc-800/80 rounded-md p-5 flex items-center gap-4 cursor-pointer hover:border-[#00E676]/60 hover:bg-zinc-900/40 transition-all group relative overflow-hidden"
+                              className="bg-[#262626] sm:bg-[#0A0A0A] border-0 sm:border border-zinc-800/80 rounded-xl sm:rounded-md cursor-pointer sm:hover:border-[#00E676]/60 sm:hover:bg-zinc-900/40 transition-all group relative overflow-hidden"
                             >
-                              <div className="w-14 h-14 rounded-sm bg-zinc-800 flex items-center justify-center text-xl font-black text-zinc-400 border border-zinc-700/50 group-hover:scale-110 group-hover:bg-[#00E676]/10 group-hover:text-[#00E676] group-hover:border-[#00E676]/20 transition-all shadow-lg">
-                                {customer.name.charAt(0).toUpperCase()}
-                              </div>
-                              
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-black text-sm text-white truncate group-hover:text-[#00E676] transition-colors uppercase tracking-tight">{customer.name}</h3>
-                                <div className="flex flex-col gap-1 mt-1.5">
-                                  {customer.whatsapp && (
-                                    <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                                       <MessageCircle size={10} className="text-[#25D366]" />
-                                       {customer.whatsapp}
-                                    </div>
-                                  )}
-                                  {customer.document && (
-                                    <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
-                                       <FileText size={10} className="text-zinc-600" />
-                                       {customer.document}
-                                    </div>
-                                  )}
+                              {/* --- Desktop Layout --- */}
+                              <div className="hidden sm:flex p-5 items-center gap-4">
+                                <div className="w-14 h-14 rounded-sm bg-zinc-800 flex items-center justify-center text-xl font-black text-zinc-400 border border-zinc-700/50 group-hover:scale-110 group-hover:bg-[#00E676]/10 group-hover:text-[#00E676] group-hover:border-[#00E676]/20 transition-all shadow-lg">
+                                  {customer.name.charAt(0).toUpperCase()}
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-black text-sm text-white truncate group-hover:text-[#00E676] transition-colors uppercase tracking-tight">{customer.name}</h3>
+                                  <div className="flex flex-col gap-1 mt-1.5">
+                                    {customer.whatsapp && (
+                                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                                         <MessageCircle size={10} className="text-[#25D366]" />
+                                         {customer.whatsapp}
+                                      </div>
+                                    )}
+                                    {customer.document && (
+                                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                                         <FileText size={10} className="text-zinc-600" />
+                                         {customer.document}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex flex-col gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditCustomer(customer);
+                                    }}
+                                    className="p-2.5 bg-zinc-900/50 text-zinc-500 hover:text-[#00E676] hover:bg-[#00E676]/10 rounded-sm transition-all border border-zinc-800 group-hover:border-zinc-700"
+                                    title="Editar Cliente"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
                                 </div>
                               </div>
-                              
-                              <div className="flex flex-col gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditCustomer(customer);
-                                  }}
-                                  className="p-2.5 bg-zinc-900/50 text-zinc-500 hover:text-[#00E676] hover:bg-[#00E676]/10 rounded-sm transition-all border border-zinc-800 group-hover:border-zinc-700"
-                                  title="Editar Cliente"
-                                >
-                                  <Pencil size={16} />
-                                </button>
+
+                              {/* --- Mobile Layout --- */}
+                              <div className="sm:hidden p-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col gap-1 pr-4">
+                                    <span className="text-white font-bold text-base leading-tight">
+                                      {customer.name}
+                                    </span>
+                                    {(customer.whatsapp || customer.phone) && (
+                                      <span className="text-zinc-400 text-sm leading-tight">
+                                        {customer.whatsapp || customer.phone}
+                                      </span>
+                                    )}
+                                    <span className="text-zinc-400 text-sm leading-tight">
+                                      CPF: {customer.document || 'Não informado'}
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditCustomer(customer);
+                                    }}
+                                    className="p-2 text-zinc-400 active:bg-zinc-700/50 rounded-full transition-colors shrink-0"
+                                  >
+                                    <Pencil size={18} />
+                                  </button>
+                                </div>
+
+                                {/* Expandable Actions on Mobile */}
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="pt-4 mt-3 border-t border-white/5 space-y-3">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedCustomer(customer);
+                                            setStep('DETAILS');
+                                          }}
+                                          className="w-full flex items-center justify-center gap-2 bg-[#00ff00] text-black px-4 py-3 rounded-lg font-bold text-[15px] active:bg-[#00cc00]"
+                                        >
+                                          Selecionar este Cliente
+                                        </button>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
                             </motion.div>
                           );
