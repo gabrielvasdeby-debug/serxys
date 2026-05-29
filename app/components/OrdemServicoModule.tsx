@@ -3056,18 +3056,21 @@ export default function OrdemServicoModule({
                 {activeTab === 'SERVICE' && (
                   <>
                   {/* 1. Defeito Relatado */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-3">
+                  <section className="bg-amber-500/5 border-2 border-amber-500/30 rounded-md p-4 sm:p-6 shadow-lg shadow-amber-500/5 space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-amber-500">
-                         <AlertTriangle size={16} />
+                      <div className="w-10 h-10 rounded-sm bg-amber-500/20 flex items-center justify-center text-amber-500">
+                         <AlertTriangle size={20} />
                       </div>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-widest">Defeito Relatado *</h3>
+                      <div>
+                        <h3 className="text-sm font-black text-amber-500 uppercase tracking-widest">Defeito Relatado *</h3>
+                        <p className="text-[10px] text-amber-500/70 uppercase tracking-wider mt-0.5">Atenção máxima a este campo</p>
+                      </div>
                     </div>
                     <textarea
                       value={defect}
                       onChange={e => setDefect(capFirst(e.target.value))}
-                      className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
-                      placeholder="Descreva detalhadamente o problema relatado..."
+                      className="w-full bg-black/40 border-2 border-amber-500/20 rounded-md px-4 py-4 text-base sm:text-lg font-medium text-white focus:outline-none focus:border-amber-500 transition-colors min-h-[120px] resize-y placeholder:text-zinc-600"
+                      placeholder="Descreva detalhadamente o problema relatado pelo cliente..."
                     />
                   </section>
 
