@@ -2585,21 +2585,47 @@ export default function OrdemServicoModule({
                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Marca *</label>
                         <input
                           type="text"
+                          list="brands-list"
                           value={equipment.brand}
                           onChange={e => setEquipment({...equipment, brand: capFirst(e.target.value)})}
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
                           placeholder="Ex: Apple, Samsung"
                         />
+                        <datalist id="brands-list">
+                          <option value="Apple" />
+                          <option value="Samsung" />
+                          <option value="Motorola" />
+                          <option value="Xiaomi" />
+                          <option value="LG" />
+                          <option value="Asus" />
+                          <option value="Dell" />
+                          <option value="HP" />
+                          <option value="Lenovo" />
+                          <option value="Acer" />
+                          <option value="Sony" />
+                        </datalist>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Modelo *</label>
                         <input
                           type="text"
+                          list="models-list"
                           value={equipment.model}
                           onChange={e => setEquipment({...equipment, model: capFirst(e.target.value)})}
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="Ex: iPhone 13 Pro"
+                          placeholder="Ex: iPhone 13, Galaxy S21"
                         />
+                        <datalist id="models-list">
+                          <option value="iPhone 11" />
+                          <option value="iPhone 12" />
+                          <option value="iPhone 13" />
+                          <option value="iPhone 14" />
+                          <option value="Galaxy S21" />
+                          <option value="Galaxy S22" />
+                          <option value="Galaxy A54" />
+                          <option value="Moto G" />
+                          <option value="Poco X3" />
+                        </datalist>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Cor</label>
