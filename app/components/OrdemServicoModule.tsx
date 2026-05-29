@@ -2023,7 +2023,7 @@ export default function OrdemServicoModule({
         key={step}
         ref={mainRef}
         onScroll={handleMainScroll}
-        className={`flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden ${step === 'CLIENT' ? 'pb-6 sm:pb-12' : 'pb-[15vh] sm:pb-12'} w-full min-w-0`}
+        className={`flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden ${step === 'CLIENT' ? 'pb-20 sm:pb-12' : 'pb-[15vh] sm:pb-12'} w-full min-w-0`}
       >
         <div className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
           
@@ -2361,7 +2361,7 @@ export default function OrdemServicoModule({
                       Novo Cliente
                     </button>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] sm:max-h-[500px] overflow-y-auto sm:pr-2 custom-scrollbar pb-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:max-h-[500px] sm:overflow-y-auto sm:pr-2 custom-scrollbar">
                       {filteredCustomers.length === 0 ? (
                         <div className="sm:col-span-2 text-center py-16 bg-black/20 rounded-xl sm:rounded-[32px] border-2 border-dashed border-zinc-800/50">
                           <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-800">
