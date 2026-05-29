@@ -368,8 +368,11 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                 />
               </div>
               <button
-                onClick={handleCreateCustomer}
-                className="w-full flex items-center justify-center gap-2 bg-[#00ff00] active:bg-[#00cc00] active:scale-[0.98] text-black px-5 py-3 rounded-lg font-bold text-[15px] transition-all"
+                onClick={() => {
+                  setEditingCustomer(null);
+                  setView('FORM');
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-[#00E676] active:bg-[#00C853] active:scale-[0.98] text-black px-5 py-3 rounded-lg font-bold text-[15px] transition-all"
               >
                 <Plus size={18} />
                 Novo Cliente
@@ -544,8 +547,11 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                                 </div>
                                 <div className="flex gap-2 pt-2 mt-2 border-t border-white/5">
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); handleViewCustomer(customer); }}
-                                    className="flex-1 py-2 bg-[#00ff00]/10 text-[#00ff00] rounded-md text-xs font-bold active:bg-[#00ff00]/20"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewCustomer(customer);
+                                    }}
+                                    className="flex-1 py-2 bg-[#00E676]/10 text-[#00E676] rounded-md text-xs font-bold active:bg-[#00E676]/20"
                                   >
                                     Ver Perfil Completo
                                   </button>
