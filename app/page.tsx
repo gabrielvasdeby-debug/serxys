@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Activity, AlertCircle, Bell, Trash2, X, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Activity, AlertCircle, Bell, Trash2, X, Clock, ArrowRight, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 // Modules
 import ClientesModule from './components/ClientesModule';
@@ -440,13 +440,50 @@ export default function ServyxApp() {
         </AnimatePresence>
 
         {/* Global Toast Notification */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 text-white px-6 py-3 rounded-sm shadow-2xl no-print">
-              {toastMessage === 'Acesso negado' ? <AlertCircle size={18} className="text-red-400" /> : <Activity size={18} className="text-blue-400" />}
-              <span className="font-medium text-sm tracking-tight">{toastMessage}</span>
-            </motion.div>
-          )}
+        <AnimatePresence mode="wait">
+          {toastMessage && (() => {
+            const isError = toastMessage.startsWith('ERROR:');
+            const isSuccess = toastMessage.startsWith('OK:') || toastMessage.includes('sucesso') || toastMessage.includes('criada') || toastMessage.includes('salva') || toastMessage.includes('Bem-vindo');
+            const displayMsg = toastMessage.replace(/^(ERROR:|OK:)/, '');
+            const isNegated = toastMessage === 'Acesso negado' || toastMessage === 'PIN incorreto';
+
+            const borderColor = (isError || isNegated) ? 'border-red-500/40' : isSuccess ? 'border-[#00E676]/30' : 'border-white/10';
+            const bgGlow = (isError || isNegated) ? 'shadow-[0_0_30px_rgba(239,68,68,0.15)]' : isSuccess ? 'shadow-[0_0_30px_rgba(0,230,118,0.1)]' : 'shadow-2xl';
+            const iconEl = (isError || isNegated)
+              ? <AlertTriangle size={16} className="text-red-400 shrink-0" />
+              : isSuccess
+              ? <CheckCircle2 size={16} className="text-[#00E676] shrink-0" />
+              : <Info size={16} className="text-blue-400 shrink-0" />;
+            const barColor = (isError || isNegated) ? 'bg-red-500' : isSuccess ? 'bg-[#00E676]' : 'bg-blue-400';
+
+            return (
+              <motion.div
+                key={toastMessage}
+                initial={{ opacity: 0, y: 60, scale: 0.9 }}
+                animate={isError || isNegated
+                  ? { opacity: 1, y: 0, scale: 1, x: [0, -6, 6, -5, 5, -3, 3, 0] }
+                  : { opacity: 1, y: 0, scale: 1 }
+                }
+                exit={{ opacity: 0, y: 40, scale: 0.95 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], x: { duration: 0.4, delay: 0.1 } }}
+                className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] no-print min-w-[280px] max-w-[90vw] sm:max-w-sm`}
+              >
+                <div className={`relative overflow-hidden flex items-start gap-3 bg-[#1A1A1A]/95 backdrop-blur-xl border ${borderColor} ${bgGlow} text-white px-4 py-3.5 rounded-xl`}>
+                  <div className="mt-0.5">{iconEl}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold leading-snug tracking-tight">{displayMsg}</p>
+                  </div>
+                  {/* Progress bar */}
+                  <motion.div
+                    className={`absolute bottom-0 left-0 h-[2px] ${barColor} opacity-60`}
+                    initial={{ width: '100%' }}
+                    animate={{ width: '0%' }}
+                    transition={{ duration: 4, ease: 'linear' }}
+                  />
+                </div>
+              </motion.div>
+            );
+          })()}
         </AnimatePresence>
 
         {/* Global Search Spotlight */}

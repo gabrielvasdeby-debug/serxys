@@ -1374,11 +1374,19 @@ export default function OrdemServicoModule({
 
   const handleSaveOS = async (providedId?: string, signaturesOverride?: typeof signatures) => {
     if (!selectedCustomer) {
-      onShowToast('Selecione um cliente');
+      onShowToast('ERROR:Selecione um cliente antes de continuar');
       return;
     }
-    if (!equipment.type || !equipment.brand || !equipment.model) {
-      onShowToast('Preencha os dados básicos do aparelho');
+    if (!equipment.type) {
+      onShowToast('ERROR:Selecione o tipo do aparelho (ex: Smartphone, Notebook...)');
+      return;
+    }
+    if (!equipment.brand) {
+      onShowToast('ERROR:Informe a marca do aparelho');
+      return;
+    }
+    if (!equipment.model) {
+      onShowToast('ERROR:Informe o modelo do aparelho');
       return;
     }
     const effectiveSignatures = signaturesOverride ?? signatures;
