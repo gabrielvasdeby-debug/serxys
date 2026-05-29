@@ -2019,7 +2019,7 @@ export default function OrdemServicoModule({
         key={step}
         ref={mainRef}
         onScroll={handleMainScroll}
-        className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden pb-safe w-full min-w-0"
+        className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden pb-[15vh] sm:pb-12 w-full min-w-0"
       >
         <div className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
           
