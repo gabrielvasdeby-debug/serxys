@@ -2825,16 +2825,29 @@ export default function OrdemServicoModule({
                             <CheckCircle2 size={20} className="text-[#00E676]" />
                             Checklist de Entrada
                           </h2>
-                          <button 
-                            onClick={() => {
-                              const newChecklist = {...checklist};
-                              Object.keys(newChecklist).forEach(k => newChecklist[k] = 'untested');
-                              setChecklist(newChecklist);
-                            }}
-                            className="text-xs text-zinc-500 hover:text-white"
-                          >
-                            Limpar
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => {
+                                const newChecklist = {...checklist};
+                                Object.keys(newChecklist).forEach(k => newChecklist[k] = 'works');
+                                setChecklist(newChecklist);
+                              }}
+                              className="text-[10px] font-bold uppercase tracking-widest text-[#00E676] bg-[#00E676]/10 px-3 py-1.5 rounded-sm hover:bg-[#00E676]/20 transition-colors flex items-center gap-1"
+                            >
+                              <CheckCircle2 size={12} />
+                              Marcar Tudo OK
+                            </button>
+                            <button 
+                              onClick={() => {
+                                const newChecklist = {...checklist};
+                                Object.keys(newChecklist).forEach(k => newChecklist[k] = 'untested');
+                                setChecklist(newChecklist);
+                              }}
+                              className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+                            >
+                              Limpar
+                            </button>
+                          </div>
                         </div>
 
                         {Object.keys(checklist).length === 0 ? (
