@@ -2127,157 +2127,168 @@ export default function OrdemServicoModule({
                           placeholder="000.000.000-00"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">E-mail</label>
-                        <input
-                          type="email"
-                          value={newCustomer.email}
-                          onChange={e => setNewCustomer({...newCustomer, email: e.target.value})}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="email@exemplo.com"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">Data de Nascimento</label>
-                        <input
-                          type="tel"
-                          value={newCustomer.displayBirthDate}
-                          onChange={e => setNewCustomer({...newCustomer, displayBirthDate: applyMaskWithCursor(e.target as HTMLInputElement, 'date')})}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="DD/MM/AAAA"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">Origem do Cliente</label>
-                        <select 
-                          value={newCustomer.customer_origin}
-                          onChange={e => setNewCustomer({...newCustomer, customer_origin: e.target.value})}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
-                        >
-                          <option value="">Selecione a origem</option>
-                          {['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'].map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
 
-                    <div className="border-t border-zinc-800 pt-6">
-                      <h3 className="text-sm font-medium text-white mb-4">Endereço</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-zinc-400">CEP</label>
-                          <input
-                            type="text"
-                            value={newCustomer.address.zipCode}
-                            onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, zipCode: e.target.value}})}
-                            onBlur={async (e) => {
-                              const cep = e.target.value.replace(/\D/g, '');
-                              if (cep.length !== 8) return;
-                              
-                              let brasilApiData = null;
-                              try {
-                                const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
-                                if (response.ok) {
-                                  brasilApiData = await response.json();
-                                }
-                              } catch (e) {
-                                console.warn('BrasilAPI fallback needed:', e);
-                              }
-                              
-                              try {
-                                if (brasilApiData) {
-                                  setNewCustomer(prev => ({
-                                    ...prev,
-                                    address: {
-                                      ...prev.address,
-                                      street: brasilApiData.street || prev.address.street,
-                                      neighborhood: brasilApiData.neighborhood || prev.address.neighborhood,
-                                      city: brasilApiData.city || prev.address.city,
-                                      state: brasilApiData.state || prev.address.state
+                    <details className="group mt-4 border border-zinc-800 rounded-sm bg-[#141414] overflow-hidden">
+                      <summary className="cursor-pointer p-4 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors flex items-center justify-between select-none list-none [&::-webkit-details-marker]:hidden">
+                        Mais informações (Opcional)
+                        <span className="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="p-4 border-t border-zinc-800 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-zinc-400">E-mail</label>
+                            <input
+                              type="email"
+                              value={newCustomer.email}
+                              onChange={e => setNewCustomer({...newCustomer, email: e.target.value})}
+                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                              placeholder="email@exemplo.com"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-zinc-400">Data de Nascimento</label>
+                            <input
+                              type="tel"
+                              value={newCustomer.displayBirthDate}
+                              onChange={e => setNewCustomer({...newCustomer, displayBirthDate: applyMaskWithCursor(e.target as HTMLInputElement, 'date')})}
+                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                              placeholder="DD/MM/AAAA"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-zinc-400">Origem do Cliente</label>
+                            <select 
+                              value={newCustomer.customer_origin}
+                              onChange={e => setNewCustomer({...newCustomer, customer_origin: e.target.value})}
+                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                            >
+                              <option value="">Selecione a origem</option>
+                              {['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'].map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-zinc-800 pt-6">
+                          <h3 className="text-sm font-medium text-white mb-4">Endereço</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-zinc-400">CEP</label>
+                              <input
+                                type="text"
+                                value={newCustomer.address.zipCode}
+                                onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, zipCode: e.target.value}})}
+                                onBlur={async (e) => {
+                                  const cep = e.target.value.replace(/\D/g, '');
+                                  if (cep.length !== 8) return;
+                                  
+                                  let brasilApiData = null;
+                                  try {
+                                    const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
+                                    if (response.ok) {
+                                      brasilApiData = await response.json();
                                     }
-                                  }));
-                                  return;
-                                }
-
-                                const viaCepResponse = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                                const viaCepData = await viaCepResponse.json();
-                                if (viaCepData.erro) {
-                                  onShowToast('CEP não encontrado. Verifique o número informado.');
-                                } else {
-                                  setNewCustomer(prev => ({
-                                    ...prev,
-                                    address: {
-                                      ...prev.address,
-                                      street: viaCepData.logradouro || prev.address.street,
-                                      neighborhood: viaCepData.bairro || prev.address.neighborhood,
-                                      city: viaCepData.localidade || prev.address.city,
-                                      state: viaCepData.uf || prev.address.state
+                                  } catch (e) {
+                                    console.warn('BrasilAPI fallback needed:', e);
+                                  }
+                                  
+                                  try {
+                                    if (brasilApiData) {
+                                      setNewCustomer(prev => ({
+                                        ...prev,
+                                        address: {
+                                          ...prev.address,
+                                          street: brasilApiData.street || prev.address.street,
+                                          neighborhood: brasilApiData.neighborhood || prev.address.neighborhood,
+                                          city: brasilApiData.city || prev.address.city,
+                                          state: brasilApiData.state || prev.address.state
+                                        }
+                                      }));
+                                      return;
                                     }
-                                  }));
-                                }
-                              } catch (error) {
-                                console.error('CEP lookup error:', error);
-                                onShowToast('Erro ao consultar o CEP. Verifique sua conexão.');
-                              }
-                            }}
-                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                            placeholder="00000-000"
-                          />
+
+                                    const viaCepResponse = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                                    const viaCepData = await viaCepResponse.json();
+                                    if (viaCepData.erro) {
+                                      onShowToast('CEP não encontrado. Verifique o número informado.');
+                                    } else {
+                                      setNewCustomer(prev => ({
+                                        ...prev,
+                                        address: {
+                                          ...prev.address,
+                                          street: viaCepData.logradouro || prev.address.street,
+                                          neighborhood: viaCepData.bairro || prev.address.neighborhood,
+                                          city: viaCepData.localidade || prev.address.city,
+                                          state: viaCepData.uf || prev.address.state
+                                        }
+                                      }));
+                                    }
+                                  } catch (error) {
+                                    console.error('CEP lookup error:', error);
+                                    onShowToast('Erro ao consultar o CEP. Verifique sua conexão.');
+                                  }
+                                }}
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                placeholder="00000-000"
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-xs font-medium text-zinc-400">Rua</label>
+                              <input
+                                type="text"
+                                value={newCustomer.address.street}
+                                onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, street: capFirst(e.target.value)}})}
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                placeholder="Nome da rua"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-zinc-400">Número</label>
+                              <input
+                                type="text"
+                                value={newCustomer.address.number}
+                                onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, number: e.target.value}})}
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                placeholder="123"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-zinc-400">Bairro</label>
+                              <input
+                                type="text"
+                                value={newCustomer.address.neighborhood}
+                                onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, neighborhood: capFirst(e.target.value)}})}
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                placeholder="Bairro"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-zinc-400">Cidade</label>
+                              <input
+                                type="text"
+                                value={newCustomer.address.city}
+                                onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, city: capFirst(e.target.value)}})}
+                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                placeholder="Cidade"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="md:col-span-2 space-y-1">
-                          <label className="text-xs font-medium text-zinc-400">Rua</label>
-                          <input
-                            type="text"
-                            value={newCustomer.address.street}
-                            onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, street: capFirst(e.target.value)}})}
-                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                            placeholder="Nome da rua"
-                          />
-                        </div>
+
                         <div className="space-y-1">
-                          <label className="text-xs font-medium text-zinc-400">Número</label>
-                          <input
-                            type="text"
-                            value={newCustomer.address.number}
-                            onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, number: e.target.value}})}
-                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                            placeholder="123"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-zinc-400">Bairro</label>
-                          <input
-                            type="text"
-                            value={newCustomer.address.neighborhood}
-                            onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, neighborhood: capFirst(e.target.value)}})}
-                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                            placeholder="Bairro"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-zinc-400">Cidade</label>
-                          <input
-                            type="text"
-                            value={newCustomer.address.city}
-                            onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, city: capFirst(e.target.value)}})}
-                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                            placeholder="Cidade"
+                          <label className="text-xs font-medium text-zinc-400">Observações</label>
+                          <textarea
+                            value={newCustomer.notes}
+                            onChange={e => setNewCustomer({...newCustomer, notes: capFirst(e.target.value)})}
+                            rows={3}
+                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors resize-none"
+                            placeholder="Informações adicionais..."
                           />
                         </div>
                       </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-zinc-400">Observações</label>
-                      <textarea
-                        value={newCustomer.notes}
-                        onChange={e => setNewCustomer({...newCustomer, notes: capFirst(e.target.value)})}
-                        rows={3}
-                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors resize-none"
-                        placeholder="Informações adicionais..."
-                      />
-                    </div>
+                    </details>
 
                     <div className="flex justify-end pt-4">
                       <button
