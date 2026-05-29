@@ -67,6 +67,7 @@ type ViewState = 'LIST' | 'FORM' | 'PROFILE' | 'DEVICE_FORM';
 export default function ClientesModule({ profile, onBack, onShowToast, onLogActivity, customers, setCustomers }: ClientesModuleProps) {
   const [view, setView] = useState<ViewState>('LIST');
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -324,17 +325,22 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
           </button>
           <div className="flex-1">
             <h1 className="text-base font-bold tracking-tight">
-              {view === 'LIST' && 'Clientes'}
+              {view === 'LIST' && (
+                <>
+                  <span className="sm:hidden">Seleção de Cliente</span>
+                  <span className="hidden sm:inline">Clientes</span>
+                </>
+              )}
               {view === 'FORM' && (editingCustomer ? 'Editar Cliente' : 'Novo Cliente')}
               {view === 'PROFILE' && 'Perfil do Cliente'}
               {view === 'DEVICE_FORM' && (editingDevice ? 'Editar Aparelho' : 'Novo Aparelho')}
             </h1>
-            <p className="text-[10px] text-[#00E676] font-semibold tracking-[0.2em] uppercase leading-none mt-0.5">Módulo CRM</p>
+            <p className="text-[10px] text-[#00E676] font-semibold tracking-[0.2em] uppercase leading-none mt-0.5 hidden sm:block">Módulo CRM</p>
           </div>
           {view === 'LIST' && (
             <button
               onClick={handleCreateCustomer}
-              className="flex items-center gap-2 bg-[#00E676] hover:bg-[#00C853] active:scale-95 text-black px-5 py-2.5 rounded-md font-bold text-sm transition-all shrink-0 shadow-lg shadow-[#00E676]/20"
+              className="hidden sm:flex items-center gap-2 bg-[#00E676] hover:bg-[#00C853] active:scale-95 text-black px-5 py-2.5 rounded-md font-bold text-sm transition-all shrink-0 shadow-lg shadow-[#00E676]/20"
             >
               <Plus size={16} />
               Novo Cliente
@@ -347,8 +353,31 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
         {view === 'LIST' && (
           <div className="space-y-6">
 
-            {/* Search bar row */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            {/* Mobile Header (Search + Button) */}
+            <div className="sm:hidden flex flex-col gap-3">
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-500">
+                  <Search size={16} />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#1A1A1A] border border-zinc-800 rounded-md pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all placeholder:text-zinc-500"
+                  placeholder="Buscar por nome ou CPF"
+                />
+              </div>
+              <button
+                onClick={handleCreateCustomer}
+                className="w-full flex items-center justify-center gap-2 bg-[#00ff00] active:bg-[#00cc00] active:scale-[0.98] text-black px-5 py-3 rounded-lg font-bold text-[15px] transition-all"
+              >
+                <Plus size={18} />
+                Novo Cliente
+              </button>
+            </div>
+
+            {/* Desktop Header (Stats + Search) */}
+            <div className="hidden sm:flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-zinc-300 font-semibold text-sm">{customers.length}</span>
                 <span className="text-zinc-600 text-sm">cliente{customers.length !== 1 ? 's' : ''} cadastrado{customers.length !== 1 ? 's' : ''}</span>
@@ -380,70 +409,157 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                 <p className="text-zinc-600 text-sm">Tente ajustar a busca ou cadastre um novo cliente.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {filteredCustomers.map((customer, idx) => {
                   const initials = customer.name.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase();
+                  const isExpanded = expandedCardId === customer.id;
+                  
                   return (
                     <motion.div
                       key={customer.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.04, duration: 0.3 }}
-                      className="group relative bg-[#181818] hover:bg-[#1E1E1E] border border-zinc-800/60 hover:border-zinc-700 rounded-md p-5 cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-black/40"
-                      onClick={() => handleViewCustomer(customer)}
+                      className="group relative bg-[#262626] sm:bg-[#181818] hover:bg-[#2A2A2A] sm:hover:bg-[#1E1E1E] border-0 sm:border border-zinc-800/60 sm:hover:border-zinc-700 rounded-xl sm:rounded-md cursor-pointer transition-all duration-200 sm:hover:shadow-xl sm:hover:shadow-black/40 overflow-hidden"
+                      onClick={() => {
+                        // On mobile, click expands the card. On desktop, click opens the profile.
+                        if (window.innerWidth < 640) {
+                          setExpandedCardId(isExpanded ? null : customer.id);
+                        } else {
+                          handleViewCustomer(customer);
+                        }
+                      }}
                     >
-                      {/* Avatar + Name */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-md bg-zinc-800 border border-zinc-700/50 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                          {initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-white truncate text-sm">{customer.name}</p>
-                          {customer.email && <p className="text-xs text-zinc-500 truncate mt-0.5">{customer.email}</p>}
-                        </div>
-                      </div>
-
-                      {/* Info row */}
-                      <div className="space-y-1.5 mb-4">
-                        {(customer.whatsapp || customer.phone) && (
-                          <div className="flex items-center gap-2 text-zinc-400">
-                            <Phone size={12} className="shrink-0" />
-                            <span className="text-xs truncate">{customer.whatsapp || customer.phone}</span>
+                      {/* --- Desktop Layout --- */}
+                      <div className="hidden sm:block p-5">
+                        {/* Avatar + Name */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-md bg-zinc-800 border border-zinc-700/50 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {initials}
                           </div>
-                        )}
-                        {customer.address?.city && (
-                          <div className="flex items-center gap-2 text-zinc-400">
-                            <MapPin size={12} className="shrink-0" />
-                            <span className="text-xs truncate">{customer.address.city}{customer.address.state ? `, ${customer.address.state}` : ''}</span>
+                          <div className="min-w-0">
+                            <p className="font-bold text-white truncate text-sm">{customer.name}</p>
+                            {customer.email && <p className="text-xs text-zinc-500 truncate mt-0.5">{customer.email}</p>}
                           </div>
-                        )}
+                        </div>
+
+                        {/* Info row */}
+                        <div className="space-y-1.5 mb-4">
+                          {(customer.whatsapp || customer.phone) && (
+                            <div className="flex items-center gap-2 text-zinc-400">
+                              <Phone size={12} className="shrink-0" />
+                              <span className="text-xs truncate">{customer.whatsapp || customer.phone}</span>
+                            </div>
+                          )}
+                          {customer.address?.city && (
+                            <div className="flex items-center gap-2 text-zinc-400">
+                              <MapPin size={12} className="shrink-0" />
+                              <span className="text-xs truncate">{customer.address.city}{customer.address.state ? `, ${customer.address.state}` : ''}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-3 border-t border-zinc-800/60">
+                          <span className="text-[10px] text-zinc-600 font-medium">{new Date(customer.createdAt).toLocaleDateString('pt-BR')}</span>
+                          <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-500 bg-zinc-800 px-2.5 py-0.5 rounded-full">
+                            <Smartphone size={10} />
+                            {customer.devices.length} aparelho{customer.devices.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+
+                        {/* Action buttons on hover */}
+                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                          <button
+                            onClick={e => { e.stopPropagation(); handleEditCustomer(customer); }}
+                            className="p-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-sm text-zinc-400 hover:text-[#00E676] transition-colors"
+                            title="Editar"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); handleDeleteCustomer(customer.id); }}
+                            className="p-1.5 bg-zinc-800 hover:bg-red-500/20 rounded-sm text-zinc-400 hover:text-red-400 transition-colors"
+                            title="Excluir"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-3 border-t border-zinc-800/60">
-                        <span className="text-[10px] text-zinc-600 font-medium">{new Date(customer.createdAt).toLocaleDateString('pt-BR')}</span>
-                        <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-500 bg-zinc-800 px-2.5 py-0.5 rounded-full">
-                          <Smartphone size={10} />
-                          {customer.devices.length} aparelho{customer.devices.length !== 1 ? 's' : ''}
-                        </span>
-                      </div>
+                      {/* --- Mobile Layout --- */}
+                      <div className="sm:hidden p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex flex-col gap-1 pr-4">
+                            <span className="text-white font-bold text-base leading-tight">
+                              {customer.name}
+                            </span>
+                            {(customer.whatsapp || customer.phone) && (
+                              <span className="text-zinc-400 text-sm leading-tight">
+                                {customer.whatsapp || customer.phone}
+                              </span>
+                            )}
+                            <span className="text-zinc-400 text-sm leading-tight">
+                              CPF: {customer.document || 'Não informado'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={e => { e.stopPropagation(); handleEditCustomer(customer); }}
+                            className="p-2 text-zinc-400 active:bg-zinc-700/50 rounded-full transition-colors shrink-0"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                        </div>
 
-                      {/* Action buttons on hover */}
-                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                        <button
-                          onClick={e => { e.stopPropagation(); handleEditCustomer(customer); }}
-                          className="p-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-sm text-zinc-400 hover:text-[#00E676] transition-colors"
-                          title="Editar"
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                        <button
-                          onClick={e => { e.stopPropagation(); handleDeleteCustomer(customer.id); }}
-                          className="p-1.5 bg-zinc-800 hover:bg-red-500/20 rounded-sm text-zinc-400 hover:text-red-400 transition-colors"
-                          title="Excluir"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        {/* Expandable Section */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pt-4 mt-3 border-t border-white/5 space-y-3">
+                                {customer.email && (
+                                  <div className="flex items-center gap-2 text-zinc-400">
+                                    <Mail size={14} className="shrink-0" />
+                                    <span className="text-xs truncate">{customer.email}</span>
+                                  </div>
+                                )}
+                                {customer.address?.city && (
+                                  <div className="flex items-center gap-2 text-zinc-400">
+                                    <MapPin size={14} className="shrink-0" />
+                                    <span className="text-xs truncate">
+                                      {customer.address.street}{customer.address.number ? `, ${customer.address.number}` : ''} - {customer.address.city}{customer.address.state ? `/${customer.address.state}` : ''}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between mt-2 pt-2">
+                                  <span className="text-[10px] text-zinc-500 font-medium">Cadastrado em: {new Date(customer.createdAt).toLocaleDateString('pt-BR')}</span>
+                                  <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 bg-black/20 px-2 py-0.5 rounded-full">
+                                    <Smartphone size={10} />
+                                    {customer.devices.length} aparelho{customer.devices.length !== 1 ? 's' : ''}
+                                  </span>
+                                </div>
+                                <div className="flex gap-2 pt-2 mt-2 border-t border-white/5">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleViewCustomer(customer); }}
+                                    className="flex-1 py-2 bg-[#00ff00]/10 text-[#00ff00] rounded-md text-xs font-bold active:bg-[#00ff00]/20"
+                                  >
+                                    Ver Perfil Completo
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteCustomer(customer.id); }}
+                                    className="px-3 py-2 bg-red-500/10 text-red-500 rounded-md text-xs font-bold active:bg-red-500/20"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </motion.div>
                   );
