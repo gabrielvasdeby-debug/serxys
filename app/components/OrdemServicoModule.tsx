@@ -3660,7 +3660,7 @@ export default function OrdemServicoModule({
                         className="w-full sm:w-auto px-12 h-[54px] sm:h-[48px] rounded-md bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs sm:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                        Finalizar OS
+                        {isSaving ? 'Salvando...' : 'Finalizar OS'}
                       </button>
                     </div>
                   </div>
