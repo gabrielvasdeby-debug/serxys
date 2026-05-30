@@ -2508,34 +2508,30 @@ export default function OrdemServicoModule({
               className="space-y-6 overflow-x-hidden px-0.5"
             >
               {/* Selected Client Summary */}
-              <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
-                <div className="flex items-center gap-4">
-                  {/* Avatar removido a pedido do usuário */}
-                  <div>
-                    <h3 className="text-sm font-black text-white uppercase tracking-tight">{selectedCustomer.name}</h3>
-                    <div className="flex items-center gap-3 mt-0.5">
-                       {selectedCustomer.whatsapp && (
-                         <span className="text-[10px] font-bold text-[#00E676]/80 uppercase tracking-widest flex items-center gap-1">
-                           <MessageCircle size={10} /> {selectedCustomer.whatsapp}
-                         </span>
-                       )}
-                    </div>
-                  </div>
+              <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-xl">
+                <div className="flex items-center gap-3 min-w-0">
+                  <h3 className="text-sm font-black text-white uppercase tracking-tight truncate">{selectedCustomer.name}</h3>
+                  {selectedCustomer.whatsapp && (
+                    <span className="text-[10px] font-bold text-[#00E676]/80 uppercase tracking-widest flex items-center gap-1 shrink-0">
+                      <MessageCircle size={10} /> {selectedCustomer.whatsapp}
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center justify-end gap-4 border-t sm:border-t-0 border-zinc-800/50 pt-3 sm:pt-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <button 
                     onClick={() => handleEditCustomer(selectedCustomer)}
-                    className="text-xs text-zinc-400 hover:text-[#00E676] flex items-center gap-1 transition-colors"
+                    className="text-[11px] font-bold text-zinc-400 hover:text-[#00E676] flex items-center gap-1 transition-colors"
                     title="Editar Cadastro"
                   >
-                    <Pencil size={12} />
+                    <Pencil size={11} />
                     Editar
                   </button>
+                  <div className="w-px h-3 bg-zinc-700" />
                   <button 
                     onClick={() => setStep('CLIENT')}
-                    className="text-xs text-zinc-400 hover:text-white underline underline-offset-2"
+                    className="text-[11px] font-bold text-zinc-400 hover:text-white transition-colors"
                   >
-                    Trocar Cliente
+                    Trocar
                   </button>
                 </div>
               </div>
