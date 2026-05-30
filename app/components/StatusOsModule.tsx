@@ -1525,31 +1525,54 @@ export default function StatusOsModule({
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
           {/* Mobile Header: Title Row -> (Busca Colapsável) -> Actions Row */}
           <div className="flex lg:hidden flex-col gap-4">
-            {/* Row 1: Back + Title + Lupa */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            {/* Row 1: Back + Title + Actions (Priority & Buscar) */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                 <button
                   onClick={onBack}
-                  className="w-11 h-11 flex items-center justify-center hover:bg-zinc-800 rounded-xl transition-colors bg-[#111111] border border-zinc-800"
+                  className="w-10 h-10 flex items-center justify-center hover:bg-zinc-800 rounded-xl transition-colors bg-white/[0.03] border border-white/[0.05]"
                 >
-                  <ChevronLeft size={22} className="text-zinc-300" />
+                  <ChevronLeft size={20} className="text-zinc-300" />
                 </button>
                 <div>
-                  <h1 className="text-xl font-bold text-white leading-tight">Status OS</h1>
+                  <h1 className="text-lg font-bold text-white leading-tight">Status OS</h1>
                 </div>
               </div>
-              {/* Lupa — abre/fecha busca inline */}
-              <button
-                onClick={() => setIsMobileSearchOpen(v => !v)}
-                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border transition-all active:scale-95 ${
-                  isMobileSearchOpen
-                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]'
-                    : 'bg-[#111111] border-zinc-800 text-zinc-400'
-                }`}
-              >
-                <Search size={16} />
-                <span className="text-[11px] font-black uppercase tracking-widest">Buscar</span>
-              </button>
+              
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Prioridades */}
+                <button
+                  onClick={() => {
+                    if (groupBy === 'prioridade') {
+                      setGroupBy('nenhum');
+                    } else {
+                      setGroupBy('prioridade');
+                      setActiveStatus('ALL');
+                    }
+                  }}
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
+                    groupBy === 'prioridade' 
+                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
+                    : 'bg-white/[0.03] border-white/[0.05] text-zinc-400'
+                  }`}
+                >
+                  <ArrowUpDown size={16} />
+                  <span className="hidden min-[400px]:inline text-[10px] font-black uppercase tracking-widest">Prioridade</span>
+                </button>
+
+                {/* Buscar */}
+                <button
+                  onClick={() => setIsMobileSearchOpen(v => !v)}
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
+                    isMobileSearchOpen
+                      ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]'
+                      : 'bg-white/[0.03] border-white/[0.05] text-zinc-400'
+                  }`}
+                >
+                  <Search size={16} />
+                  <span className="hidden min-[400px]:inline text-[10px] font-black uppercase tracking-widest">Buscar</span>
+                </button>
+              </div>
             </div>
 
             {/* Busca Colapsável */}
@@ -1566,35 +1589,6 @@ export default function StatusOsModule({
                 />
               </div>
             )}
-
-            {/* Row 2: Filter & Priority Actions */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsStatusPickerOpen(true)}
-                className="flex-1 bg-[#111111] border border-zinc-800 rounded-xl py-3.5 flex items-center justify-center gap-2 text-[11px] font-black tracking-widest text-zinc-300 active:scale-95 transition-all uppercase"
-              >
-                <Filter size={16} className="text-zinc-500" />
-                FILTROS
-              </button>
-              <button
-                onClick={() => {
-                  if (groupBy === 'prioridade') {
-                    setGroupBy('nenhum');
-                  } else {
-                    setGroupBy('prioridade');
-                    setActiveStatus('ALL');
-                  }
-                }}
-                className={`flex-1 bg-[#111111] border rounded-xl py-3.5 flex items-center justify-center gap-2 text-[11px] font-black tracking-widest active:scale-95 transition-all uppercase ${
-                  groupBy === 'prioridade' 
-                  ? 'border-[#00E676]/30 text-[#00E676] bg-[#00E676]/5' 
-                  : 'border-zinc-800 text-zinc-300'
-                }`}
-              >
-                <ArrowUpDown size={16} className={groupBy === 'prioridade' ? 'text-[#00E676]' : 'text-zinc-500'} />
-                PRIORIDADE
-              </button>
-            </div>
 
             {/* Row 3: Mobile Tabs Timeline — sem botão 'Todas' */}
             <div className="flex overflow-x-auto gap-2 py-1.5 mt-1 mb-1 no-scrollbar">
@@ -2098,13 +2092,13 @@ export default function StatusOsModule({
                           {/* Header do Card: OS + Status badge + Data */}
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              {/* Número da OS — maior e mais destacado */}
-                              <div className={`px-3 py-1 rounded-xl ${cfg.bg} border border-white/[0.08]`}>
-                                <span className={`text-[13px] font-black tracking-widest font-mono ${cfg.color}`}>
+                              {/* Número da OS — maior e mais destacado, mas agora com cores neutras */}
+                              <div className={`px-3 py-1 rounded-xl bg-white/[0.03] border border-white/[0.05]`}>
+                                <span className={`text-[13px] font-black tracking-widest font-mono text-zinc-100`}>
                                   OS {order.osNumber.toString().padStart(4, '0')}
                                 </span>
                               </div>
-                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${cfg.color} bg-white/[0.05] border border-white/[0.06]`}>
+                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${cfg.color} opacity-80 bg-white/[0.03] border border-white/[0.05]`}>
                                 {shortName}
                               </span>
                             </div>
@@ -2153,7 +2147,7 @@ export default function StatusOsModule({
                             </div>
                             <div className="text-right shrink-0">
                               <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">Total</p>
-                              <p className="text-[15px] font-black text-[#00E676] tracking-tight leading-none">{formatToBRL(order.financials?.totalValue || 0)}</p>
+                              <p className="text-[15px] font-black text-[#00E676]/80 tracking-tight leading-none">{formatToBRL(order.financials?.totalValue || 0)}</p>
                             </div>
                           </div>
 
