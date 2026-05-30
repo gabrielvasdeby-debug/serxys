@@ -2086,97 +2086,110 @@ export default function StatusOsModule({
                     if (['Em', 'Aguardando'].includes(shortName)) {
                       shortName = order.status.split(' ')[1];
                     }
-                     if (order.status === 'Reparo Concluído') shortName = 'Concluído';
-                     if (order.status === 'Equipamento Retirado') shortName = 'RETIRADO';
+                    if (order.status === 'Reparo Concluído') shortName = 'Concluído';
+                    if (order.status === 'Equipamento Retirado') shortName = 'RETIRADO';
                     
                     return (
-                      <div key={`m-${order.id}`} className="relative bg-[#262626] rounded-[16px] overflow-hidden shadow-xl border border-[#333333]">
+                      <div key={`m-${order.id}`} className="relative bg-[#222] rounded-[18px] overflow-hidden shadow-2xl border border-white/[0.07]">
                         {/* Status color indicator bar */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-[4px] ${cfg.bg.replace('/10', '/100')}`} />
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${cfg.bg.replace('/10', '/80')}`} />
                         
                         <div className="p-4 pl-5">
-                          {/* Header do Card */}
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <div className="bg-[#111] px-2 py-0.5 rounded border border-zinc-800">
-                                <span className="text-[10px] font-black tracking-widest uppercase text-white/90">
-                                OS {order.osNumber.toString().padStart(4, '0')}
+                          {/* Header do Card: OS + Status badge + Data */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              {/* Número da OS — maior e mais destacado */}
+                              <div className={`px-3 py-1 rounded-xl ${cfg.bg} border border-white/[0.08]`}>
+                                <span className={`text-[13px] font-black tracking-widest font-mono ${cfg.color}`}>
+                                  OS {order.osNumber.toString().padStart(4, '0')}
                                 </span>
                               </div>
-                              <span className={`text-[9px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest ${cfg.color} ${cfg.bg.replace('/10', '/20')} border ${cfg.bg.replace('/10', '/30')}`}>
+                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${cfg.color} bg-white/[0.05] border border-white/[0.06]`}>
                                 {shortName}
                               </span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-zinc-400">
-                              <Calendar size={12} className="opacity-70" />
-                              <span className="text-[11px] font-medium">{new Date(order.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-                              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] ml-1" />
+                            <div className="flex items-center gap-1.5 text-zinc-500">
+                              <Calendar size={11} />
+                              <span className="text-[10px] font-semibold">{new Date(order.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
                             </div>
                           </div>
 
-                          {/* Info principal SEM Avatar */}
-                          <div className="flex items-start gap-3.5 mb-4">
-                            <div className="flex-1 min-w-0 pr-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <h4 className="font-bold text-[13px] text-white truncate pr-2 uppercase leading-tight">
-                                  {customer?.name || 'Cliente não encontrado'}
-                                </h4>
-                                {customer?.whatsapp && (
-                                  <button
-                                     onClick={(e) => {
-                                       e.stopPropagation();
-                                       let phone = customer.whatsapp.replace(/\D/g, '');
-                                       if (!phone.startsWith('55')) phone = `55${phone}`;
-                                       window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
-                                     }}
-                                     className="w-7 h-7 flex items-center justify-center rounded-[8px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shrink-0"
-                                  >
-                                    <MessageCircle size={13} className="fill-emerald-500/20" />
-                                  </button>
-                                )}
+                          {/* Nome do cliente — maior */}
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-black text-[16px] text-white truncate pr-2 uppercase leading-tight tracking-tight">
+                              {customer?.name || 'Cliente não encontrado'}
+                            </h4>
+                            {customer?.whatsapp && (
+                              <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   let phone = customer.whatsapp.replace(/\D/g, '');
+                                   if (!phone.startsWith('55')) phone = `55${phone}`;
+                                   window.open(`https://api.whatsapp.com/send?phone=${phone}`, '_blank');
+                                 }}
+                                 className="w-8 h-8 flex items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shrink-0"
+                              >
+                                <MessageCircle size={14} />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Equipamento */}
+                          <p className="text-[11px] text-zinc-500 font-medium mb-3 truncate">{order.equipment.brand} {order.equipment.model}</p>
+
+                          {/* Defeito / Serviço / Total */}
+                          <div className="flex justify-between items-end gap-2 mb-4">
+                            <div className="flex flex-col gap-1 text-[11px] flex-1 min-w-0">
+                              <div className="flex items-start gap-1">
+                                <span className="text-zinc-600 uppercase font-black tracking-widest text-[9px] w-14 shrink-0 mt-[1px]">Defeito:</span>
+                                <span className="text-zinc-400 italic line-clamp-1 pr-1">{order.defect || '—'}</span>
                               </div>
-                              <p className="text-[11px] text-zinc-400 font-medium mb-3 truncate">{order.equipment.brand} {order.equipment.model}</p>
-                              
-                              <div className="flex justify-between items-end gap-2">
-                                 <div className="flex flex-col gap-1.5 text-[11px] flex-1 min-w-0">
-                                   <div className="flex items-start">
-                                     <span className="text-zinc-500 uppercase font-black tracking-widest text-[9px] w-16 shrink-0 mt-[2px]">Defeito:</span>
-                                     <span className="text-zinc-300 italic line-clamp-1 pr-1">{order.defect || '—'}</span>
-                                   </div>
-                                   {order.service && (
-                                   <div className="flex items-start">
-                                     <span className="text-zinc-500 uppercase font-black tracking-widest text-[9px] w-16 shrink-0 mt-[2px]">Serviço:</span>
-                                     <span className="text-white font-bold line-clamp-1 pr-1">{order.service}</span>
-                                   </div>
-                                   )}
-                                 </div>
-                                 
-                                 {/* Price block */}
-                                 <div className="text-right shrink-0">
-                                   <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1">Total</p>
-                                   <p className="text-sm font-black text-[#00E676] tracking-tight">{formatToBRL(order.financials?.totalValue || 0)}</p>
-                                 </div>
+                              {order.service && (
+                              <div className="flex items-start gap-1">
+                                <span className="text-zinc-600 uppercase font-black tracking-widest text-[9px] w-14 shrink-0 mt-[1px]">Serviço:</span>
+                                <span className="text-white font-bold line-clamp-1 pr-1">{order.service}</span>
                               </div>
+                              )}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">Total</p>
+                              <p className="text-[15px] font-black text-[#00E676] tracking-tight leading-none">{formatToBRL(order.financials?.totalValue || 0)}</p>
                             </div>
                           </div>
 
                           {/* Divider */}
-                          <div className="h-[1px] bg-[#2A2A2A]/60 -mx-4 mb-4" />
+                          <div className="h-px bg-white/[0.05] -mx-4 mb-3" />
 
-                          {/* Action Buttons */}
+                          {/* Action Buttons — 4 botões com cores distintas */}
                           <div className="grid grid-cols-4 gap-2">
-                             <button onClick={() => setSelectedOrder(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
-                               <Eye size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Detalhes</span>
-                             </button>
-                             <button onClick={() => onEdit?.(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
-                               <Pencil size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Editar</span>
-                             </button>
-                             <button onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
-                               <CheckCircle2 size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Status</span>
-                             </button>
-                             <button onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
-                               <FileText size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Docs</span>
-                             </button>
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 active:scale-95 transition-all"
+                            >
+                              <Eye size={15} />
+                              <span className="text-[8px] font-black uppercase tracking-wide">Ver</span>
+                            </button>
+                            <button
+                              onClick={() => onEdit?.(order)}
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all"
+                            >
+                              <Pencil size={15} />
+                              <span className="text-[8px] font-black uppercase tracking-wide">Editar</span>
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }}
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/20 active:scale-95 transition-all"
+                            >
+                              <CheckCircle2 size={15} />
+                              <span className="text-[8px] font-black uppercase tracking-wide">Status</span>
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }}
+                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 active:scale-95 transition-all"
+                            >
+                              <FileText size={15} />
+                              <span className="text-[8px] font-black uppercase tracking-wide">Docs</span>
+                            </button>
                           </div>
                         </div>
                       </div>
