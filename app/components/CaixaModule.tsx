@@ -741,12 +741,22 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-xl font-black tracking-tight truncate">Caixa Diário</h1>
                 {currentSession && (
-                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 border ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'}`}>
                     {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
                   </span>
                 )}
               </div>
-              <p className="hidden sm:block text-[11px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { dateStyle: 'long' })}</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.15em] mt-0.5 flex items-center gap-1.5">
+                <Calendar size={10} className="shrink-0" />
+                {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+                {currentSession?.openingTime && (
+                  <span className="flex items-center gap-1 text-zinc-600">
+                    <span>·</span>
+                    <Clock size={9} className="shrink-0" />
+                    Aberto às {currentSession.openingTime}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
