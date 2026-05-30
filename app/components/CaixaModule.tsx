@@ -741,8 +741,16 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-xl font-black tracking-tight truncate">Caixa Diário</h1>
                 {currentSession && (
-                  <span className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-widest shrink-0 border ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'}`}>
-                    {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
+                  <span className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest shrink-0 border ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'}`}>
+                    {/* Mobile: data + status */}
+                    <span className="sm:hidden text-[7px]">
+                      {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                      {' · '}{currentSession.status === 'open' ? 'Aberto' : 'Encerrado'}
+                    </span>
+                    {/* Desktop: só status */}
+                    <span className="hidden sm:inline text-[8px]">
+                      {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
+                    </span>
                   </span>
                 )}
               </div>
