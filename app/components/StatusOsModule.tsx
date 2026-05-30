@@ -1550,25 +1550,26 @@ export default function StatusOsModule({
                       setActiveStatus('ALL');
                     }
                   }}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
+                  className={`flex items-center justify-center gap-1.5 px-2.5 h-11 rounded-xl border transition-all active:scale-95 ${
                     groupBy === 'prioridade' 
                     ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.15)]' 
                     : 'bg-white/[0.02] border-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
-                  <ArrowUpDown size={18} />
+                  <ArrowUpDown size={16} />
+                  <span className="text-[9px] font-black uppercase tracking-widest mt-0.5">Prioridade</span>
                 </button>
 
                 {/* Buscar */}
                 <button
                   onClick={() => setIsMobileSearchOpen(v => !v)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
+                  className={`w-11 h-11 flex items-center justify-center shrink-0 rounded-xl border transition-all active:scale-95 ${
                     isMobileSearchOpen
                       ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.15)]'
                       : 'bg-white/[0.02] border-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
-                  <Search size={18} />
+                  <Search size={20} />
                 </button>
               </div>
             </div>
