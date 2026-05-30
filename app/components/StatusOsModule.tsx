@@ -1890,110 +1890,106 @@ export default function StatusOsModule({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsStatusPickerOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              className="absolute inset-0 bg-black/70 backdrop-blur-md"
             />
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-[#141414] border-t border-zinc-800 rounded-t-[32px] p-6 pb-12 max-h-[85vh] overflow-y-auto"
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              className="absolute bottom-0 left-0 right-0 bg-[#0F0F0F]/95 backdrop-blur-xl border-t border-white/[0.06] rounded-t-[28px] max-h-[88vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-black text-white uppercase tracking-widest">Filtrar por Status</h3>
-                <button 
-                   onClick={() => setIsStatusPickerOpen(false)}
-                   className="w-10 h-10 flex items-center justify-center bg-zinc-900 rounded-full text-zinc-400"
-                >
-                  <X size={20} />
-                </button>
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                <div className="grid grid-cols-2 gap-2">
-                   <button
-                    onClick={() => { setActiveStatus('Orçamento Cancelado'); setIsStatusPickerOpen(false); }}
-                    className={`flex items-center gap-3 p-3 rounded-sm border transition-all ${
-                      activeStatus === 'Orçamento Cancelado' 
-                      ? 'bg-red-400/20 border-red-400/30 text-red-400' 
-                      : 'bg-zinc-900/50 border-white/5 text-zinc-500'
-                    }`}
-                  >
-                    <XCircle size={16} />
-                    <span className="text-xs font-bold uppercase tracking-tighter">Cancelados</span>
-                    <span className="ml-auto text-[10px] font-black bg-black/40 px-2 py-0.5 rounded-full">
-                      {orders.filter(o => o.status === 'Orçamento Cancelado').length}
-                    </span>
-                  </button>
+              <div className="px-5 pt-3 pb-10">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[#00E676]/10 flex items-center justify-center">
+                      <Filter size={15} className="text-[#00E676]" />
+                    </div>
+                    <h3 className="text-base font-black text-white uppercase tracking-[0.15em]">Filtrar por Status</h3>
+                  </div>
                   <button
-                    onClick={() => { setActiveStatus('Sem Reparo'); setIsStatusPickerOpen(false); }}
-                    className={`flex items-center gap-3 p-3 rounded-sm border transition-all ${
-                      activeStatus === 'Sem Reparo' 
-                      ? 'bg-red-500/20 border-red-500/30 text-red-500' 
-                      : 'bg-zinc-900/50 border-white/5 text-zinc-500'
-                    }`}
+                    onClick={() => setIsStatusPickerOpen(false)}
+                    className="w-9 h-9 flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.06] rounded-xl text-zinc-400 transition-all"
                   >
-                    <AlertTriangle size={16} />
-                    <span className="text-xs font-bold uppercase tracking-tighter">Sem Reparo</span>
-                    <span className="ml-auto text-[10px] font-black bg-black/40 px-2 py-0.5 rounded-full">
-                      {orders.filter(o => o.status === 'Sem Reparo').length}
-                    </span>
+                    <X size={17} />
                   </button>
                 </div>
 
-                <div className="h-[1px] bg-zinc-800/50 my-1" />
+                {/* Status list */}
+                <div className="space-y-2">
+                  {COLUMNS.map(status => {
+                    const config = STATUS_CONFIG[status];
+                    const Icon = config.icon;
+                    const isSelected = activeStatus === status;
+                    const count = orders.filter(o => o.status === status).length;
 
-                {COLUMNS.map(status => {
-                  const config = STATUS_CONFIG[status];
-                  const Icon = config.icon;
-                  const isSelected = activeStatus === status;
-                  const count = orders.filter(o => o.status === status).length;
+                    return (
+                      <button
+                        key={`picker-${status}`}
+                        onClick={() => { setActiveStatus(status); setIsStatusPickerOpen(false); }}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${
+                          isSelected
+                          ? `${config.bg} border-white/10 ${config.color}`
+                          : 'bg-white/[0.03] border-white/[0.05] text-zinc-400 hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isSelected ? 'bg-white/10' : 'bg-white/[0.04]'}`}>
+                          <Icon size={18} className={isSelected ? config.color : 'text-zinc-500'} />
+                        </div>
+                        <span className={`text-sm font-bold flex-1 text-left ${isSelected ? '' : 'text-zinc-300'}`}>{status}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
+                            isSelected ? 'bg-white/15 text-white' : 'bg-white/[0.06] text-zinc-500'
+                          }`}>
+                            {count}
+                          </span>
+                          {isSelected && <Check size={16} className={config.color} />}
+                        </div>
+                      </button>
+                    );
+                  })}
 
-                  return (
-                    <button
-                      key={`picker-${status}`}
-                      onClick={() => { setActiveStatus(status); setIsStatusPickerOpen(false); }}
-                      className={`flex items-center gap-4 p-4 rounded-md border transition-all ${
-                        isSelected 
-                        ? `${config.bg.replace('/10', '/20')} border-zinc-700 ${config.color}` 
-                        : 'bg-zinc-900/50 border-white/5 text-zinc-400 hover:bg-zinc-800/50'
-                      }`}
-                    >
-                      <div className={`p-2 rounded-sm ${config.bg} ${config.color}`}>
-                        <Icon size={20} />
-                      </div>
-                      <span className="text-sm font-bold">{status}</span>
-                      <div className="ml-auto flex items-center gap-2">
-                        <span className={`text-xs font-black px-2 py-0.5 rounded-full ${isSelected ? 'bg-black/40 text-white' : 'bg-black/60 text-zinc-500'}`}>
-                          {count}
-                        </span>
-                        {isSelected && <Check size={18} />}
-                      </div>
-                    </button>
-                  );
-                })}
+                  {/* Divider */}
+                  <div className="h-px bg-white/[0.06] my-3" />
 
-                <div className="h-[1px] bg-zinc-800/50 my-2" />
-
-                <button
-                  onClick={() => { setActiveStatus('ALL'); setIsStatusPickerOpen(false); }}
-                  className={`flex items-center gap-4 p-4 rounded-md border transition-all ${
-                    activeStatus === 'ALL' 
-                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
-                    : 'bg-zinc-900/50 border-white/5 text-zinc-400 hover:bg-zinc-800/50'
-                  }`}
-                >
-                  <div className={`p-2 rounded-sm ${activeStatus === 'ALL' ? 'bg-[#00E676]/20' : 'bg-zinc-800'}`}>
-                    <Grid size={20} />
-                  </div>
-                  <span className="text-sm font-bold">Todos os Status</span>
-                  <div className="ml-auto flex items-center gap-2">
-                    <span className={`text-xs font-black px-2 py-0.5 rounded-full ${activeStatus === 'ALL' ? 'bg-black/40 text-[#00E676]' : 'bg-black/60 text-zinc-500'}`}>
-                      {orders.length}
-                    </span>
-                    {activeStatus === 'ALL' && <Check size={18} />}
-                  </div>
-                </button>
+                  {/* Cancelados e Sem Reparo */}
+                  {(['Orçamento Cancelado', 'Sem Reparo'] as const).map(status => {
+                    const config = STATUS_CONFIG[status];
+                    const Icon = config.icon;
+                    const isSelected = activeStatus === status;
+                    const count = orders.filter(o => o.status === status).length;
+                    return (
+                      <button
+                        key={`picker-${status}`}
+                        onClick={() => { setActiveStatus(status); setIsStatusPickerOpen(false); }}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${
+                          isSelected
+                          ? `${config.bg} border-white/10 ${config.color}`
+                          : 'bg-white/[0.03] border-white/[0.05] text-zinc-400 hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isSelected ? 'bg-white/10' : 'bg-white/[0.04]'}`}>
+                          <Icon size={18} className={isSelected ? config.color : 'text-zinc-500'} />
+                        </div>
+                        <span className={`text-sm font-bold flex-1 text-left ${isSelected ? '' : 'text-zinc-300'}`}>{status}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
+                            isSelected ? 'bg-white/15 text-white' : 'bg-white/[0.06] text-zinc-500'
+                          }`}>
+                            {count}
+                          </span>
+                          {isSelected && <Check size={16} className={config.color} />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
           </div>
