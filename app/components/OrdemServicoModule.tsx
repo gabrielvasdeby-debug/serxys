@@ -2581,7 +2581,7 @@ export default function OrdemServicoModule({
 
                   {activeTab === 'EQUIPMENT' && (
                     <>
-                    <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
+                    <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                       <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
                         <Smartphone size={20} className="text-[#00E676]" />
@@ -2627,7 +2627,7 @@ export default function OrdemServicoModule({
                                 }
                               }
                             }}
-                            className="bg-[#0A0A0A] border border-zinc-800 rounded-sm px-2 py-1 text-xs text-white focus:outline-none focus:border-[#00E676]"
+                            className="bg-white/[0.03] border border-white/[0.05] rounded-xl px-2 py-1 text-xs text-white focus:outline-none focus:border-[#00E676]"
                           >
                             <option value="new">+ Novo Aparelho</option>
                             {selectedCustomer.devices.map(d => (
@@ -2677,7 +2677,7 @@ export default function OrdemServicoModule({
                               }
                             }
                           }}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none shadow-inner"
                         >
                           <option value="">Selecione...</option>
                           {Array.from(new Set([
@@ -2695,7 +2695,7 @@ export default function OrdemServicoModule({
                           list="brands-list"
                           value={equipment.brand}
                           onChange={e => setEquipment({...equipment, brand: capFirst(e.target.value)})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors shadow-inner"
                           placeholder="Ex: Apple, Samsung"
                         />
                         <datalist id="brands-list">
@@ -2719,7 +2719,7 @@ export default function OrdemServicoModule({
                           list="models-list"
                           value={equipment.model}
                           onChange={e => setEquipment({...equipment, model: capFirst(e.target.value)})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors shadow-inner"
                           placeholder="Ex: iPhone 13, Galaxy S21"
                         />
                         <datalist id="models-list">
@@ -2740,7 +2740,7 @@ export default function OrdemServicoModule({
                           type="text"
                           value={equipment.color}
                           onChange={e => setEquipment({...equipment, color: capFirst(e.target.value)})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors shadow-inner"
                           placeholder="Ex: Preto"
                         />
                       </div>
@@ -2750,7 +2750,7 @@ export default function OrdemServicoModule({
                           type="text"
                           value={equipment.serial}
                           onChange={e => setEquipment({...equipment, serial: e.target.value})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors font-mono"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors font-mono shadow-inner"
                           placeholder="Digite o IMEI ou Serial"
                         />
                       </div>
@@ -2759,9 +2759,9 @@ export default function OrdemServicoModule({
 
                     {/* Password Section (Hidden for Controllers) */}
                     {equipment.type !== 'Controle' && (
-                      <div className="space-y-4 mb-8 bg-[#0A0A0A] border border-zinc-800 rounded-sm p-5 sm:p-6 shadow-sm">
+                      <div className="space-y-4 mb-8 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 rounded-sm bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+                          <div className="w-8 h-8 rounded-xl bg-white/[0.05] border border-white/[0.06] flex items-center justify-center text-zinc-400">
                              <Lock size={16} />
                           </div>
                           <div>
@@ -2791,14 +2791,14 @@ export default function OrdemServicoModule({
                                     setEquipment({...equipment, passwordType: type.id as any, passwordValue: ''});
                                   }
                                 }}
-                                className={`flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-sm border transition-all group/p-btn relative ${
+                                className={`flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl border transition-all group/p-btn relative ${
                                   isSelected 
-                                    ? 'bg-zinc-800/80 border-zinc-600 shadow-sm' 
-                                    : 'bg-[#141414] border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                                    ? 'bg-[#00E676]/10 border-[#00E676]/30 shadow-lg' 
+                                    : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                                 }`}
                               >
-                                <div className={`w-8 h-8 rounded-sm flex items-center justify-center transition-all ${
-                                  isSelected ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover/p-btn:text-zinc-400'
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+                                  isSelected ? 'bg-[#00E676] text-black shadow-inner' : 'bg-white/[0.05] text-zinc-500 group-hover/p-btn:text-zinc-300'
                                 }`}>
                                    <Icon size={16} />
                                 </div>
@@ -2824,7 +2824,7 @@ export default function OrdemServicoModule({
                                 type="text"
                                 value={equipment.passwordValue}
                                 onChange={e => setEquipment({...equipment, passwordValue: e.target.value})}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all font-mono tracking-widest"
+                                className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all font-mono tracking-widest shadow-inner"
                                 placeholder="****"
                               />
                             </div>
@@ -2835,10 +2835,10 @@ export default function OrdemServicoModule({
                           <motion.div 
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-4 flex flex-col items-start gap-4"
+                            className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 flex flex-col items-start gap-4"
                           >
                             <div className="flex items-center gap-3">
-                              <div className={`w-3 h-3 rounded-full ${equipment.passwordValue ? 'bg-[#00E676] shadow-[0_0_8px_#00E676]' : 'bg-zinc-800'}`} />
+                              <div className={`w-3 h-3 rounded-full ${equipment.passwordValue ? 'bg-[#00E676] shadow-[0_0_8px_#00E676]' : 'bg-white/[0.1]'}`} />
                               <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                                 {equipment.passwordValue ? 'Padrão definido com sucesso' : 'Aguardando definição do padrão'}
                               </p>
@@ -2850,7 +2850,7 @@ export default function OrdemServicoModule({
                                   setIsPatternModalReadOnly(false);
                                   setIsPatternModalOpen(true);
                                 }}
-                                className="flex-1 flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-800 hover:border-zinc-700 active:scale-95"
+                                className="flex-1 flex items-center justify-center gap-2 bg-white/[0.05] hover:bg-white/[0.08] text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/[0.06] active:scale-95"
                               >
                                 <Grid size={16} className="text-[#00E676]" />
                                 {equipment.passwordValue ? 'Alterar Padrão' : 'Definir Padrão'}
@@ -2861,7 +2861,7 @@ export default function OrdemServicoModule({
                                     setIsPatternModalReadOnly(true);
                                     setIsPatternModalOpen(true);
                                   }}
-                                  className="aspect-square bg-zinc-900 hover:bg-zinc-800 text-blue-400 px-3 rounded-sm transition-all border border-zinc-800 hover:border-zinc-700 active:scale-95"
+                                  className="aspect-square bg-white/[0.05] hover:bg-white/[0.08] text-blue-400 px-3 rounded-xl transition-all border border-white/[0.06] active:scale-95"
                                   title="Ver Padrão"
                                 >
                                   <Eye size={18} />
@@ -2874,11 +2874,11 @@ export default function OrdemServicoModule({
                     )}
                     
                     <div className="flex justify-between mt-6">
-                      <button onClick={() => setStep('CLIENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                      <button onClick={() => setStep('CLIENT')} className="bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] text-white px-6 h-[48px] sm:h-[42px] rounded-xl font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                         &larr; Voltar
                       </button>
-                      <button onClick={() => setActiveTab('CHECKLIST')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                        Avançar para Checklist &rarr;
+                      <button onClick={() => setActiveTab('CHECKLIST')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-xl font-black transition-all shadow-[0_0_20px_rgba(0,230,118,0.2)] text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                        Avançar &rarr;
                       </button>
                     </div>
                   </>
@@ -2898,7 +2898,7 @@ export default function OrdemServicoModule({
                   {activeTab === 'CHECKLIST' && (
                     <>
 
-                    <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm">
+                    <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
@@ -2924,7 +2924,7 @@ export default function OrdemServicoModule({
                       )}
                     </div>
                     
-                    <div className="mb-6 p-4 bg-zinc-900/50 border border-zinc-800 rounded-sm flex items-center gap-3">
+                    <div className="mb-6 p-4 bg-white/[0.03] border border-white/[0.05] rounded-xl flex items-center gap-3">
                       <input 
                         type="checkbox" 
                         id="checklist_not_possible"
@@ -2945,7 +2945,7 @@ export default function OrdemServicoModule({
                         </p>
                       </div>
                     ) : showVisualChecklist && equipment.type === 'Controle' ? (
-                      <div className="bg-[#0A0A0A] border border-zinc-800 rounded-md p-0 sm:p-4 mb-8 overflow-hidden">
+                      <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-0 sm:p-4 mb-8 overflow-hidden">
                         <VisualController 
                           checklist={checklist} 
                           onChange={(item, status) => setChecklist(prev => ({ ...prev, [item]: status }))} 
@@ -2992,26 +2992,26 @@ export default function OrdemServicoModule({
                           <div className="flex flex-col sm:flex-row gap-2 mb-4">
                             <div className="flex-1 space-y-2">
                               {Object.keys(checklist).slice(0, Math.ceil(Object.keys(checklist).length / 2)).map(item => (
-                                <div key={item} className="bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm p-2.5 flex items-center justify-between">
+                                <div key={item} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-2.5 flex items-center justify-between">
                                   <span className="text-[13px] text-zinc-300 font-medium truncate pr-2">{item}</span>
-                                  <div className="flex items-center gap-1 bg-[#141414] rounded-sm p-0.5 border border-zinc-800">
+                                  <div className="flex items-center gap-1 bg-white/[0.02] rounded-xl p-1 border border-white/[0.05]">
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'works'})}
-                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-lg transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.05]'}`}
                                       title="Funciona"
                                     >
                                       <Check className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'broken'})}
-                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-lg transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.05]'}`}
                                       title="Não Funciona"
                                     >
                                       <X className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'untested'})}
-                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-lg transition-colors ${checklist[item] === 'untested' ? 'bg-white/[0.1] text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.05]'}`}
                                       title="Sem Teste"
                                     >
                                       <Grid className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
@@ -3022,26 +3022,26 @@ export default function OrdemServicoModule({
                             </div>
                             <div className="flex-1 space-y-2">
                               {Object.keys(checklist).slice(Math.ceil(Object.keys(checklist).length / 2)).map(item => (
-                                <div key={item} className="bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm p-2.5 flex items-center justify-between">
+                                <div key={item} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-2.5 flex items-center justify-between">
                                   <span className="text-[13px] text-zinc-300 font-medium truncate pr-2">{item}</span>
-                                  <div className="flex items-center gap-1 bg-[#141414] rounded-sm p-0.5 border border-zinc-800">
+                                  <div className="flex items-center gap-1 bg-white/[0.02] rounded-xl p-1 border border-white/[0.05]">
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'works'})}
-                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-lg transition-colors ${checklist[item] === 'works' ? 'bg-[#00E676]/20 text-[#00E676]' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.05]'}`}
                                       title="Funciona"
                                     >
                                       <Check className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'broken'})}
-                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-lg transition-colors ${checklist[item] === 'broken' ? 'bg-red-500/20 text-red-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.05]'}`}
                                       title="Não Funciona"
                                     >
                                       <X className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                     <button
                                       onClick={() => setChecklist({...checklist, [item]: 'untested'})}
-                                      className={`p-3 sm:p-1.5 rounded-md transition-colors ${checklist[item] === 'untested' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'}`}
+                                      className={`p-3 sm:p-1.5 rounded-lg transition-colors ${checklist[item] === 'untested' ? 'bg-white/[0.1] text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.05]'}`}
                                       title="Sem Teste"
                                     >
                                       <Grid className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
@@ -3061,14 +3061,14 @@ export default function OrdemServicoModule({
                         type="text"
                         value={checklistNotes}
                         onChange={e => setChecklistNotes(capFirst(e.target.value))}
-                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                        className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors shadow-inner"
                         placeholder="Ex: Tela já possui trincado no canto superior direito"
                       />
                     </div>
                   </section>
 
                   {/* Fotos de Entrada (Moved below Checklist) */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm mt-6">
+                  <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl mt-6 relative overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                       <div className="flex items-center gap-3">
                         <button 
@@ -3086,7 +3086,7 @@ export default function OrdemServicoModule({
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {entryPhotos.map((url, index) => (
-                          <div key={index} className="relative group aspect-square rounded-sm overflow-hidden border border-zinc-800 bg-black">
+                          <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
                             <img src={url} alt={`Entrada ${index + 1}`} className="w-full h-full object-contain" />
                             <button
                               onClick={() => setEntryPhotos(entryPhotos.filter((_, i) => i !== index))}
@@ -3100,7 +3100,7 @@ export default function OrdemServicoModule({
                         {entryPhotos.length < 8 && (
                           <>
                             {/* Option: Upload File/Gallery */}
-                            <label className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center cursor-pointer gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
+                            <label className={`aspect-square rounded-xl bg-white/[0.02] border border-dashed border-white/[0.1] hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center cursor-pointer gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -3122,7 +3122,7 @@ export default function OrdemServicoModule({
                             {/* Option: Camera Direct (Native) */}
                             <button 
                               onClick={() => cameraInputRef.current?.click()}
-                              className={`aspect-square rounded-sm border-2 border-dashed border-zinc-800 hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
+                              className={`aspect-square rounded-xl bg-white/[0.02] border border-dashed border-white/[0.1] hover:border-[#00E676] hover:bg-[#00E676]/5 transition-all flex flex-col items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                               disabled={isUploading}
                             >
                               <input
@@ -3150,11 +3150,11 @@ export default function OrdemServicoModule({
                   </section>
                   
                   <div className="flex justify-between mt-6">
-                    <button onClick={() => setActiveTab('EQUIPMENT')} className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                    <button onClick={() => setActiveTab('EQUIPMENT')} className="bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] text-white px-6 h-[48px] sm:h-[42px] rounded-xl font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                       &larr; Voltar
                     </button>
-                    <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                      Avançar para Serviço &rarr;
+                    <button onClick={() => setActiveTab('SERVICE')} className="bg-[#00E676] hover:bg-[#00C853] text-black px-6 h-[48px] sm:h-[42px] rounded-xl font-black transition-all shadow-[0_0_20px_rgba(0,230,118,0.2)] text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                      Avançar &rarr;
                     </button>
                   </div>
                 </>
@@ -3163,7 +3163,7 @@ export default function OrdemServicoModule({
                 {activeTab === 'SERVICE' && (
                   <>
                   {/* 1. Defeito Relatado */}
-                  <section className="bg-amber-500/5 border-2 border-amber-500/30 rounded-md p-4 sm:p-6 shadow-lg shadow-amber-500/5 space-y-4">
+                  <section className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 sm:p-6 shadow-2xl shadow-amber-500/5 space-y-4 relative overflow-hidden">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-sm bg-amber-500/20 flex items-center justify-center text-amber-500">
                          <AlertTriangle size={20} />
@@ -3176,13 +3176,13 @@ export default function OrdemServicoModule({
                     <textarea
                       value={defect}
                       onChange={e => setDefect(capFirst(e.target.value))}
-                      className="w-full bg-black/40 border-2 border-amber-500/20 rounded-md px-4 py-4 text-base sm:text-lg font-medium text-white focus:outline-none focus:border-amber-500 transition-colors min-h-[120px] resize-y placeholder:text-zinc-600"
+                      className="w-full bg-black/40 border border-amber-500/20 rounded-xl px-4 py-4 text-base sm:text-lg font-medium text-white focus:outline-none focus:border-amber-500 transition-colors min-h-[120px] resize-y placeholder:text-zinc-600 shadow-inner"
                       placeholder="Descreva detalhadamente o problema relatado pelo cliente..."
                     />
                   </section>
 
                   {/* 2. Serviço Contratado */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-6">
+                  <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl space-y-6 relative overflow-hidden">
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
@@ -3210,7 +3210,7 @@ export default function OrdemServicoModule({
                                   setFinancials((prev: any) => ({ ...prev, totalValue: Number(svc.default_value) }));
                                 }
                               }}
-                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none"
+                              className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] appearance-none shadow-inner"
                             >
                               <option value="">Selecione um serviço cadastrado...</option>
                               {displaySvcs.map(s => (
@@ -3226,7 +3226,7 @@ export default function OrdemServicoModule({
                         <textarea
                           value={service}
                           onChange={e => setService(capFirst(e.target.value))}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors min-h-[100px] resize-y shadow-inner"
                           placeholder="Descrição do serviço contratado..."
                         />
                       </div>
@@ -3234,7 +3234,7 @@ export default function OrdemServicoModule({
                   </section>
 
                   {/* 3. Previsão de Entrega */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm overflow-hidden relative group/forecast">
+                  <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl overflow-hidden relative group/forecast">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E676]/[0.02] blur-3xl rounded-full pointer-events-none group-hover/forecast:bg-[#00E676]/[0.05] transition-all duration-700"></div>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676] shadow-inner">
@@ -3256,7 +3256,7 @@ export default function OrdemServicoModule({
                             const time = deliveryForecast ? (deliveryForecast.split('T')[1] || '09:00:00') : '09:00:00';
                             setDeliveryForecast(e.target.value ? `${e.target.value}T${time}` : '');
                           }}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark] shadow-inner"
                         />
                       </div>
 
@@ -3269,7 +3269,7 @@ export default function OrdemServicoModule({
                             const date = deliveryForecast ? deliveryForecast.split('T')[0] : new Date().toISOString().split('T')[0];
                             setDeliveryForecast(e.target.value ? `${date}T${e.target.value}:00` : '');
                           }}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark]"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] transition-all [color-scheme:dark] shadow-inner"
                         />
                       </div>
                     </div>
@@ -3289,7 +3289,7 @@ export default function OrdemServicoModule({
                   </section>
 
                   {/* 4. Prioridade */}
-                  <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-3">
+                  <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl space-y-3 relative overflow-hidden">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-blue-500">
                          <AlertCircle size={16} />
@@ -3302,7 +3302,7 @@ export default function OrdemServicoModule({
                           key={p}
                           type="button"
                           onClick={() => setPriority(p)}
-                          className={`px-3 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all border ${
+                          className={`px-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
                             priority === p 
                               ? p === 'Baixa' ? 'bg-zinc-800 border-zinc-700 text-white shadow-lg'
                               : p === 'Média' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-lg shadow-blue-500/10'
@@ -3319,7 +3319,7 @@ export default function OrdemServicoModule({
 
                   {/* 5. Observações Técnicas */}
                   {profile.role !== 'attendant' && (
-                    <section className="bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm space-y-2">
+                    <section className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl space-y-2 relative overflow-hidden">
                       <h2 className="text-sm font-semibold flex items-center gap-2 text-white">
                         <PenTool size={16} className="text-blue-400" />
                         Observações Técnicas (Interno)
@@ -3327,17 +3327,17 @@ export default function OrdemServicoModule({
                       <textarea
                         value={technicianNotes}
                         onChange={e => setTechnicianNotes(capFirst(e.target.value))}
-                        className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] resize-y"
+                        className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] resize-y shadow-inner"
                         placeholder="Anotações visíveis apenas para a equipe técnica..."
                       />
                     </section>
                   )}
 
                   <div className="flex justify-between gap-3 mt-6">
-                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('CHECKLIST')} className="flex-1 sm:flex-none bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] text-white px-8 h-[48px] sm:h-[42px] rounded-xl font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="flex-1 sm:flex-none bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[48px] sm:h-[42px] rounded-xl font-black transition-all shadow-[0_0_20px_rgba(0,230,118,0.2)] text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        Avançar &rarr;
                      </button>
                   </div>
@@ -3348,7 +3348,7 @@ export default function OrdemServicoModule({
                 {activeTab === 'FINANCIAL' && (
                   <>
                   {/* Financials */}
-                  <section className="w-full bg-[#141414] border border-zinc-800 rounded-md p-4 sm:p-6 shadow-sm overflow-hidden">
+                  <section className="w-full bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-2xl overflow-hidden relative">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
                          <Banknote size={16} />
@@ -3372,7 +3372,7 @@ export default function OrdemServicoModule({
                               amountPaid: financials.paymentStatus === 'Total' ? newTotal : financials.amountPaid
                             });
                           }}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-3 text-lg font-semibold text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3 text-lg font-semibold text-white focus:outline-none focus:border-[#00E676] transition-colors shadow-inner"
                           placeholder="0,00"
                         />
                       </div>
@@ -3412,10 +3412,10 @@ export default function OrdemServicoModule({
                                   });
                                 }
                               }}
-                              className={`flex-1 min-w-[80px] sm:min-w-0 py-2 text-xs font-medium rounded-sm border transition-colors ${
+                              className={`flex-1 min-w-[80px] sm:min-w-0 py-2 text-xs font-medium rounded-xl border transition-colors ${
                                 financials.paymentStatus === status 
-                                  ? 'bg-[#00E676]/10 border-[#00E676] text-[#00E676]' 
-                                  : 'bg-[#0A0A0A] border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                                  ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
+                                  : 'bg-white/[0.03] border-white/[0.05] text-zinc-400 hover:border-white/[0.1] hover:text-zinc-300'
                               }`}
                             >
                               {status}
@@ -3431,7 +3431,7 @@ export default function OrdemServicoModule({
                           {/* List of current payments */}
                           <div className="space-y-2">
                             {(financials.paymentMethods || []).map((pm: any, index: number) => (
-                              <div key={index} className="flex justify-between items-center bg-zinc-900 border border-zinc-800 rounded-sm px-3 py-2.5 text-xs">
+                              <div key={index} className="flex justify-between items-center bg-white/[0.03] border border-white/[0.05] rounded-xl px-3 py-2.5 text-xs">
                                 <div className="flex items-center gap-2">
                                   <span className="font-bold text-[#00E676]">{pm.method}</span>
                                   <span className="text-zinc-600">|</span>
@@ -3454,7 +3454,7 @@ export default function OrdemServicoModule({
                           </div>
 
                           {/* Add Payment Form */}
-                          <div className="border border-dashed border-zinc-800 rounded p-3 space-y-3 bg-[#0A0A0A]">
+                          <div className="border border-dashed border-white/[0.1] rounded-xl p-3 space-y-3 bg-white/[0.02]">
                             <p className="text-[9px] uppercase font-black tracking-wider text-zinc-500">Adicionar Recebimento</p>
                             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
                               <div className="sm:col-span-5 space-y-1">
@@ -3462,7 +3462,7 @@ export default function OrdemServicoModule({
                                 <select
                                   value={tempMethod}
                                   onChange={e => setTempMethod(e.target.value as any)}
-                                  className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
+                                  className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none shadow-inner"
                                 >
                                   <option value="Dinheiro">Dinheiro</option>
                                   <option value="PIX">PIX</option>
@@ -3480,7 +3480,7 @@ export default function OrdemServicoModule({
                                   step="0.01"
                                   value={tempAmount}
                                   onChange={e => setTempAmount(e.target.value)}
-                                  className="w-full bg-zinc-900 border border-zinc-800 rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                  className="w-full bg-white/[0.03] border border-white/[0.05] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E676] transition-colors shadow-inner"
                                   placeholder="0,00"
                                 />
                               </div>
@@ -3490,7 +3490,7 @@ export default function OrdemServicoModule({
                                   const val = parseFloat(tempAmount) || 0;
                                   handleAddPaymentMethod(tempMethod, val);
                                 }}
-                                className="sm:col-span-3 w-full bg-[#00E676]/10 border border-[#00E676]/30 hover:bg-[#00E676] hover:text-black text-[#00E676] text-xs font-black uppercase tracking-wider py-2 rounded-sm transition-all flex items-center justify-center gap-1.5 h-[34px]"
+                                className="sm:col-span-3 w-full bg-[#00E676]/10 border border-[#00E676]/30 hover:bg-[#00E676] hover:text-black text-[#00E676] text-xs font-black uppercase tracking-wider py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 h-[34px]"
                               >
                                 <Plus size={14} />
                                 Adicionar
@@ -3499,7 +3499,7 @@ export default function OrdemServicoModule({
                           </div>
 
                           {/* Summary Indicators */}
-                          <div className="bg-[#0A0A0A] border border-zinc-800 rounded p-4 space-y-2 mt-4">
+                          <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-4 space-y-2 mt-4">
                             <div className="flex justify-between text-xs text-zinc-400">
                               <span>Total do Serviço:</span>
                               <span className="font-semibold text-white">R$ {financials.totalValue.toFixed(2)}</span>
@@ -3508,7 +3508,7 @@ export default function OrdemServicoModule({
                               <span>Total Recebido:</span>
                               <span className="font-semibold text-[#00E676]">R$ {financials.amountPaid.toFixed(2)}</span>
                             </div>
-                            <div className="h-px bg-zinc-800 my-1" />
+                            <div className="h-px bg-white/[0.06] my-1" />
                             <div className="flex justify-between text-xs">
                               {financials.totalValue - financials.amountPaid > 0 ? (
                                 <>
@@ -3534,10 +3534,10 @@ export default function OrdemServicoModule({
                   </section>
                   
                   <div className="flex flex-row gap-3 mt-6">
-                     <button onClick={() => setActiveTab('SERVICE')} className="flex-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-4 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SERVICE')} className="flex-1 bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] text-white px-4 h-[48px] sm:h-[42px] rounded-xl font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
-                     <button onClick={() => setActiveTab('SIGNATURE')} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black px-4 h-[48px] sm:h-[42px] rounded-md font-black transition-all shadow-lg text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('SIGNATURE')} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black px-4 h-[48px] sm:h-[42px] rounded-xl font-black transition-all shadow-[0_0_20px_rgba(0,230,118,0.2)] text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        Assinar OS &rarr;
                      </button>
                    </div>
@@ -3548,7 +3548,7 @@ export default function OrdemServicoModule({
                 {activeTab === 'SIGNATURE' && (
                   <React.Fragment>
                   {/* Signatures */}
-                  <section className="w-full bg-[#141414] border border-zinc-800 rounded-md p-3 sm:p-6 shadow-sm overflow-hidden">
+                  <section className="w-full bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3 sm:p-6 shadow-2xl overflow-hidden relative">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 rounded-sm bg-zinc-800 flex items-center justify-center text-[#00E676]">
                          <Pencil size={16} />
@@ -3568,10 +3568,11 @@ export default function OrdemServicoModule({
                           className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'manual'
                               ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-zinc-700/50' 
-                              : 'bg-[#0A0A0A] border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/50'
+                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-zinc-700/50' 
+                              : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                           }`}
                         >
-                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-sm flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-zinc-900 text-blue-400 shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-xl flex items-center justify-center transition-all ${signatureMode === 'manual' ? 'bg-white/[0.05] text-blue-400 shadow-inner' : 'bg-white/[0.02] text-zinc-600 group-hover:text-zinc-400'}`}>
                               <Pencil size={20} />
                            </div>
                            <div className="text-left md:text-center flex-1 relative z-10">
@@ -3595,10 +3596,11 @@ export default function OrdemServicoModule({
                           className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'digital'
                               ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
-                              : 'bg-[#0A0A0A] border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/50'
+                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
+                              : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                           }`}
                         >
-                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-sm flex items-center justify-center transition-all ${signatureMode === 'digital' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-xl flex items-center justify-center transition-all ${signatureMode === 'digital' ? 'bg-white/[0.05] text-[#00E676] shadow-inner' : 'bg-white/[0.02] text-zinc-600 group-hover:text-zinc-400'}`}>
                               <Smartphone size={20} />
                            </div>
                            <div className="text-left md:text-center flex-1 relative z-10">
@@ -3622,10 +3624,11 @@ export default function OrdemServicoModule({
                           className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'remote'
                               ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
-                              : 'bg-[#0A0A0A] border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/50'
+                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
+                              : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                           }`}
                         >
-                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-sm flex items-center justify-center transition-all ${signatureMode === 'remote' ? 'bg-zinc-900 text-[#00E676] shadow-inner' : 'bg-zinc-900/50 text-zinc-600 group-hover:text-zinc-400'}`}>
+                           <div className={`shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full md:rounded-xl flex items-center justify-center transition-all ${signatureMode === 'remote' ? 'bg-white/[0.05] text-[#00E676] shadow-inner' : 'bg-white/[0.02] text-zinc-600 group-hover:text-zinc-400'}`}>
                               <MessageCircle size={20} />
                            </div>
                            <div className="text-left md:text-center flex-1 relative z-10">
@@ -3656,14 +3659,14 @@ export default function OrdemServicoModule({
                           />
                           {/* Preview das assinaturas coletadas */}
                           {(signatures.technician || signatures.client) && (
-                            <div className="mt-2 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-sm animate-in fade-in duration-500">
+                            <div className="mt-2 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl animate-in fade-in duration-500">
                               <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-3 flex items-center gap-2">
                                 <CheckCircle2 size={12} /> Assinaturas Coletadas
                               </p>
                               <div className="grid grid-cols-2 gap-3">
                                 {signatures.technician && (
                                   <div className="flex flex-col items-center gap-1">
-                                    <div className="w-full h-20 bg-white rounded-sm overflow-hidden border border-zinc-200 flex items-center justify-center p-1 shadow-sm">
+                                    <div className="w-full h-20 bg-white rounded-2xl overflow-hidden border border-zinc-200 flex items-center justify-center p-1 shadow-sm">
                                       <img src={signatures.technician} alt="Assinatura Técnico" className="max-h-full max-w-full object-contain" />
                                     </div>
                                     <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Técnico</span>
@@ -3683,7 +3686,7 @@ export default function OrdemServicoModule({
                         </div>
                       ) : signatureMode === 'remote' ? (
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <div className="p-4 sm:p-6 text-center bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-sm">
+                          <div className="p-4 sm:p-6 text-center bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-2xl">
                             <p className="text-[9px] sm:text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed mb-4">
                               Ao escolher via WhatsApp, você deve assinar como técnico primeiro. Após salvar, a OS será criada e você poderá enviar o link para o cliente.
                             </p>
@@ -3702,8 +3705,8 @@ export default function OrdemServicoModule({
                           </div>
                         </div>
                       ) : (
-                        <div className="p-6 text-center bg-zinc-900/40 border border-dashed border-zinc-800 rounded-sm animate-in zoom-in-95 duration-300">
-                          <div className="w-12 h-12 rounded-sm bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto mb-3">
+                        <div className="p-6 text-center bg-white/[0.02] border border-dashed border-white/[0.1] rounded-2xl animate-in zoom-in-95 duration-300">
+                          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto mb-3">
                              <Pencil size={24} />
                           </div>
                           <div>
@@ -3717,14 +3720,14 @@ export default function OrdemServicoModule({
                     </section>
 
                     <div className="flex flex-col sm:flex-row justify-between items-center mt-8 py-6 border-t border-zinc-800/50 gap-6">
-                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white px-8 h-[48px] sm:h-[42px] rounded-md font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                     <button onClick={() => setActiveTab('FINANCIAL')} className="w-full sm:w-auto bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] text-white px-8 h-[48px] sm:h-[42px] rounded-xl font-black transition-all text-[11px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2">
                        &larr; Voltar
                      </button>
  
                      <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
                       {/* Secondary Actions Group */}
                       {localOrder?.id && (
-                        <div className="flex items-center justify-center bg-zinc-900/50 p-1.5 rounded-md border border-white/5 gap-1 w-full sm:w-auto">
+                        <div className="flex items-center justify-center bg-white/[0.02] p-1.5 rounded-xl border border-white/5 gap-1 w-full sm:w-auto">
                           <button 
                             onClick={() => {
                               if (!selectedCustomer) {
@@ -3793,7 +3796,7 @@ export default function OrdemServicoModule({
                       <button 
                         onClick={() => handleSaveOS()}
                         disabled={isSaving}
-                        className="w-full sm:w-auto px-12 h-[54px] sm:h-[48px] rounded-md bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs sm:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full sm:w-auto px-12 h-[54px] sm:h-[48px] rounded-xl bg-[#00E676] hover:bg-[#00C853] text-black font-black text-xs sm:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-[#00E676]/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                         {isSaving ? 'Salvando...' : 'Finalizar OS'}
