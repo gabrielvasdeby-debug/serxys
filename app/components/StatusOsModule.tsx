@@ -1597,35 +1597,40 @@ export default function StatusOsModule({
             </div>
 
             {/* Row 3: Mobile Tabs Timeline — sem botão 'Todas' */}
-            <div className="flex overflow-x-auto gap-2.5 py-2 mt-1 mb-2 no-scrollbar">
+            <div className="flex overflow-x-auto gap-2 py-1.5 mt-1 mb-1 no-scrollbar">
               
               {COLUMNS.map(status => {
                  const count = orders.filter(o => o.status === status).length;
-                 if (count === 0 && activeStatus !== status) return null; // hide empty to save space, like prototype
+                 if (count === 0 && activeStatus !== status) return null;
                  const isSelected = activeStatus === status;
                  let shortName = status.split(' ')[0];
                  if (['Em', 'Aguardando'].includes(shortName)) {
                    shortName = status.split(' ')[1];
                    if (status.includes('Técnica')) shortName = 'Análise';
                  }
-                  if (status === 'Reparo Concluído') shortName = 'Concluída';
-                   if (status === 'Equipamento Retirado') shortName = 'RETIRADO';
+                 if (status === 'Reparo Concluído') shortName = 'Concluído';
+                 if (status === 'Equipamento Retirado') shortName = 'Retirado';
                  
                  const config = STATUS_CONFIG[status];
+                 const Icon = config.icon;
 
                  return (
                    <button
                      key={`m-tab-${status}`}
                      onClick={() => setActiveStatus(status)}
-                     style={isSelected ? { borderColor: 'currentColor' } : {}}
-                     className={`flex items-center gap-2 px-3.5 py-2 shrink-0 rounded-xl border transition-all active:scale-95 ${
+                     className={`flex items-center gap-1.5 pl-2.5 pr-3 py-2 shrink-0 rounded-2xl border transition-all active:scale-95 ${
                        isSelected
-                         ? `${config.bg.replace('/10', '/10')} ${config.color}`
-                         : 'bg-[#111111] border-zinc-800 text-zinc-400 hover:bg-[#1A1A1A]'
+                         ? `${config.bg} ${config.color} border-current/30 shadow-sm`
+                         : 'bg-white/[0.03] border-white/[0.06] text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
                      }`}
                    >
-                     <span className="text-[11px] font-black uppercase tracking-widest">{shortName}</span>
-                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isSelected ? config.bg.replace('/10', '/20') : 'bg-zinc-800 text-zinc-500'}`}>
+                     <div className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-white/15' : 'bg-white/[0.05]'}`}>
+                       <Icon size={11} className={isSelected ? config.color : 'text-zinc-600'} />
+                     </div>
+                     <span className="text-[10px] font-black uppercase tracking-wider leading-none">{shortName}</span>
+                     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none ${
+                       isSelected ? 'bg-white/20 text-white' : 'bg-white/[0.06] text-zinc-600'
+                     }`}>
                        {count}
                      </span>
                    </button>
