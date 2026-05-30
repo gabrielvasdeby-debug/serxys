@@ -746,7 +746,8 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                   </span>
                 )}
               </div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.15em] mt-0.5 flex items-center gap-1.5">
+              {/* Desktop only: data completa + hora */}
+              <p className="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-[0.15em] mt-0.5">
                 <Calendar size={10} className="shrink-0" />
                 {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
                 {currentSession?.openingTime && (
