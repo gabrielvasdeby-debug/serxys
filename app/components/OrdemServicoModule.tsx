@@ -6,7 +6,7 @@ import {
   Search, Plus, User, Smartphone, 
   CheckCircle2, AlertCircle, AlertTriangle, Save, Printer, MessageCircle,
   Check, X, Banknote, FileText, PenTool, Grid, Eye, Trash2, Camera, UploadCloud, Loader2, ShieldCheck, Mail, Pencil,
-  Shield, Hash, Key, Lock, Home, ChevronLeft, ChevronRight, Share2
+  Shield, Hash, Key, Lock, Home, ChevronLeft, ChevronRight, ChevronDown, Share2
 } from 'lucide-react';
 import { Customer, DeviceType } from './ClientesModule';
 import PatternLock from './PatternLock';
