@@ -2132,102 +2132,107 @@ export default function OrdemServicoModule({
                 {isCreatingCustomer ? (
                   <form onSubmit={handleCreateCustomer} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2 space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">Nome Completo *</label>
+                      <div className="md:col-span-2 space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo *</label>
                         <input
                           type="text"
                           required
                           value={newCustomer.name}
                           onChange={e => setNewCustomer({...newCustomer, name: capFirst(e.target.value)})}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                          className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                           placeholder="Ex: João da Silva"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">WhatsApp</label>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Data de Nascimento</label>
+                        <input
+                          type="tel"
+                          value={newCustomer.displayBirthDate}
+                          onChange={e => setNewCustomer({...newCustomer, displayBirthDate: applyMaskWithCursor(e.target as HTMLInputElement, 'date')})}
+                          className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
+                          placeholder="DD/MM/AAAA"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF ou CNPJ</label>
+                        <input
+                          type="tel"
+                          value={newCustomer.document}
+                          onChange={e => setNewCustomer({...newCustomer, document: applyMaskWithCursor(e.target as HTMLInputElement, 'document')})}
+                          className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
+                          placeholder="000.000.000-00"
+                        />
+                      </div>
+                      <div className="md:col-span-2 space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp</label>
                         <div className="flex gap-2">
                           <CountryCodePicker selectedCountry={whatsappCountry} onSelect={setWhatsappCountry} />
                           <input
                             type="tel"
                             value={newCustomer.whatsapp}
                             onChange={e => setNewCustomer({...newCustomer, whatsapp: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
-                            className="flex-1 bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                            className="flex-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                             placeholder="(00) 00000-0000"
                           />
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">Telefone</label>
-                        <div className="flex gap-2">
-                          <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
-                          <input
-                            type="tel"
-                            value={newCustomer.phone}
-                            onChange={e => setNewCustomer({...newCustomer, phone: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
-                            className="flex-1 bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                            placeholder="(00) 0000-0000"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-zinc-400">CPF ou CNPJ</label>
-                        <input
-                          type="tel"
-                          value={newCustomer.document}
-                          onChange={e => setNewCustomer({...newCustomer, document: applyMaskWithCursor(e.target as HTMLInputElement, 'document')})}
-                          className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                          placeholder="000.000.000-00"
-                        />
-                      </div>
                     </div>
 
-                    <details className="group mt-4 border border-zinc-800 rounded-sm bg-[#141414] overflow-hidden">
-                      <summary className="cursor-pointer p-4 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors flex items-center justify-between select-none list-none [&::-webkit-details-marker]:hidden">
-                        Mais informações (Opcional)
-                        <span className="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
+                    <details className="group rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden transition-all duration-300">
+                      <summary className="cursor-pointer p-4 text-[10px] font-black uppercase tracking-widest text-[#00E676] hover:bg-[#00E676]/10 transition-colors flex items-center justify-center gap-2 select-none list-none [&::-webkit-details-marker]:hidden">
+                        Ver Mais Informações
+                        <ChevronDown size={14} className="group-open:rotate-180 transition-transform" />
                       </summary>
-                      <div className="p-4 border-t border-zinc-800 space-y-6">
+                      <div className="p-5 border-t border-white/[0.05] space-y-6 bg-black/20">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-zinc-400">E-mail</label>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone Secundário</label>
+                            <div className="flex gap-2">
+                              <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
+                              <input
+                                type="tel"
+                                value={newCustomer.phone}
+                                onChange={e => setNewCustomer({...newCustomer, phone: applyMaskWithCursor(e.target as HTMLInputElement, 'phone')})}
+                                className="flex-1 bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
+                                placeholder="(00) 0000-0000"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">E-mail</label>
                             <input
                               type="email"
                               value={newCustomer.email}
                               onChange={e => setNewCustomer({...newCustomer, email: e.target.value})}
-                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                              className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                               placeholder="email@exemplo.com"
                             />
                           </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-zinc-400">Data de Nascimento</label>
-                            <input
-                              type="tel"
-                              value={newCustomer.displayBirthDate}
-                              onChange={e => setNewCustomer({...newCustomer, displayBirthDate: applyMaskWithCursor(e.target as HTMLInputElement, 'date')})}
-                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
-                              placeholder="DD/MM/AAAA"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-zinc-400">Origem do Cliente</label>
-                            <select 
-                              value={newCustomer.customer_origin}
-                              onChange={e => setNewCustomer({...newCustomer, customer_origin: e.target.value})}
-                              className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors appearance-none"
-                            >
-                              <option value="">Selecione a origem</option>
-                              {['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'].map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
+                          <div className="md:col-span-2 space-y-1.5">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Origem do Cliente</label>
+                            <div className="relative">
+                              <select 
+                                value={newCustomer.customer_origin}
+                                onChange={e => setNewCustomer({...newCustomer, customer_origin: e.target.value})}
+                                className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all appearance-none pr-10"
+                              >
+                                <option value="" className="bg-[#141414]">Selecione a origem</option>
+                                {['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'].map(opt => (
+                                  <option key={opt} value={opt} className="bg-[#141414]">{opt}</option>
+                                ))}
+                              </select>
+                              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                                <ChevronDown size={16} />
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="border-t border-zinc-800 pt-6">
-                          <h3 className="text-sm font-medium text-white mb-4">Endereço</h3>
+                        <div className="border-t border-white/[0.05] pt-6">
+                          <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 ml-1">Endereço</h3>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-zinc-400">CEP</label>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">CEP</label>
                               <input
                                 type="text"
                                 value={newCustomer.address.zipCode}
@@ -2282,71 +2287,71 @@ export default function OrdemServicoModule({
                                     onShowToast('Erro ao consultar o CEP. Verifique sua conexão.');
                                   }
                                 }}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                                 placeholder="00000-000"
                               />
                             </div>
-                            <div className="md:col-span-2 space-y-1">
-                              <label className="text-xs font-medium text-zinc-400">Rua</label>
+                            <div className="md:col-span-2 space-y-1.5">
+                              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Rua</label>
                               <input
                                 type="text"
                                 value={newCustomer.address.street}
                                 onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, street: capFirst(e.target.value)}})}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                                 placeholder="Nome da rua"
                               />
                             </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-zinc-400">Número</label>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Número</label>
                               <input
                                 type="text"
                                 value={newCustomer.address.number}
                                 onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, number: e.target.value}})}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                                 placeholder="123"
                               />
                             </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-zinc-400">Bairro</label>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Bairro</label>
                               <input
                                 type="text"
                                 value={newCustomer.address.neighborhood}
                                 onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, neighborhood: capFirst(e.target.value)}})}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                                 placeholder="Bairro"
                               />
                             </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-zinc-400">Cidade</label>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cidade</label>
                               <input
                                 type="text"
                                 value={newCustomer.address.city}
                                 onChange={e => setNewCustomer({...newCustomer, address: {...newCustomer.address, city: capFirst(e.target.value)}})}
-                                className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors"
+                                className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all"
                                 placeholder="Cidade"
                               />
                             </div>
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-zinc-400">Observações</label>
+                        <div className="border-t border-white/[0.05] pt-6 space-y-1.5">
+                          <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações</label>
                           <textarea
                             value={newCustomer.notes}
                             onChange={e => setNewCustomer({...newCustomer, notes: capFirst(e.target.value)})}
                             rows={3}
-                            className="w-full bg-zinc-900 sm:bg-[#0A0A0A] border border-zinc-800 rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E676] transition-colors resize-none"
+                            className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#00E676]/[0.02] transition-all resize-none"
                             placeholder="Informações adicionais..."
                           />
                         </div>
                       </div>
                     </details>
 
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-2">
                       <button
                         type="submit"
                         disabled={isSavingCustomer}
-                        className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 h-[60px] sm:h-[54px] rounded-md font-black text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="w-full sm:w-auto bg-[#00E676] hover:bg-[#00C853] text-black px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,230,118,0.2)] disabled:opacity-70"
                       >
                         {isSavingCustomer ? (
                           <>
