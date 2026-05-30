@@ -2160,35 +2160,35 @@ export default function StatusOsModule({
                           {/* Divider */}
                           <div className="h-px bg-white/[0.05] -mx-4 mb-3" />
 
-                          {/* Action Buttons — 4 botões com cores distintas */}
-                          <div className="grid grid-cols-4 gap-2">
+                          {/* Action Buttons */}
+                          <div className="grid grid-cols-4 gap-1.5">
                             <button
                               onClick={() => setSelectedOrder(order)}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 active:scale-95 transition-all"
+                              className="flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 active:scale-95 transition-all"
                             >
-                              <Eye size={15} />
-                              <span className="text-[8px] font-black uppercase tracking-wide">Ver</span>
+                              <Eye size={13} />
+                              <span className="text-[7px] font-black uppercase tracking-wide">Ver</span>
                             </button>
                             <button
                               onClick={() => onEdit?.(order)}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all"
+                              className="flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 active:scale-95 transition-all"
                             >
-                              <Pencil size={15} />
-                              <span className="text-[8px] font-black uppercase tracking-wide">Editar</span>
+                              <Pencil size={13} />
+                              <span className="text-[7px] font-black uppercase tracking-wide">Editar</span>
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/20 active:scale-95 transition-all"
+                              className="flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 active:scale-95 transition-all"
                             >
-                              <CheckCircle2 size={15} />
-                              <span className="text-[8px] font-black uppercase tracking-wide">Status</span>
+                              <CheckCircle2 size={13} />
+                              <span className="text-[7px] font-black uppercase tracking-wide">Status</span>
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }}
-                              className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 active:scale-95 transition-all"
+                              className="flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 active:scale-95 transition-all"
                             >
-                              <FileText size={15} />
-                              <span className="text-[8px] font-black uppercase tracking-wide">Docs</span>
+                              <FileText size={13} />
+                              <span className="text-[7px] font-black uppercase tracking-wide">Docs</span>
                             </button>
                           </div>
                         </div>
