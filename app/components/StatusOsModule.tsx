@@ -2088,7 +2088,7 @@ export default function StatusOsModule({
                      if (order.status === 'Equipamento Retirado') shortName = 'RETIRADO';
                     
                     return (
-                      <div key={`m-${order.id}`} className="relative bg-[#1A1A1A] rounded-[16px] overflow-hidden shadow-xl border border-[#2A2A2A]">
+                      <div key={`m-${order.id}`} className="relative bg-[#262626] rounded-[16px] overflow-hidden shadow-xl border border-[#333333]">
                         {/* Status color indicator bar */}
                         <div className={`absolute left-0 top-0 bottom-0 w-[4px] ${cfg.bg.replace('/10', '/100')}`} />
                         
@@ -2112,11 +2112,8 @@ export default function StatusOsModule({
                             </div>
                           </div>
 
-                          {/* Info principal com Avatar */}
+                          {/* Info principal SEM Avatar */}
                           <div className="flex items-start gap-3.5 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-[#00E676]/10 text-[#00E676] flex items-center justify-center font-bold text-lg shrink-0 border border-[#00E676]/20">
-                              {getInitials(customer?.name || '?')}
-                            </div>
                             <div className="flex-1 min-w-0 pr-1">
                               <div className="flex items-center justify-between mb-1">
                                 <h4 className="font-bold text-[13px] text-white truncate pr-2 uppercase leading-tight">
@@ -2147,7 +2144,7 @@ export default function StatusOsModule({
                                    {order.service && (
                                    <div className="flex items-start">
                                      <span className="text-zinc-500 uppercase font-black tracking-widest text-[9px] w-16 shrink-0 mt-[2px]">Serviço:</span>
-                                     <span className="text-[#00E676] line-clamp-1 pr-1 font-medium">{order.service}</span>
+                                     <span className="text-white font-bold line-clamp-1 pr-1">{order.service}</span>
                                    </div>
                                    )}
                                  </div>
@@ -2166,16 +2163,16 @@ export default function StatusOsModule({
 
                           {/* Action Buttons */}
                           <div className="grid grid-cols-4 gap-2">
-                             <button onClick={() => setSelectedOrder(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-zinc-300 active:scale-95 transition-all">
+                             <button onClick={() => setSelectedOrder(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
                                <Eye size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Detalhes</span>
                              </button>
-                             <button onClick={() => onEdit?.(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-blue-400 active:scale-95 transition-all">
+                             <button onClick={() => onEdit?.(order)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
                                <Pencil size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Editar</span>
                              </button>
-                             <button onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-[#00E676] active:scale-95 transition-all">
+                             <button onClick={(e) => { e.stopPropagation(); setOrderToQuickStatus(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
                                <CheckCircle2 size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Status</span>
                              </button>
-                             <button onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#222222] border border-[#333333] hover:bg-[#2A2A2A] text-amber-500 active:scale-95 transition-all">
+                             <button onClick={(e) => { e.stopPropagation(); handleViewDocs(order); }} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#2A2A2A] border border-[#3A3A3A] hover:bg-[#333333] text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all">
                                <FileText size={13} /> <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Docs</span>
                              </button>
                           </div>
@@ -2211,7 +2208,7 @@ export default function StatusOsModule({
                       <div
                         key={order.id}
                         onClick={() => setSelectedOrder(order)}
-                        className="bg-[#1C1C1C]/90 border border-zinc-800/80 hover:border-zinc-600 rounded-sm p-3 sm:p-5 cursor-pointer transition-all hover:bg-[#222222]/90 hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1.5 sm:gap-2 min-h-[120px] sm:min-h-[140px]"
+                        className="bg-[#262626] border border-zinc-700 hover:border-zinc-500 rounded-sm p-3 sm:p-5 cursor-pointer transition-all hover:bg-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1.5 sm:gap-2 min-h-[120px] sm:min-h-[140px]"
                       >
                         {/* Visual Status Indicator on Card Left */}
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/90')}`} />
