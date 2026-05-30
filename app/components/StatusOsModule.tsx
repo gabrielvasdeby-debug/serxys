@@ -1050,7 +1050,7 @@ export default function StatusOsModule({
         o.equipment.model.toLowerCase().includes(searchLower) ||
         o.equipment.brand.toLowerCase().includes(searchLower)
       );
-    }).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders, customers, searchQuery]);
 
   const [whatsappPrompt, setWhatsappPrompt] = useState<{
