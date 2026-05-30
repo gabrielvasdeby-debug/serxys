@@ -2014,8 +2014,8 @@ export default function OrdemServicoModule({
           {/* Right: OS number badge — always visible, destaque verde */}
           <div className="shrink-0 flex flex-col items-end">
             <span className="text-[10px] font-black font-mono bg-[#00E676]/10 border border-[#00E676]/30 text-[#00E676] px-2.5 py-1 rounded-lg shadow-inner tracking-wider">
-              OS #{localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(6, '0') :
-                  (orders.length === 0 ? '000001' : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings.nextOsNumber).toString().padStart(6, '0'))}
+              OS {localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(4, '0') :
+                  (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
             </span>
           </div>
         </div>
@@ -2505,9 +2505,7 @@ export default function OrdemServicoModule({
               {/* Selected Client Summary */}
               <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00E676]/20 to-zinc-900 border border-[#00E676]/30 flex items-center justify-center text-[#00E676] font-black text-xl shadow-inner">
-                    {selectedCustomer.name.charAt(0).toUpperCase()}
-                  </div>
+                  {/* Avatar removido a pedido do usuário */}
                   <div>
                     <h3 className="text-sm font-black text-white uppercase tracking-tight">{selectedCustomer.name}</h3>
                     <div className="flex items-center gap-3 mt-0.5">
