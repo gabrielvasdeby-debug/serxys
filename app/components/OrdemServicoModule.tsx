@@ -3568,7 +3568,6 @@ export default function OrdemServicoModule({
                           className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'manual'
                               ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-zinc-700/50' 
-                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-zinc-700/50' 
                               : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                           }`}
                         >
@@ -3596,7 +3595,6 @@ export default function OrdemServicoModule({
                           className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'digital'
                               ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
-                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
                               : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                           }`}
                         >
@@ -3623,7 +3621,6 @@ export default function OrdemServicoModule({
                           }}
                           className={`p-3 md:p-4 rounded-xl border transition-all flex flex-row md:flex-col items-center gap-3 md:gap-2 group relative overflow-hidden ${
                             signatureMode === 'remote'
-                              ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
                               ? 'bg-zinc-800/80 border-zinc-600 shadow-md ring-1 ring-emerald-500/20' 
                               : 'bg-white/[0.03] border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05]'
                           }`}
