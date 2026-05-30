@@ -275,7 +275,16 @@ export default function ServyxApp() {
           )}
           {view === 'CLIENTES' && selectedProfile && (
             <motion.div key="clientes" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute inset-0 overflow-y-auto">
-              <ClientesModule profile={selectedProfile} onBack={() => setView('DASHBOARD')} onShowToast={setToastMessage} customers={customers} setCustomers={setCustomers} onLogActivity={logActivity} />
+              <ClientesModule 
+                profile={selectedProfile} 
+                onBack={() => setView('DASHBOARD')} 
+                onShowToast={setToastMessage} 
+                customers={customers} 
+                setCustomers={setCustomers} 
+                onLogActivity={logActivity}
+                orders={orders}
+                onOpenOsStatus={(orderId) => { setInitialOrderId(orderId); setView('STATUS_OS'); }}
+              />
             </motion.div>
           )}
           {view === 'NOVA_OS' && selectedProfile && (

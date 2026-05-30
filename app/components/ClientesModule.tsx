@@ -60,11 +60,13 @@ interface ClientesModuleProps {
   onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
+  orders?: any[];
+  onOpenOsStatus?: (orderId: string) => void;
 }
 
 type ViewState = 'LIST' | 'FORM' | 'PROFILE' | 'DEVICE_FORM';
 
-export default function ClientesModule({ profile, onBack, onShowToast, onLogActivity, customers, setCustomers }: ClientesModuleProps) {
+export default function ClientesModule({ profile, onBack, onShowToast, onLogActivity, customers, setCustomers, orders = [], onOpenOsStatus }: ClientesModuleProps) {
   const [view, setView] = useState<ViewState>('LIST');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
@@ -230,19 +232,22 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
     setView('DEVICE_FORM');
   };
 
-  const handleDeleteDevice = async (deviceId: string) => {
+  const handleDeleteDevice = async (deviceId: string, targetCustomer?: Customer) => {
     if (!canEdit) {
       onShowToast('Acesso negado');
       return;
     }
+    const customerToUse = targetCustomer || selectedCustomer;
+    if (!customerToUse) return;
+
     setConfirmModal({
       isOpen: true,
       title: 'Excluir Aparelho',
       message: 'Tem certeza que deseja excluir este aparelho?',
       onConfirm: async () => {
         try {
-          const updatedDevices = selectedCustomer!.devices.filter(d => d.id !== deviceId);
-          const updatedCustomer = { ...selectedCustomer!, devices: updatedDevices };
+          const updatedDevices = customerToUse.devices.filter(d => d.id !== deviceId);
+          const updatedCustomer = { ...customerToUse, devices: updatedDevices };
           
           const { error } = await supabase.from('customers').update({
             devices: updatedDevices,
@@ -251,7 +256,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
           if (error) throw error;
 
           setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
-          setSelectedCustomer(updatedCustomer);
+          if (selectedCustomer?.id === updatedCustomer.id) setSelectedCustomer(updatedCustomer);
           onShowToast('Aparelho excluído com sucesso');
         } catch (error) {
           console.error('Error deleting device:', error);
@@ -312,32 +317,36 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
     <div className="min-h-screen flex flex-col bg-[#0D0D0D] text-white">
       {/* Header */}
       <header className="border-b border-white/5 bg-[#141414]/95 backdrop-blur-xl sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
-          <button
-            onClick={() => {
-              if (view === 'FORM' || view === 'PROFILE') setView('LIST');
-              else if (view === 'DEVICE_FORM') setView('PROFILE');
-              else onBack();
-            }}
-            className="p-2.5 hover:bg-white/5 rounded-sm transition-colors text-zinc-400 hover:text-white shrink-0"
-          >
-            <ChevronLeft size={20} />
-          </button>
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between relative">
+          <div className="flex items-center z-10">
+            <button
+              onClick={() => {
+                if (view === 'FORM' || view === 'PROFILE') setView('LIST');
+                else if (view === 'DEVICE_FORM') setView('PROFILE');
+                else onBack();
+              }}
+              className="p-2.5 -ml-2.5 hover:bg-white/5 rounded-sm transition-colors text-zinc-400 hover:text-white shrink-0"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          </div>
 
-          {/* Mobile: título centralizado com flex-1 */}
-          <div className="flex-1 flex justify-center sm:justify-start">
-            <h1 className="text-base font-bold tracking-tight">
-              {view === 'LIST' && (
-                <>
-                  <span className="sm:hidden text-[17px] font-bold tracking-widest uppercase">SELEÇÃO DE CLIENTE</span>
-                  <span className="hidden sm:inline">Clientes</span>
-                </>
-              )}
-              {view === 'FORM' && (editingCustomer ? 'Editar Cliente' : 'Novo Cliente')}
-              {view === 'PROFILE' && 'Perfil do Cliente'}
-              {view === 'DEVICE_FORM' && (editingDevice ? 'Editar Aparelho' : 'Novo Aparelho')}
-            </h1>
-            <p className="text-[10px] text-[#00E676] font-semibold tracking-[0.2em] uppercase leading-none mt-0.5 hidden sm:block">Módulo CRM</p>
+          {/* Título */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center sm:justify-start sm:static sm:flex-1 sm:pl-4">
+            <div className="pointer-events-auto text-center sm:text-left">
+              <h1 className="text-base font-bold tracking-tight">
+                {view === 'LIST' && (
+                  <>
+                    <span className="sm:hidden text-[17px] font-bold tracking-widest uppercase">SELEÇÃO DE CLIENTE</span>
+                    <span className="hidden sm:inline">Clientes</span>
+                  </>
+                )}
+                {view === 'FORM' && (editingCustomer ? 'Editar Cliente' : 'Novo Cliente')}
+                {view === 'PROFILE' && 'Perfil do Cliente'}
+                {view === 'DEVICE_FORM' && (editingDevice ? 'Editar Aparelho' : 'Novo Aparelho')}
+              </h1>
+              <p className="text-[10px] text-[#00E676] font-semibold tracking-[0.2em] uppercase leading-none mt-0.5 hidden sm:block">Módulo CRM</p>
+            </div>
           </div>
 
           {view === 'LIST' && (
@@ -366,7 +375,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#1C1C1C] border-2 border-zinc-700 rounded-xl pl-12 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676] focus:bg-[#1E1E1E] focus:ring-0 transition-all placeholder:text-zinc-500 shadow-inner"
+                  className="w-full bg-white/[0.04] backdrop-blur-md border-2 border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676]/60 focus:bg-white/[0.07] transition-all placeholder:text-zinc-500 shadow-xl"
                   placeholder="Buscar por nome ou CPF"
                 />
               </div>
@@ -500,12 +509,25 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                             <span className="text-white font-bold text-base leading-tight">
                               {customer.name}
                             </span>
-                            {(customer.whatsapp || customer.phone) && (
-                              <span className="text-zinc-400 text-sm leading-tight">
-                                {customer.whatsapp || customer.phone}
-                              </span>
-                            )}
-                            <span className="text-zinc-400 text-sm leading-tight">
+                            <div className="flex items-center gap-2">
+                              {(customer.whatsapp || customer.phone) && (
+                                <span className="text-zinc-400 text-sm leading-tight">
+                                  {customer.whatsapp || customer.phone}
+                                </span>
+                              )}
+                              {customer.whatsapp && (
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(`https://wa.me/55${customer.whatsapp.replace(/\D/g, '')}`, '_blank');
+                                  }}
+                                  className="p-1.5 bg-[#25D366]/10 text-[#25D366] rounded-md active:bg-[#25D366]/20 transition-colors"
+                                >
+                                  <MessageCircle size={14} />
+                                </button>
+                              )}
+                            </div>
+                            <span className="text-zinc-400 text-sm leading-tight mt-1">
                               CPF: {customer.document || 'Não informado'}
                             </span>
                           </div>
@@ -526,43 +548,109 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                               exit={{ height: 0, opacity: 0 }}
                               className="overflow-hidden"
                             >
-                              <div className="pt-4 mt-3 border-t border-white/5 space-y-3">
-                                {customer.email && (
-                                  <div className="flex items-center gap-2 text-zinc-400">
-                                    <Mail size={14} className="shrink-0" />
-                                    <span className="text-xs truncate">{customer.email}</span>
+                              <div className="pt-4 mt-3 border-t border-white/5 space-y-4">
+                                
+                                {/* Info Adicional */}
+                                <div className="space-y-2">
+                                  {customer.email && (
+                                    <div className="flex items-center gap-2 text-zinc-400">
+                                      <Mail size={14} className="shrink-0" />
+                                      <span className="text-xs truncate">{customer.email}</span>
+                                    </div>
+                                  )}
+                                  {customer.address?.city && (
+                                    <div className="flex items-center gap-2 text-zinc-400">
+                                      <MapPin size={14} className="shrink-0" />
+                                      <span className="text-xs truncate">
+                                        {customer.address.street}{customer.address.number ? `, ${customer.address.number}` : ''} - {customer.address.city}{customer.address.state ? `/${customer.address.state}` : ''}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center justify-between mt-2">
+                                    <span className="text-[10px] text-zinc-500 font-medium">Cadastrado em: {new Date(customer.createdAt).toLocaleDateString('pt-BR')}</span>
                                   </div>
-                                )}
-                                {customer.address?.city && (
-                                  <div className="flex items-center gap-2 text-zinc-400">
-                                    <MapPin size={14} className="shrink-0" />
-                                    <span className="text-xs truncate">
-                                      {customer.address.street}{customer.address.number ? `, ${customer.address.number}` : ''} - {customer.address.city}{customer.address.state ? `/${customer.address.state}` : ''}
+                                </div>
+
+                                {/* Aparelhos do Cliente */}
+                                <div className="pt-3 border-t border-white/5">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Aparelhos Cadastrados</span>
+                                    <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">{customer.devices.length}</span>
+                                  </div>
+                                  
+                                  {customer.devices.length === 0 ? (
+                                    <p className="text-xs text-zinc-500 italic">Nenhum aparelho cadastrado.</p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {customer.devices.map(device => (
+                                        <div key={device.id} className="bg-zinc-800/50 border border-zinc-700/50 rounded-md p-3 flex justify-between items-center">
+                                          <div>
+                                            <p className="font-bold text-white text-sm">{device.brand} {device.model}</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{device.type} {device.serialNumber ? `• ${device.serialNumber}` : ''}</p>
+                                          </div>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteDevice(device.id, customer);
+                                            }}
+                                            className="p-2 bg-red-500/10 text-red-500 rounded-md active:bg-red-500/20"
+                                          >
+                                            <Trash2 size={14} />
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* OS do Cliente */}
+                                <div className="pt-3 border-t border-white/5">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Ordens de Serviço</span>
+                                    <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">
+                                      {orders.filter(o => o.customerId === customer.id).length}
                                     </span>
                                   </div>
-                                )}
-                                <div className="flex items-center justify-between mt-2 pt-2">
-                                  <span className="text-[10px] text-zinc-500 font-medium">Cadastrado em: {new Date(customer.createdAt).toLocaleDateString('pt-BR')}</span>
-                                  <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 bg-black/20 px-2 py-0.5 rounded-full">
-                                    <Smartphone size={10} />
-                                    {customer.devices.length} aparelho{customer.devices.length !== 1 ? 's' : ''}
-                                  </span>
+
+                                  {orders.filter(o => o.customerId === customer.id).length === 0 ? (
+                                    <p className="text-xs text-zinc-500 italic">Nenhuma OS encontrada.</p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {orders.filter(o => o.customerId === customer.id).map(order => (
+                                        <div 
+                                          key={order.id} 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onOpenOsStatus) onOpenOsStatus(order.id);
+                                          }}
+                                          className="bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 rounded-md p-3 flex justify-between items-center active:bg-zinc-700"
+                                        >
+                                          <div>
+                                            <p className="font-black text-[#00E676] text-xs mb-0.5">OS #{String(order.osNumber).padStart(6, '0')}</p>
+                                            <p className="text-[10px] text-zinc-400 font-medium">{(order.equipment?.model || 'Equipamento')} • {order.status}</p>
+                                          </div>
+                                          <ChevronLeft size={16} className="text-zinc-500 rotate-180" />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="flex gap-2 pt-2 mt-2 border-t border-white/5">
+
+                                <div className="flex gap-2 pt-4 mt-2 border-t border-white/5">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleViewCustomer(customer);
                                     }}
-                                    className="flex-1 py-2 bg-[#00E676]/10 text-[#00E676] rounded-md text-xs font-bold active:bg-[#00E676]/20"
+                                    className="flex-1 py-2.5 bg-[#00E676]/10 text-[#00E676] rounded-md text-xs font-bold active:bg-[#00E676]/20"
                                   >
                                     Ver Perfil Completo
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleDeleteCustomer(customer.id); }}
-                                    className="px-3 py-2 bg-red-500/10 text-red-500 rounded-md text-xs font-bold active:bg-red-500/20"
+                                    className="px-4 py-2.5 bg-red-500/10 text-red-500 rounded-md text-xs font-bold active:bg-red-500/20"
                                   >
-                                    <Trash2 size={14} />
+                                    <Trash2 size={16} />
                                   </button>
                                 </div>
                               </div>
