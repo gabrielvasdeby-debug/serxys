@@ -312,22 +312,24 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
     <div className="min-h-screen flex flex-col bg-[#0D0D0D] text-white">
       {/* Header */}
       <header className="border-b border-white/5 bg-[#141414]/95 backdrop-blur-xl sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
           <button
             onClick={() => {
               if (view === 'FORM' || view === 'PROFILE') setView('LIST');
               else if (view === 'DEVICE_FORM') setView('PROFILE');
               else onBack();
             }}
-            className="p-2.5 hover:bg-white/5 rounded-sm transition-colors text-zinc-400 hover:text-white"
+            className="p-2.5 hover:bg-white/5 rounded-sm transition-colors text-zinc-400 hover:text-white shrink-0"
           >
             <ChevronLeft size={20} />
           </button>
-          <div className="flex-1">
+
+          {/* Mobile: título centralizado com flex-1 */}
+          <div className="flex-1 flex justify-center sm:justify-start">
             <h1 className="text-base font-bold tracking-tight">
               {view === 'LIST' && (
                 <>
-                  <span className="sm:hidden">Seleção de Cliente</span>
+                  <span className="sm:hidden text-[17px] font-bold tracking-widest uppercase">SELEÇÃO DE CLIENTE</span>
                   <span className="hidden sm:inline">Clientes</span>
                 </>
               )}
@@ -337,6 +339,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
             </h1>
             <p className="text-[10px] text-[#00E676] font-semibold tracking-[0.2em] uppercase leading-none mt-0.5 hidden sm:block">Módulo CRM</p>
           </div>
+
           {view === 'LIST' && (
             <button
               onClick={handleCreateCustomer}
@@ -355,15 +358,15 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
 
             {/* Mobile Header (Search + Button) */}
             <div className="sm:hidden flex flex-col gap-3">
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-500">
-                  <Search size={16} />
+              <div className="relative w-full group">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-[#00E676] transition-colors">
+                  <Search size={20} />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#1A1A1A] border border-zinc-800 rounded-md pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all placeholder:text-zinc-500"
+                  className="w-full bg-[#1C1C1C] border-2 border-zinc-700 rounded-xl pl-12 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#00E676] focus:bg-[#1E1E1E] focus:ring-0 transition-all placeholder:text-zinc-500 shadow-inner"
                   placeholder="Buscar por nome ou CPF"
                 />
               </div>
@@ -372,7 +375,7 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                   setEditingCustomer(null);
                   setView('FORM');
                 }}
-                className="w-full flex items-center justify-center gap-2 bg-[#00E676] active:bg-[#00C853] active:scale-[0.98] text-black px-5 py-3 rounded-lg font-bold text-[15px] transition-all"
+                className="w-full flex items-center justify-center gap-2 bg-[#00E676] active:bg-[#00C853] active:scale-[0.98] text-black px-5 py-4 rounded-xl font-black text-[15px] tracking-wide transition-all shadow-lg shadow-[#00E676]/20"
               >
                 <Plus size={18} />
                 Novo Cliente

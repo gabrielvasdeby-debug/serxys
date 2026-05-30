@@ -1993,33 +1993,54 @@ export default function OrdemServicoModule({
         </AnimatePresence>
         <div className="nova-os-ui flex flex-col flex-1 h-full w-full overflow-hidden">
         {/* Header */}
-      <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] p-3 sm:p-4 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 relative">
-          <div className="flex items-center w-full sm:w-auto">
-            <div className="flex items-center gap-2 sm:gap-3 z-10">
-              <button 
-                onClick={onBack}
-                className="w-10 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
-                title="Voltar ao Dashboard"
-              >
-                <ChevronLeft size={24} />
-              </button>
-            </div>
+      <header className="bg-[#141414]/90 backdrop-blur-2xl border-b border-white/[0.05] sticky top-0 z-50">
+        {/* Mobile Header — 3-column layout: back | title | OS number */}
+        <div className="sm:hidden flex items-center h-16 px-3 gap-2">
+          {/* Left: back button */}
+          <button
+            onClick={onBack}
+            className="w-10 h-10 flex items-center justify-center bg-white/[0.03] border border-white/[0.05] rounded-xl text-zinc-400 active:scale-95 shrink-0"
+          >
+            <ChevronLeft size={22} />
+          </button>
 
-            <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left sm:ml-4 -ml-12 sm:-ml-0">
-              <div className="flex items-center justify-center sm:justify-start gap-2">
-                <span className="text-white text-base font-bold tracking-tight sm:hidden uppercase">
-                  {step === 'CLIENT' && !localOrder ? 'Seleção de Cliente' : (localOrder ? 'Editar' : 'Nova OS')}
-                </span>
-                <span className="hidden sm:inline text-zinc-500 text-sm font-black uppercase tracking-widest">
+          {/* Center: title */}
+          <div className="flex-1 flex justify-center">
+            <span className="text-white text-[17px] font-bold tracking-widest uppercase">
+              {step === 'CLIENT' && !localOrder ? 'SELEÇÃO DE CLIENTE' : (localOrder ? 'EDITAR OS' : 'NOVA OS')}
+            </span>
+          </div>
+
+          {/* Right: OS number badge — always visible, destaque verde */}
+          <div className="shrink-0 flex flex-col items-end">
+            <span className="text-[10px] font-black font-mono bg-[#00E676]/10 border border-[#00E676]/30 text-[#00E676] px-2.5 py-1 rounded-lg shadow-inner tracking-wider">
+              OS #{localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(6, '0') :
+                  (orders.length === 0 ? '000001' : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings.nextOsNumber).toString().padStart(6, '0'))}
+            </span>
+          </div>
+        </div>
+
+        {/* Desktop Header — original layout */}
+        <div className="hidden sm:flex max-w-6xl mx-auto sm:flex-row sm:items-center justify-between gap-4 p-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="w-10 h-10 flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] rounded-xl transition-all text-zinc-400 hover:text-white active:scale-95"
+              title="Voltar ao Dashboard"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <div className="flex flex-col items-start">
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500 text-sm font-black uppercase tracking-widest">
                   {localOrder ? 'Editar' : 'Nova OS'}
                 </span>
-                <span className="text-sm font-black font-mono bg-zinc-900 border border-white/5 text-[#00E676] sm:text-zinc-400 px-2 py-1 rounded-lg shadow-inner">
-                  OS {localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(4, '0') : 
+                <span className="text-xs font-black font-mono bg-zinc-900 border border-white/5 text-zinc-400 px-2 py-1 rounded-lg shadow-inner">
+                  OS {localOrder && localOrder.osNumber ? localOrder.osNumber.toString().padStart(4, '0') :
                       (orders.length === 0 ? '0001' : Math.max(Math.max(...orders.map(o => o.osNumber || 0)) + 1, osSettings.nextOsNumber).toString().padStart(4, '0'))}
                 </span>
               </div>
-              <h1 className="hidden sm:block text-xl font-black text-white tracking-tight mt-1">
+              <h1 className="text-xl font-black text-white tracking-tight mt-1">
                 {localOrder ? 'Editar Ordem de Serviço' : 'Nova Ordem de Serviço'}
               </h1>
             </div>
@@ -2341,15 +2362,15 @@ export default function OrdemServicoModule({
                 ) : (
                   <div className="space-y-4 sm:space-y-6">
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-500">
-                        <Search size={16} className="sm:w-5 sm:h-5 group-focus-within:text-[#00E676] transition-colors" />
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-[#00E676] transition-colors">
+                        <Search size={20} className="sm:w-5 sm:h-5" />
                       </div>
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar por nome ou CPF"
-                        className="w-full bg-[#1A1A1A] sm:bg-[#0A0A0A] border border-zinc-800 sm:border-2 sm:border-zinc-800/50 rounded-md sm:rounded-[22px] pl-10 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-5 text-sm sm:text-base text-white focus:outline-none focus:border-[#00E676] transition-all sm:shadow-xl placeholder:text-zinc-500 sm:placeholder:text-zinc-600"
+                        className="w-full bg-[#1C1C1C] sm:bg-[#0A0A0A] border-2 border-zinc-700 sm:border-2 sm:border-zinc-800/50 rounded-xl sm:rounded-[22px] pl-12 sm:pl-14 pr-4 sm:pr-6 py-3.5 sm:py-5 text-sm sm:text-base text-white focus:outline-none focus:border-[#00E676] focus:bg-[#1E1E1E] transition-all sm:shadow-xl placeholder:text-zinc-500 sm:placeholder:text-zinc-600 shadow-inner"
                       />
                     </div>
                     
@@ -2363,7 +2384,7 @@ export default function OrdemServicoModule({
                         });
                         setIsCreatingCustomer(true);
                       }}
-                      className="sm:hidden w-full flex items-center justify-center gap-2 bg-[#00E676] active:bg-[#00C853] active:scale-[0.98] text-black px-5 py-3 rounded-lg font-bold text-[15px] transition-all"
+                      className="sm:hidden w-full flex items-center justify-center gap-2 bg-[#00E676] active:bg-[#00C853] active:scale-[0.98] text-black px-5 py-4 rounded-xl font-black text-[15px] tracking-wide transition-all shadow-lg shadow-[#00E676]/20"
                     >
                       <Plus size={18} />
                       Novo Cliente
