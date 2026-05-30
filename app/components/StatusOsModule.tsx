@@ -452,7 +452,7 @@ export default function StatusOsModule({
     }
   };
 
-  const [activeStatus, setActiveStatus] = useState<OrderStatus | 'ALL' | null>('ALL');
+  const [activeStatus, setActiveStatus] = useState<OrderStatus | 'ALL' | null>('Entrada');
   const [groupBy, setGroupBy] = useState<'prioridade' | 'data' | 'nenhum'>('nenhum');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [shouldNotifyCustomer, setShouldNotifyCustomer] = useState(true);
@@ -461,6 +461,7 @@ export default function StatusOsModule({
   const [previewOrder, setPreviewOrder] = useState<Order | null>(null);
   const [isStatusPickerOpen, setIsStatusPickerOpen] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [orderToQuickStatus, setOrderToQuickStatus] = useState<Order | null>(null);
@@ -1049,7 +1050,7 @@ export default function StatusOsModule({
         o.equipment.model.toLowerCase().includes(searchLower) ||
         o.equipment.brand.toLowerCase().includes(searchLower)
       );
-    });
+    }).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [orders, customers, searchQuery]);
 
   const [whatsappPrompt, setWhatsappPrompt] = useState<{
@@ -1522,9 +1523,9 @@ export default function StatusOsModule({
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 flex flex-col font-sans selection:bg-[#00E676]/30">
       <header className="bg-[#141414] border-b border-zinc-800 p-2.5 sm:p-4 sticky top-0 z-30 no-print">
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
-          {/* Mobile Header: Title Row -> Search Row -> Actions Row */}
+          {/* Mobile Header: Title Row -> (Busca Colapsável) -> Actions Row */}
           <div className="flex lg:hidden flex-col gap-4">
-            {/* Row 1: Back + Title */}
+            {/* Row 1: Back + Title + Lupa */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
@@ -1535,24 +1536,38 @@ export default function StatusOsModule({
                 </button>
                 <div>
                   <h1 className="text-xl font-bold text-white leading-tight">Status OS</h1>
-                  <p className="text-[11px] text-zinc-400 font-medium">Acompanhe e gerencie todas as ordens</p>
                 </div>
               </div>
-            </div>
-            
-            {/* Row 2: Search Bar */}
-            <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-              <input
-                type="text"
-                placeholder="Buscar OS, cliente ou aparelho..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[#111111] border border-zinc-800 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-zinc-700 transition-colors"
-              />
+              {/* Lupa — abre/fecha busca inline */}
+              <button
+                onClick={() => setIsMobileSearchOpen(v => !v)}
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border transition-all active:scale-95 ${
+                  isMobileSearchOpen
+                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]'
+                    : 'bg-[#111111] border-zinc-800 text-zinc-400'
+                }`}
+              >
+                <Search size={16} />
+                <span className="text-[11px] font-black uppercase tracking-widest">Buscar</span>
+              </button>
             </div>
 
-            {/* Row 3: Filter & Priority Actions */}
+            {/* Busca Colapsável */}
+            {isMobileSearchOpen && (
+              <div className="relative w-full">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Buscar OS, cliente ou aparelho..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111111] border border-[#00E676]/30 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#00E676]/60 transition-colors"
+                />
+              </div>
+            )}
+
+            {/* Row 2: Filter & Priority Actions */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsStatusPickerOpen(true)}
@@ -1581,22 +1596,8 @@ export default function StatusOsModule({
               </button>
             </div>
 
-            {/* Row 4: Mobile Tabs Timeline */}
+            {/* Row 3: Mobile Tabs Timeline — sem botão 'Todas' */}
             <div className="flex overflow-x-auto gap-2.5 py-2 mt-1 mb-2 no-scrollbar">
-              <button
-                onClick={() => setActiveStatus('ALL')}
-                style={activeStatus === 'ALL' ? { borderColor: '#00E676' } : {}}
-                className={`flex items-center gap-2 px-3.5 py-2 shrink-0 rounded-xl border transition-all active:scale-95 ${
-                  activeStatus === 'ALL'
-                    ? 'bg-[#00E676]/10 text-[#00E676]'
-                    : 'bg-[#111111] border-zinc-800 text-zinc-400 hover:bg-[#1A1A1A]'
-                }`}
-              >
-                <span className="text-[11px] font-black uppercase tracking-widest">Todas</span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${activeStatus === 'ALL' ? 'bg-[#00E676]/20' : 'bg-zinc-800 text-zinc-500'}`}>
-                  {orders.length}
-                </span>
-              </button>
               
               {COLUMNS.map(status => {
                  const count = orders.filter(o => o.status === status).length;
