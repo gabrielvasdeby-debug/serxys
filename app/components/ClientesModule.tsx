@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Search, Plus, Edit2, Trash2, Eye, 
   Smartphone, Laptop, Monitor, Gamepad2, Tablet, Box,
-  MapPin, Phone, Mail, FileText, Calendar, AlertCircle, Loader2, MessageCircle
+  MapPin, Phone, Mail, FileText, Calendar, AlertCircle, Loader2, MessageCircle, User
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { formatPhone } from '../utils/formatPhone';
@@ -1068,56 +1068,63 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
   const originOptions = ['Google', 'Instagram', 'Facebook', 'WhatsApp', 'Indicação', 'Passou na loja', 'Cliente antigo'];
 
   return (
-    <div className="max-w-3xl mx-auto bg-[#1A1A1A] border border-zinc-800 rounded-md p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="max-w-3xl mx-auto bg-[#0A0A0A] sm:bg-[#141414]/90 sm:backdrop-blur-xl border border-white/5 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00E676] to-transparent opacity-20"></div>
+      
+      <form onSubmit={handleSubmit} className="space-y-10">
         {/* Basic Info */}
         <section>
-          <h3 className="text-sm font-bold text-[#00E676] uppercase tracking-wider mb-4">Informações Pessoais</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Nome Completo *</label>
-              <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+            <div className="w-8 h-8 rounded-lg bg-[#00E676]/10 flex items-center justify-center">
+              <User size={16} className="text-[#00E676]" />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Data de Nascimento</label>
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Informações Pessoais</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Nome Completo *</label>
+              <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Data de Nascimento</label>
               <input 
                 type="tel" 
                 name="displayBirthDate" 
                 value={formData.displayBirthDate} 
                 onChange={handleChange} 
                 placeholder="DD/MM/AAAA"
-                className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" 
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" 
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">WhatsApp</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">WhatsApp</label>
               <div className="flex gap-2">
                 <CountryCodePicker selectedCountry={whatsappCountry} onSelect={setWhatsappCountry} />
-                <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+                <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="(00) 00000-0000" className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Telefone</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Telefone</label>
               <div className="flex gap-2">
                 <CountryCodePicker selectedCountry={phoneCountry} onSelect={setPhoneCountry} />
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="flex-1 bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="(00) 0000-0000" className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Email</label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Email</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">CPF ou CNPJ</label>
-              <input type="tel" name="document" value={formData.document} onChange={handleChange} placeholder="000.000.000-00" className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">CPF ou CNPJ</label>
+              <input type="tel" name="document" value={formData.document} onChange={handleChange} placeholder="000.000.000-00" className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Origem do Cliente</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Origem do Cliente</label>
               <select 
                 name="customer_origin" 
                 value={formData.customer_origin} 
                 onChange={(e) => setFormData(prev => ({ ...prev, customer_origin: e.target.value }))}
-                className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all appearance-none"
+                className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#222] transition-all appearance-none"
               >
                 <option value="">Selecione a origem</option>
                 {originOptions.map(opt => (
@@ -1130,48 +1137,58 @@ function CustomerForm({ initialData, onSave, onCancel, onShowToast, isSaving }: 
 
         {/* Address */}
         <section>
-          <h3 className="text-sm font-bold text-[#00E676] uppercase tracking-wider mb-4">Endereço</h3>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">CEP</label>
-              <input type="text" name="address.zipCode" value={formData.address.zipCode} onChange={handleChange} onBlur={handleCepBlur} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <MapPin size={16} className="text-blue-500" />
             </div>
-            <div className="md:col-span-4 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Rua</label>
-              <input type="text" name="address.street" value={formData.address.street} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Endereço</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-5">
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">CEP</label>
+              <input type="text" name="address.zipCode" value={formData.address.zipCode} onChange={handleChange} onBlur={handleCepBlur} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Número</label>
-              <input type="text" name="address.number" value={formData.address.number} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <div className="md:col-span-4 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Rua</label>
+              <input type="text" name="address.street" value={formData.address.street} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
-            <div className="md:col-span-4 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Bairro</label>
-              <input type="text" name="address.neighborhood" value={formData.address.neighborhood} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Número</label>
+              <input type="text" name="address.number" value={formData.address.number} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
-            <div className="md:col-span-4 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Cidade</label>
-              <input type="text" name="address.city" value={formData.address.city} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <div className="md:col-span-4 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Bairro</label>
+              <input type="text" name="address.neighborhood" value={formData.address.neighborhood} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Estado</label>
-              <input type="text" name="address.state" value={formData.address.state} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+            <div className="md:col-span-4 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Cidade</label>
+              <input type="text" name="address.city" value={formData.address.city} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Estado</label>
+              <input type="text" name="address.state" value={formData.address.state} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
             </div>
           </div>
         </section>
 
         {/* Notes */}
         <section>
-          <h3 className="text-sm font-bold text-[#00E676] uppercase tracking-wider mb-4">Observações</h3>
-          <div className="space-y-1.5">
-            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all resize-none" placeholder="Informações adicionais sobre o cliente..."></textarea>
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+            <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+              <FileText size={16} className="text-yellow-500" />
+            </div>
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Observações</h3>
+          </div>
+          <div className="space-y-2">
+            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all resize-none" placeholder="Informações adicionais sobre o cliente..."></textarea>
           </div>
         </section>
 
-        <div className="flex gap-3 pt-4 border-t border-zinc-800">
-          <button type="button" onClick={onCancel} disabled={isSaving} className="flex-1 bg-[#222222] hover:bg-zinc-800 text-white font-medium py-3.5 rounded-sm transition-colors disabled:opacity-50">
+        <div className="flex gap-4 pt-6 border-t border-white/5">
+          <button type="button" onClick={onCancel} disabled={isSaving} className="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50">
             Cancelar
           </button>
-          <button type="submit" disabled={isSaving} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black font-bold py-3.5 rounded-sm transition-colors disabled:opacity-70 flex items-center justify-center gap-2">
+          <button type="submit" disabled={isSaving} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black font-black py-4 rounded-xl transition-all disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#00E676]/20 active:scale-95">
             {isSaving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
@@ -1210,15 +1227,22 @@ function DeviceForm({ initialData, onSave, onCancel, isSaving }: { initialData: 
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-[#1A1A1A] border border-zinc-800 rounded-md p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <h3 className="text-sm font-bold text-[#00E676] uppercase tracking-wider mb-4">Detalhes do Aparelho</h3>
+    <div className="max-w-2xl mx-auto bg-[#0A0A0A] sm:bg-[#141414]/90 sm:backdrop-blur-xl border border-white/5 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00E676] to-transparent opacity-20"></div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+          <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+            <Smartphone size={16} className="text-purple-500" />
+          </div>
+          <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Detalhes do Aparelho</h3>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-zinc-400">Tipo de Aparelho *</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Tipo de Aparelho *</label>
             <div className="relative">
-              <select name="type" required value={formData.type} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all appearance-none">
+              <select name="type" required value={formData.type} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-[#222] transition-all appearance-none">
                 <option value="Smartphone">Smartphone</option>
                 <option value="Notebook">Notebook</option>
                 <option value="Computador">Computador</option>
@@ -1233,33 +1257,33 @@ function DeviceForm({ initialData, onSave, onCancel, isSaving }: { initialData: 
               </div>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-zinc-400">Marca *</label>
-            <input required type="text" name="brand" value={formData.brand} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" placeholder="Ex: Samsung, Apple" />
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Marca *</label>
+            <input required type="text" name="brand" value={formData.brand} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" placeholder="Ex: Samsung, Apple" />
           </div>
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-zinc-400">Modelo *</label>
-            <input required type="text" name="model" value={formData.model} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" placeholder="Ex: Galaxy S21, iPhone 13" />
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Modelo *</label>
+            <input required type="text" name="model" value={formData.model} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" placeholder="Ex: Galaxy S21, iPhone 13" />
           </div>
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-zinc-400">Cor</label>
-            <input type="text" name="color" value={formData.color} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all" />
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Cor</label>
+            <input type="text" name="color" value={formData.color} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all" />
           </div>
-          <div className="md:col-span-2 space-y-1.5">
-            <label className="block text-sm font-medium text-zinc-400">IMEI ou Número de Série</label>
-            <input type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all font-mono" />
+          <div className="md:col-span-2 space-y-2">
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">IMEI ou Número de Série</label>
+            <input type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all font-mono" />
           </div>
-          <div className="md:col-span-2 space-y-1.5">
-            <label className="block text-sm font-medium text-zinc-400">Observações sobre o aparelho</label>
-            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full bg-[#222222] border border-zinc-800 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all resize-none" placeholder="Ex: Tela trincada, botão volume falhando..."></textarea>
+          <div className="md:col-span-2 space-y-2">
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">Observações sobre o aparelho</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#00E676]/50 focus:bg-white/[0.06] transition-all resize-none" placeholder="Ex: Tela trincada, botão volume falhando..."></textarea>
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-zinc-800">
-          <button type="button" onClick={onCancel} disabled={isSaving} className="flex-1 bg-[#222222] hover:bg-zinc-800 text-white font-medium py-3.5 rounded-sm transition-colors disabled:opacity-50">
+        <div className="flex gap-4 pt-6 border-t border-white/5">
+          <button type="button" onClick={onCancel} disabled={isSaving} className="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50">
             Cancelar
           </button>
-          <button type="submit" disabled={isSaving} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black font-bold py-3.5 rounded-sm transition-colors disabled:opacity-70 flex items-center justify-center gap-2">
+          <button type="submit" disabled={isSaving} className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-black font-black py-4 rounded-xl transition-all disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-[#00E676]/20 active:scale-95">
             {isSaving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
