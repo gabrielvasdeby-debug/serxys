@@ -6,7 +6,7 @@ import {
   Search, Plus, User, Smartphone, 
   CheckCircle2, AlertCircle, AlertTriangle, Save, Printer, MessageCircle,
   Check, X, Banknote, FileText, PenTool, Grid, Eye, Trash2, Camera, UploadCloud, Loader2, ShieldCheck, Mail, Pencil,
-  Shield, Hash, Key, Lock, Home, ChevronLeft, Share2
+  Shield, Hash, Key, Lock, Home, ChevronLeft, ChevronRight, Share2
 } from 'lucide-react';
 import { Customer, DeviceType } from './ClientesModule';
 import PatternLock from './PatternLock';
@@ -2370,7 +2370,7 @@ export default function OrdemServicoModule({
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Buscar por nome ou CPF"
-                        className="w-full bg-[#1C1C1C] sm:bg-[#0A0A0A] border-2 border-zinc-700 sm:border-2 sm:border-zinc-800/50 rounded-xl sm:rounded-[22px] pl-12 sm:pl-14 pr-4 sm:pr-6 py-3.5 sm:py-5 text-sm sm:text-base text-white focus:outline-none focus:border-[#00E676] focus:bg-[#1E1E1E] transition-all sm:shadow-xl placeholder:text-zinc-500 sm:placeholder:text-zinc-600 shadow-inner"
+                        className="w-full bg-white/[0.04] backdrop-blur-md sm:bg-[#0A0A0A] border-2 border-white/10 sm:border-2 sm:border-zinc-800/50 rounded-xl sm:rounded-[22px] pl-12 sm:pl-14 pr-4 sm:pr-6 py-3.5 sm:py-5 text-sm sm:text-base text-white focus:outline-none focus:border-[#00E676]/60 focus:bg-white/[0.07] transition-all sm:shadow-xl placeholder:text-zinc-500 sm:placeholder:text-zinc-600"
                       />
                     </div>
                     
@@ -2408,12 +2408,8 @@ export default function OrdemServicoModule({
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               onClick={() => {
-                                if (window.innerWidth < 640) {
-                                  setExpandedCardId(isExpanded ? null : customer.id);
-                                } else {
-                                  setSelectedCustomer(customer);
-                                  setStep('DETAILS');
-                                }
+                                setSelectedCustomer(customer);
+                                setStep('DETAILS');
                               }}
                               className="bg-[#262626] sm:bg-[#0A0A0A] border-0 sm:border border-zinc-800/80 rounded-xl sm:rounded-md cursor-pointer sm:hover:border-[#00E676]/60 sm:hover:bg-zinc-900/40 transition-all group relative overflow-hidden"
                             >
@@ -2457,8 +2453,8 @@ export default function OrdemServicoModule({
 
                               {/* --- Mobile Layout --- */}
                               <div className="sm:hidden p-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex flex-col gap-1 pr-4">
+                                <div className="flex justify-between items-center">
+                                  <div className="flex flex-col gap-1 pr-4 flex-1">
                                     <span className="text-white font-bold text-base leading-tight">
                                       {customer.name}
                                     </span>
@@ -2467,45 +2463,27 @@ export default function OrdemServicoModule({
                                         {customer.whatsapp || customer.phone}
                                       </span>
                                     )}
-                                    <span className="text-zinc-400 text-sm leading-tight">
-                                      CPF: {customer.document || 'Não informado'}
-                                    </span>
+                                    {customer.document && (
+                                      <span className="text-zinc-500 text-xs leading-tight">
+                                        {customer.document}
+                                      </span>
+                                    )}
                                   </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditCustomer(customer);
-                                    }}
-                                    className="p-2 text-zinc-400 active:bg-zinc-700/50 rounded-full transition-colors shrink-0"
-                                  >
-                                    <Pencil size={18} />
-                                  </button>
-                                </div>
-
-                                {/* Expandable Actions on Mobile */}
-                                <AnimatePresence>
-                                  {isExpanded && (
-                                    <motion.div
-                                      initial={{ height: 0, opacity: 0 }}
-                                      animate={{ height: 'auto', opacity: 1 }}
-                                      exit={{ height: 0, opacity: 0 }}
-                                      className="overflow-hidden"
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditCustomer(customer);
+                                      }}
+                                      className="p-2 text-zinc-500 active:bg-zinc-700/50 rounded-full transition-colors"
                                     >
-                                      <div className="pt-4 mt-3 border-t border-white/5 space-y-3">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedCustomer(customer);
-                                            setStep('DETAILS');
-                                          }}
-                                          className="w-full flex items-center justify-center gap-2 bg-[#00E676] text-black px-4 py-3 rounded-lg font-bold text-[15px] active:bg-[#00C853]"
-                                        >
-                                          Selecionar este Cliente
-                                        </button>
-                                      </div>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
+                                      <Pencil size={16} />
+                                    </button>
+                                    <div className="w-7 h-7 rounded-full bg-[#00E676]/10 border border-[#00E676]/20 flex items-center justify-center">
+                                      <ChevronRight size={14} className="text-[#00E676]" />
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </motion.div>
                           );
