@@ -521,9 +521,9 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
                                     e.stopPropagation();
                                     window.open(`https://wa.me/55${customer.whatsapp.replace(/\D/g, '')}`, '_blank');
                                   }}
-                                  className="p-1.5 bg-[#25D366]/10 text-[#25D366] rounded-md active:bg-[#25D366]/20 transition-colors"
+                                  className="p-2 bg-[#25D366]/10 text-[#25D366] rounded-md active:bg-[#25D366]/20 transition-colors"
                                 >
-                                  <MessageCircle size={14} />
+                                  <MessageCircle size={18} />
                                 </button>
                               )}
                             </div>
@@ -638,19 +638,11 @@ export default function ClientesModule({ profile, onBack, onShowToast, onLogActi
 
                                 <div className="flex gap-2 pt-4 mt-2 border-t border-white/5">
                                   <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleViewCustomer(customer);
-                                    }}
-                                    className="flex-1 py-2.5 bg-[#00E676]/10 text-[#00E676] rounded-md text-xs font-bold active:bg-[#00E676]/20"
-                                  >
-                                    Ver Perfil Completo
-                                  </button>
-                                  <button
                                     onClick={(e) => { e.stopPropagation(); handleDeleteCustomer(customer.id); }}
-                                    className="px-4 py-2.5 bg-red-500/10 text-red-500 rounded-md text-xs font-bold active:bg-red-500/20"
+                                    className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 text-red-500 rounded-md text-xs font-bold active:bg-red-500/20"
                                   >
                                     <Trash2 size={16} />
+                                    Excluir Cliente
                                   </button>
                                 </div>
                               </div>
