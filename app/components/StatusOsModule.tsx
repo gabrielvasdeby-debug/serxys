@@ -2446,50 +2446,51 @@ export default function StatusOsModule({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#141414] border-none sm:border border-zinc-700 w-full max-w-6xl h-[100dvh] sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-md relative"
+              className="bg-[#0F0F0F]/98 backdrop-blur-xl border-none sm:border border-white/[0.06] w-full max-w-6xl h-[100dvh] sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-2xl relative"
             >
-              {/* === CABEÇALHO DO MODAL (REESTRUTURADO MOBILE) === */}
-              <div className="shrink-0 border-b border-zinc-800 bg-[#0A0A0A] relative overflow-hidden px-3 pt-4 pb-3 sm:px-6 sm:pt-4 sm:pb-4">
-                {/* TOP ROW: Navigation & Status */}
+              {/* === CABEÇALHO DO MODAL === */}
+              <div className="shrink-0 border-b border-white/[0.06] bg-[#0A0A0A]/80 relative overflow-hidden px-4 pt-4 pb-3 sm:px-6">
+                {/* TOP ROW */}
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <button
                       onClick={() => setSelectedOrder(null)}
-                      className="p-1 -ml-1 text-zinc-400 hover:text-white transition-colors"
+                      className="w-9 h-9 flex items-center justify-center bg-white/[0.05] border border-white/[0.06] rounded-xl text-zinc-400 hover:text-white transition-all"
                     >
-                      <ChevronLeft size={24} />
+                      <ChevronLeft size={20} />
                     </button>
-                    <div className="flex items-center gap-2 bg-zinc-900/80 px-3 py-2 rounded-sm border border-zinc-800 shadow-inner">
-                      <span className="text-[16px] sm:text-[18px] font-black font-mono text-[#00E676] tracking-wider uppercase">
+                    {/* Número da OS com cor do status */}
+                    <div className={`px-3 py-1.5 rounded-xl ${STATUS_CONFIG[selectedOrder.status].bg} border border-white/[0.08]`}>
+                      <span className={`text-[15px] font-black font-mono tracking-wider ${STATUS_CONFIG[selectedOrder.status].color}`}>
                         OS {selectedOrder.osNumber?.toString().padStart(4, '0') || '---'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 ml-1">
-                       <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[selectedOrder.priority]}`} />
-                       <span className="text-[8px] sm:text-[9px] font-black text-zinc-600 uppercase tracking-widest hidden sm:inline-block">{selectedOrder.priority}</span>
+                    <div className="flex items-center gap-1.5">
+                       <div className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[selectedOrder.priority]}`} />
+                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest hidden sm:inline-block">{selectedOrder.priority}</span>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className={`text-[13px] sm:text-sm px-3 py-2 rounded-sm font-black uppercase tracking-widest border border-zinc-800 bg-zinc-900 ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <span className={`text-[11px] px-2.5 py-1.5 rounded-xl font-black uppercase tracking-wider border border-white/[0.06] bg-white/[0.04] ${STATUS_CONFIG[selectedOrder.status].color}`}>
                       {selectedOrder.status}
                     </span>
-                    <button onClick={() => setSelectedOrder(null)} className="p-1 -mr-1 text-zinc-600 hover:text-white transition-colors">
-                      <X size={20} />
+                    <button onClick={() => setSelectedOrder(null)} className="w-9 h-9 flex items-center justify-center bg-white/[0.05] border border-white/[0.06] rounded-xl text-zinc-400 hover:text-white transition-all">
+                      <X size={18} />
                     </button>
                   </div>
                 </div>
 
                 {/* BOTTOM ROW: Client & Equipment */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1 flex flex-col justify-center">
-                    <h2 className="text-base sm:text-xl font-black text-white uppercase tracking-tight truncate leading-none">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight truncate leading-none">
                       {customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente'}
                     </h2>
                   </div>
-                  <div className="shrink-0 hidden sm:flex items-center gap-1.5 bg-[#141414] border border-zinc-800/80 px-2.5 py-1.5 rounded-sm">
-                    <Smartphone size={12} className="text-blue-500/80" />
-                    <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">
+                  <div className="shrink-0 hidden sm:flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 rounded-xl">
+                    <Smartphone size={12} className="text-blue-400/80" />
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">
                       {selectedOrder.equipment.model}
                     </span>
                   </div>
@@ -2602,14 +2603,14 @@ export default function StatusOsModule({
               {/* === CORPO (SIDEBAR ESQUERDA + CONTEÚDO DIREITA) === */}
               <div className="flex flex-1 overflow-hidden relative">
                 
-                {/* Mobile Tab Navigation (Sticky & Premium - Scroll-less) */}
-                <div className="md:hidden absolute top-0 left-0 right-0 z-[60] flex items-center justify-between px-1 py-1.5 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-zinc-800/80 shadow-2xl">
+                {/* Mobile Tab Navigation */}
+                <div className="md:hidden absolute top-0 left-0 right-0 z-[60] flex items-center justify-between px-2 py-1.5 bg-[#0F0F0F]/95 backdrop-blur-xl border-b border-white/[0.05] shadow-2xl">
                   {[
                     { id: 'geral', label: 'Geral', icon: FileText },
                     { id: 'laudo', label: 'Laudo', icon: CheckCircle2 },
                     { id: 'orcamento', label: 'Custos', icon: Calculator },
                     { id: 'seguranca', label: 'Acesso', icon: ShieldCheck },
-                    { id: 'historico', label: 'Histórico', icon: Clock }
+                    { id: 'historico', label: 'Hist.', icon: Clock }
                   ].map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -2617,14 +2618,14 @@ export default function StatusOsModule({
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 rounded-sm transition-all ${
+                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-all mx-0.5 ${
                           isActive 
-                            ? 'text-[#00E676] bg-zinc-900/80 shadow-[inset_0_-2px_0_rgba(0,230,118,1)]' 
-                            : 'text-zinc-500 hover:text-zinc-300'
+                            ? `${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color}` 
+                            : 'text-zinc-600 hover:text-zinc-300 bg-transparent'
                         }`}
                       >
-                        <Icon size={14} className={isActive ? 'text-[#00E676]' : 'text-zinc-600'} />
-                        <span className="text-[7.5px] font-black uppercase tracking-widest">{tab.label}</span>
+                        <Icon size={13} />
+                        <span className="text-[7px] font-black uppercase tracking-widest">{tab.label}</span>
                       </button>
                     );
                   })}
@@ -2683,7 +2684,7 @@ export default function StatusOsModule({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[45px] pb-20 md:pt-8 bg-[#141414] custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto px-0 sm:p-8 pt-[48px] pb-24 md:pt-8 bg-[#0F0F0F] custom-scrollbar relative">
                 
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -2691,34 +2692,34 @@ export default function StatusOsModule({
                     {/* Client & Equipment Info - stacked vertically */}
                     <div className="grid grid-cols-1 gap-6">
                       
-                      <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center justify-between mb-4 relative z-10">
+                      <section className="bg-white/[0.02] border-y sm:border border-white/[0.06] p-5 sm:p-6 rounded-none sm:rounded-2xl relative overflow-hidden hover:border-white/[0.1] transition-colors">
+                        <div className="flex items-center justify-between mb-4">
                           <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                             <User size={14} className="text-[#00E676]" /> Dados do Cliente
                           </h3>
                           <button 
                             onClick={() => setShowAllCustomerInfo(!showAllCustomerInfo)}
-                            className="text-[9px] font-black uppercase tracking-widest text-[#00E676] bg-[#00E676]/10 px-2 py-1 rounded-sm border border-[#00E676]/20 hover:bg-[#00E676]/20 transition-all"
+                            className="text-[9px] font-black uppercase tracking-widest text-[#00E676] bg-[#00E676]/10 px-2.5 py-1 rounded-xl border border-[#00E676]/20 hover:bg-[#00E676]/20 transition-all"
                           >
-                            {showAllCustomerInfo ? 'Ocultar Detalhes' : 'Mostrar Mais'}
+                            {showAllCustomerInfo ? 'Ocultar' : 'Ver mais'}
                           </button>
                         </div>
-                        <div className="relative z-10 space-y-3">
+                        <div className="space-y-2.5">
                           {(() => {
                             const customer = customers.find(c => c.id === selectedOrder.customerId);
                             return customer ? (
                               <>
-                                <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
-                                  <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Nome do Cliente</p>
+                                <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
+                                  <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Nome do Cliente</p>
                                   <p className="text-sm font-bold text-white truncate">{customer.name}</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
-                                    <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Contato</p>
+                                <div className="grid grid-cols-2 gap-2.5">
+                                  <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
+                                    <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Contato</p>
                                     <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{customer.phone || customer.whatsapp || '---'}</p>
                                   </div>
-                                  <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
-                                    <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Documento</p>
+                                  <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
+                                    <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Documento</p>
                                     <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{customer.document || '---'}</p>
                                   </div>
                                 </div>
@@ -2752,43 +2753,43 @@ export default function StatusOsModule({
 
 
                       {/* Aparelho Card */}
-                      <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm relative overflow-hidden group hover:border-zinc-700 transition-colors">
-                        <div className="flex items-center justify-between mb-4 relative z-10">
+                      <section className="bg-white/[0.02] border-y sm:border border-white/[0.06] p-5 sm:p-6 rounded-none sm:rounded-2xl relative overflow-hidden hover:border-white/[0.1] transition-colors">
+                        <div className="flex items-center justify-between mb-4">
                           <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
                             <Smartphone size={14} className="text-blue-400" /> Detalhes do Equipamento
                           </h3>
                         </div>
-                        <div className="relative z-10 space-y-3">
-                          <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex items-center justify-between">
+                        <div className="space-y-2.5">
+                          <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05] flex items-center justify-between">
                             <div className="min-w-0 flex-1">
-                              <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-0.5 font-bold">Aparelho</p>
+                              <p className="text-[9px] text-zinc-600 uppercase tracking-widest mb-1 font-bold">Aparelho</p>
                               <p className="text-sm font-bold text-white truncate pr-2">
                                 {selectedOrder.equipment.brand} <span className="text-blue-400">{selectedOrder.equipment.model}</span>
                               </p>
                             </div>
                             {selectedOrder.equipment.serial && (
-                              <div className="shrink-0 text-right pl-3 border-l border-zinc-800/50">
-                                <p className="text-[8px] uppercase font-black text-zinc-600 tracking-widest mb-0.5">S/N</p>
+                              <div className="shrink-0 text-right pl-3 border-l border-white/[0.05]">
+                                <p className="text-[8px] uppercase font-black text-zinc-600 tracking-widest mb-1">S/N</p>
                                 <p className="text-[10px] font-mono text-zinc-300 font-bold">{selectedOrder.equipment.serial}</p>
                               </div>
                             )}
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
-                              <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Tipo</p>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
+                              <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Tipo</p>
                               <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment.type}</p>
                             </div>
-                            <div className="bg-[#141414] rounded-sm p-3.5 border border-zinc-800/50 flex flex-col justify-center">
-                              <p className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider mb-0.5">Cor</p>
+                            <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
+                              <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Cor</p>
                               <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment.color}</p>
                             </div>
                           </div>
                           
                           {selectedOrder.equipment.passwordType !== 'none' && (
-                            <div className="flex items-center justify-between bg-amber-500/5 border border-amber-500/10 rounded-sm p-3.5">
+                            <div className="flex items-center justify-between bg-amber-500/5 border border-amber-500/10 rounded-2xl p-3.5">
                               <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-amber-500/10 rounded-sm">
+                                <div className="p-1.5 bg-amber-500/10 rounded-xl">
                                   <Lock size={12} className="text-amber-500/60" /> 
                                 </div>
                                 <div>
@@ -2803,7 +2804,7 @@ export default function StatusOsModule({
                               {selectedOrder.equipment.passwordType === 'pattern' && selectedOrder.equipment.passwordValue && (
                                 <button
                                   onClick={() => setIsPatternModalOpen(true)}
-                                  className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors border border-amber-500/20"
+                                  className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-amber-500/20"
                                 >
                                   Ver Padrão
                                 </button>
@@ -2818,13 +2819,13 @@ export default function StatusOsModule({
                     {/* Checklist & Defect Grid - stacked vertically */}
                     <div className="grid grid-cols-1 gap-6">
                       
-                      <section className="bg-[#0A0A0A] border-y sm:border border-zinc-800 p-5 sm:p-6 rounded-none sm:rounded-sm flex flex-col group hover:border-zinc-700 transition-colors">
+                      <section className="bg-white/[0.02] border-y sm:border border-white/[0.06] p-5 sm:p-6 rounded-none sm:rounded-2xl flex flex-col hover:border-white/[0.1] transition-colors">
                         <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
                           <CheckCircle2 size={14} className="text-[#00E676]" /> Checklist de Entrada
                         </h3>
                         
                         {(selectedOrder.checklistNotPossible || (selectedOrder as any).checklist_not_possible) ? (
-                          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-red-500/5 rounded-sm border border-red-500/10">
+                          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-red-500/5 rounded-2xl border border-red-500/10">
                             <AlertCircle size={32} className="text-red-500/40 mx-auto mb-3" />
                             <p className="text-sm font-black text-red-500 uppercase tracking-widest">
                               Checklist não realizado
@@ -2843,7 +2844,7 @@ export default function StatusOsModule({
                           <div className="flex-1">
                           <div className="flex flex-col gap-2">
                             {Object.entries(selectedOrder.checklist).map(([item, status]) => (
-                               <div key={item} className="flex items-center justify-between p-3 rounded-sm bg-[#141414] border border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
+                               <div key={item} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.05] transition-colors">
                                 <div className="flex items-center gap-3">
                                   {status === 'works' ? (
                                     <CheckCircle2 size={14} className="text-[#00E676]" />
@@ -2865,19 +2866,19 @@ export default function StatusOsModule({
                           </div>
                         )}
                         {selectedOrder.checklistNotes && (
-                          <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                          <div className="mt-4 pt-4 border-t border-white/[0.06]">
                             <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider mb-2">Observações</p>
                             <p className="text-sm text-zinc-300 italic">{selectedOrder.checklistNotes}</p>
                           </div>
                         )}
 
-                        {/* Fotos de Entrada Button (Prominent for Mobile) */}
+                        {/* Fotos de Entrada Button */}
                         <button 
                           onClick={() => setIsEntryPhotosModalOpen(true)}
-                          className="w-full mt-4 bg-[#141414] border border-zinc-800 rounded-sm py-4 px-5 flex items-center justify-between group hover:border-blue-500/50 hover:bg-zinc-800/50 transition-all active:scale-[0.98]"
+                          className="w-full mt-4 bg-white/[0.03] border border-white/[0.05] rounded-2xl py-4 px-5 flex items-center justify-between group hover:border-blue-500/30 hover:bg-white/[0.05] transition-all active:scale-[0.98]"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-blue-500/10 rounded-sm flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-colors">
+                            <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-colors">
                               <CameraIcon size={18} />
                             </div>
                             <div className="text-left">
@@ -2892,7 +2893,7 @@ export default function StatusOsModule({
                               </span>
                               <span className="text-[7px] font-bold text-zinc-600 uppercase tracking-widest">Arquivos</span>
                             </div>
-                            <ChevronRight size={16} className="text-zinc-700 group-hover:text-blue-500 transition-colors" />
+                            <ChevronRight size={16} className="text-zinc-600 group-hover:text-blue-500 transition-colors" />
                           </div>
                         </button>
                       </section>
