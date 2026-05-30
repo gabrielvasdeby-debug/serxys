@@ -1525,17 +1525,17 @@ export default function StatusOsModule({
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2.5">
           {/* Mobile Header: Title Row -> (Busca Colapsável) -> Actions Row */}
           <div className="flex lg:hidden flex-col gap-4">
-            {/* Row 1: Back + Title + Actions (Priority & Buscar) */}
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={onBack}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-zinc-800 rounded-xl transition-colors bg-white/[0.03] border border-white/[0.05]"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-all"
                 >
-                  <ChevronLeft size={20} className="text-zinc-300" />
+                  <ChevronLeft size={20} />
                 </button>
-                <div>
-                  <h1 className="text-lg font-bold text-white leading-tight">Status OS</h1>
+                <div className="flex flex-col">
+                  <h1 className="text-[17px] font-black text-white leading-none uppercase tracking-widest">Status</h1>
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Ordens de Serviço</span>
                 </div>
               </div>
               
@@ -1550,27 +1550,25 @@ export default function StatusOsModule({
                       setActiveStatus('ALL');
                     }
                   }}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
                     groupBy === 'prioridade' 
-                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]' 
-                    : 'bg-white/[0.03] border-white/[0.05] text-zinc-400'
+                    ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.15)]' 
+                    : 'bg-white/[0.02] border-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
-                  <ArrowUpDown size={16} />
-                  <span className="hidden min-[400px]:inline text-[10px] font-black uppercase tracking-widest">Prioridade</span>
+                  <ArrowUpDown size={18} />
                 </button>
 
                 {/* Buscar */}
                 <button
                   onClick={() => setIsMobileSearchOpen(v => !v)}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
                     isMobileSearchOpen
-                      ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676]'
-                      : 'bg-white/[0.03] border-white/[0.05] text-zinc-400'
+                      ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.15)]'
+                      : 'bg-white/[0.02] border-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
-                  <Search size={16} />
-                  <span className="hidden min-[400px]:inline text-[10px] font-black uppercase tracking-widest">Buscar</span>
+                  <Search size={18} />
                 </button>
               </div>
             </div>
@@ -1590,10 +1588,10 @@ export default function StatusOsModule({
               </div>
             )}
 
-            {/* Row 3: Mobile Tabs Timeline — sem botão 'Todas' */}
-            <div className="flex overflow-x-auto gap-2 py-1.5 mt-1 mb-1 no-scrollbar">
+            {/* Row 2: Mobile Tabs Timeline */}
+            <div className="flex overflow-x-auto gap-2 py-1.5 mt-1 mb-1 no-scrollbar px-1">
               
-              {COLUMNS.map(status => {
+              {([...COLUMNS, 'Orçamento Cancelado', 'Sem Reparo'] as OrderStatus[]).map(status => {
                  const count = orders.filter(o => o.status === status).length;
                  if (count === 0 && activeStatus !== status) return null;
                  const isSelected = activeStatus === status;
@@ -1604,6 +1602,8 @@ export default function StatusOsModule({
                  }
                  if (status === 'Reparo Concluído') shortName = 'Concluído';
                  if (status === 'Equipamento Retirado') shortName = 'Retirado';
+                 if (status === 'Orçamento Cancelado') shortName = 'Cancelado';
+                 if (status === 'Sem Reparo') shortName = 'Sem Reparo';
                  
                  const config = STATUS_CONFIG[status];
                  const Icon = config.icon;
@@ -1612,17 +1612,17 @@ export default function StatusOsModule({
                    <button
                      key={`m-tab-${status}`}
                      onClick={() => setActiveStatus(status)}
-                     className={`flex items-center gap-1.5 pl-2.5 pr-3 py-2 shrink-0 rounded-2xl border transition-all active:scale-95 ${
+                     className={`flex items-center gap-2 pl-3 pr-4 py-2.5 shrink-0 rounded-full border transition-all active:scale-95 ${
                        isSelected
-                         ? `${config.bg} ${config.color} border-current/30 shadow-sm`
-                         : 'bg-white/[0.03] border-white/[0.06] text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
+                         ? `${config.bg} ${config.color} border-current/20 shadow-md ring-1 ring-current/10`
+                         : 'bg-white/[0.02] border-white/[0.05] text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
                      }`}
                    >
-                     <div className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-white/15' : 'bg-white/[0.05]'}`}>
-                       <Icon size={11} className={isSelected ? config.color : 'text-zinc-600'} />
+                     <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-white/20' : 'bg-white/[0.05]'}`}>
+                       <Icon size={12} className={isSelected ? config.color : 'text-zinc-500'} />
                      </div>
-                     <span className="text-[10px] font-black uppercase tracking-wider leading-none">{shortName}</span>
-                     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none ${
+                     <span className={`text-[11px] font-black uppercase tracking-wider leading-none ${isSelected ? 'text-white' : ''}`}>{shortName}</span>
+                     <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none ml-1 ${
                        isSelected ? 'bg-white/20 text-white' : 'bg-white/[0.06] text-zinc-600'
                      }`}>
                        {count}
