@@ -740,21 +740,22 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-xl font-black tracking-tight truncate">Caixa Diário</h1>
+                {/* Desktop badge */}
                 {currentSession && (
-                  <span className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest shrink-0 border ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'}`}>
-                    {/* Mobile: data + status */}
-                    <span className="sm:hidden text-[7px]">
-                      {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                      {' · '}{currentSession.status === 'open' ? 'Aberto' : 'Encerrado'}
-                    </span>
-                    {/* Desktop: só status */}
-                    <span className="hidden sm:inline text-[8px]">
-                      {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
-                    </span>
+                  <span className={`hidden sm:inline px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest shrink-0 border ${currentSession.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'}`}>
+                    {currentSession.status === 'open' ? 'Ativo' : 'Encerrado'}
                   </span>
                 )}
               </div>
-              {/* Desktop only: data completa + hora */}
+              {/* Mobile: texto livre abaixo do título */}
+              {currentSession && (
+                <p className={`sm:hidden text-[11px] font-bold mt-0.5 ${currentSession.status === 'open' ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                  {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                  {' · '}
+                  {currentSession.status === 'open' ? 'Caixa Aberto' : 'Caixa Encerrado'}
+                </p>
+              )}
+              {/* Desktop: data completa + hora */}
               <p className="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-[0.15em] mt-0.5">
                 <Calendar size={10} className="shrink-0" />
                 {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
