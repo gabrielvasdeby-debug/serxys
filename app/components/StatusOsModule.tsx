@@ -424,6 +424,7 @@ export default function StatusOsModule({
   const [reportPhotos, setReportPhotos] = useState<string[]>([]);
   const [showMetrics, setShowMetrics] = useState(false);
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+  const [warrantyPromptOrder, setWarrantyPromptOrder] = useState<Order | null>(null);
 
   // Helper Initials
   const getInitials = (name: string) => {
@@ -2083,6 +2084,8 @@ export default function StatusOsModule({
                     }
                     if (order.status === 'Reparo Concluído') shortName = 'Concluído';
                     if (order.status === 'Equipamento Retirado') shortName = 'RETIRADO';
+                    if (order.status === 'Orçamento Cancelado') shortName = 'CANCELADO';
+                    if (order.status === 'Sem Reparo') shortName = 'SEM REPARO';
                     
                     return (
                       <div key={`m-${order.id}`} className="relative bg-[#222] rounded-[18px] overflow-hidden shadow-2xl border border-white/[0.07]">
@@ -2518,10 +2521,7 @@ export default function StatusOsModule({
                           updateOrderStatus(selectedOrder, newStatus);
                           setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                           if (newStatus === 'Reparo Concluído') {
-                            if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
-                              const fullCustomer = customers.find(c => c.id === selectedOrder.customerId);
-                              if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus, customer: fullCustomer });
-                            }
+                            setWarrantyPromptOrder({ ...selectedOrder, status: newStatus });
                           }
                         }}
                         className="bg-[#1A1A1A] border border-zinc-800 text-[#00E676] text-[10px] font-black uppercase tracking-widest px-4 h-10 rounded-sm appearance-none pr-10 focus:border-[#00E676] transition-all cursor-pointer"
@@ -3584,10 +3584,7 @@ export default function StatusOsModule({
                         updateOrderStatus(selectedOrder, newStatus);
                         setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
                         if (newStatus === 'Reparo Concluído') {
-                          if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
-                            const fullCustomer = customers.find(c => c.id === selectedOrder.customerId);
-                            if (onNavigateToGarantia) onNavigateToGarantia({ ...selectedOrder, status: newStatus, customer: fullCustomer });
-                          }
+                          setWarrantyPromptOrder({ ...selectedOrder, status: newStatus });
                         }
                       }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -4485,10 +4482,7 @@ export default function StatusOsModule({
                         } else {
                           updateOrderStatus(orderToQuickStatus, newStatus);
                           if (newStatus === 'Reparo Concluído') {
-                            if (window.confirm("Deseja criar um termo de garantia para esta OS?")) {
-                              const fullCustomer = customers.find(c => c.id === orderToQuickStatus.customerId);
-                              if (onNavigateToGarantia) onNavigateToGarantia({ ...orderToQuickStatus, status: newStatus, customer: fullCustomer });
-                            }
+                            setWarrantyPromptOrder({ ...orderToQuickStatus, status: newStatus });
                           }
                         }
                         setOrderToQuickStatus(null);
@@ -4510,6 +4504,54 @@ export default function StatusOsModule({
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Warranty Prompt Modal */}
+      <AnimatePresence>
+        {warrantyPromptOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setWarrantyPromptOrder(null)}
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-sm bg-[#0A0A0A]/95 border border-white/[0.05] rounded-3xl p-6 shadow-2xl flex flex-col gap-6 backdrop-blur-xl"
+            >
+              <div className="w-16 h-16 rounded-full bg-[#00E676]/10 border border-[#00E676]/20 flex items-center justify-center self-center shadow-[0_0_30px_rgba(0,230,118,0.15)] mt-2">
+                <FileText size={28} className="text-[#00E676]" />
+              </div>
+              
+              <div className="text-center space-y-3">
+                <h3 className="text-xl font-black text-white uppercase tracking-widest">Termo de Garantia</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed font-medium">
+                  A ordem de serviço <strong className="text-zinc-200">OS {warrantyPromptOrder.osNumber.toString().padStart(4, '0')}</strong> foi marcada como concluída. Deseja emitir o Termo de Garantia agora?
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => setWarrantyPromptOrder(null)}
+                  className="flex-1 py-3.5 rounded-2xl border border-white/[0.05] bg-white/[0.02] text-zinc-400 font-black hover:bg-white/[0.05] hover:text-zinc-200 transition-all uppercase tracking-widest text-xs"
+                >
+                  Agora Não
+                </button>
+                <button
+                  onClick={() => {
+                    const order = warrantyPromptOrder;
+                    setWarrantyPromptOrder(null);
+                    const fullCustomer = customers.find(c => c.id === order.customerId);
+                    if (onNavigateToGarantia) onNavigateToGarantia({ ...order, customer: fullCustomer });
+                  }}
+                  className="flex-1 py-3.5 rounded-2xl border border-[#00E676]/20 bg-[#00E676]/10 text-[#00E676] font-black hover:bg-[#00E676] hover:text-black transition-all uppercase tracking-widest text-xs shadow-[0_0_15px_rgba(0,230,118,0.1)]"
+                >
+                  Emitir
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
