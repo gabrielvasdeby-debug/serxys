@@ -2508,12 +2508,12 @@ export default function OrdemServicoModule({
               className="space-y-6 overflow-x-hidden px-0.5"
             >
               {/* Selected Client Summary */}
-              <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-xl">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl px-4 py-3 flex items-center justify-between gap-3 shadow-xl">
+                <div className="flex flex-col min-w-0">
                   <h3 className="text-sm font-black text-white uppercase tracking-tight truncate">{selectedCustomer.name}</h3>
                   {selectedCustomer.whatsapp && (
-                    <span className="text-[10px] font-bold text-[#00E676]/80 uppercase tracking-widest flex items-center gap-1 shrink-0">
-                      <MessageCircle size={10} /> {selectedCustomer.whatsapp}
+                    <span className="text-[10px] font-bold text-[#00E676]/70 uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                      <MessageCircle size={9} /> {selectedCustomer.whatsapp}
                     </span>
                   )}
                 </div>
