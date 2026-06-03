@@ -114,6 +114,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
   const [customStartDate, setCustomStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [customEndDate, setCustomEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [receivablesSearch, setReceivablesSearch] = useState('');
+  const [expenseMonthFilter, setExpenseMonthFilter] = useState<string>('all');
 
   // Bloqueio de acesso para não-ADM
   if (profile.type !== 'ADM' && profile.role !== 'ADM') {
@@ -854,12 +855,23 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     return { pieData, areaData };
   }, [stats, transactions, expenses, currentPeriodDates]);
 
-  const expenseTotals = useMemo(() => {
-    const total = expenses.reduce((acc, curr) => acc + curr.amount, 0);
-    const paid = expenses.filter(e => e.status !== 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
-    const pending = expenses.filter(e => e.status === 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
-    return { total, paid, pending };
+  const expenseMonths = useMemo(() => {
+    const months = new Set<string>();
+    expenses.forEach(e => {
+      if (e.date) months.add(format(parseISO(e.date), 'yyyy-MM'));
+    });
+    return Array.from(months).sort((a, b) => b.localeCompare(a));
   }, [expenses]);
+
+  const expenseTotals = useMemo(() => {
+    const filtered = expenseMonthFilter === 'all' 
+      ? expenses 
+      : expenses.filter(e => e.date && format(parseISO(e.date), 'yyyy-MM') === expenseMonthFilter);
+    const total = filtered.reduce((acc, curr) => acc + curr.amount, 0);
+    const paid = filtered.filter(e => e.status !== 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
+    const pending = filtered.filter(e => e.status === 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
+    return { total, paid, pending };
+  }, [expenses, expenseMonthFilter]);
 
 
   return (
@@ -1499,9 +1511,21 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
               className="space-y-6"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <ArrowDownRight className="text-red-500" /> <span className="hidden sm:inline">Contas a Pagar</span><span className="sm:hidden text-lg">A Pagar</span>
-                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <ArrowDownRight className="text-red-500" /> <span className="hidden sm:inline">Contas a Pagar</span><span className="sm:hidden text-lg">A Pagar</span>
+                  </h2>
+                  <select 
+                    value={expenseMonthFilter}
+                    onChange={(e) => setExpenseMonthFilter(e.target.value)}
+                    className="bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-2.5 text-zinc-400 focus:outline-none focus:border-white/20 transition-all hover:bg-white/5 capitalize cursor-pointer outline-none"
+                  >
+                    <option value="all" className="bg-[#141414] text-white">Todos os Meses</option>
+                    {expenseMonths.map(m => (
+                      <option key={m} value={m} className="bg-[#141414] text-white capitalize">{format(parseISO(m + '-01'), "MMMM yyyy", { locale: ptBR })}</option>
+                    ))}
+                  </select>
+                </div>
                 <button 
                   onClick={() => setIsExpenseModalOpen(true)}
                   className="bg-[#00E676] hover:bg-[#00C853] text-black font-bold px-6 py-3 sm:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#00E676]/20 active:scale-95 text-xs uppercase tracking-widest"
@@ -1530,7 +1554,11 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 {/* Desktop Table View - Grouped by Month */}
                 <div className="hidden md:block">
                   {(() => {
-                    const sortedExpenses = [...expenses].sort((a, b) =>
+                    const filteredList = expenseMonthFilter === 'all' 
+                      ? expenses 
+                      : expenses.filter(e => e.date && format(parseISO(e.date), 'yyyy-MM') === expenseMonthFilter);
+                    
+                    const sortedExpenses = [...filteredList].sort((a, b) =>
                       new Date(b.date).getTime() - new Date(a.date).getTime()
                     );
 
@@ -1625,13 +1653,17 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 {/* Mobile Card View - Grouped by Month */}
                 <div className="md:hidden">
                   {(() => {
-                    if (expenses.length === 0) {
+                    const filteredList = expenseMonthFilter === 'all' 
+                      ? expenses 
+                      : expenses.filter(e => e.date && format(parseISO(e.date), 'yyyy-MM') === expenseMonthFilter);
+                    
+                    if (filteredList.length === 0) {
                       return <div className="p-8 text-center text-zinc-500 text-sm">Nenhuma despesa para exibir.</div>;
                     }
 
                     // Group by year-month
                     const groups: Record<string, Expense[]> = {};
-                    [...expenses]
+                    [...filteredList]
                       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                       .forEach(exp => {
                         const key = format(parseISO(exp.date), 'yyyy-MM');
