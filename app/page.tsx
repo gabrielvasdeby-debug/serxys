@@ -256,6 +256,7 @@ export default function ServyxApp() {
                 appNotifications={notifications}
                 onMarkNotificationAsRead={markNotificationAsRead}
                 onClearNotifications={clearAllNotifications}
+                isDataLoading={isDataLoading}
               />
             </motion.div>
           )}

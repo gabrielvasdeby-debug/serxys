@@ -54,6 +54,7 @@ export function useServyxApp() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cashSessionsCount, setCashSessionsCount] = useState(0);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const authStateRef = useRef({ selectedProfile, isAuthReady });
 
   useEffect(() => {
@@ -265,6 +266,7 @@ export function useServyxApp() {
     // Guard: evitar chamadas simultâneas (ex: getSession + onAuthStateChange juntos)
     if (isLoadingData.current) return [];
     isLoadingData.current = true;
+    setIsDataLoading(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
@@ -445,6 +447,7 @@ export function useServyxApp() {
       return [];
     } finally {
       isLoadingData.current = false;
+      setIsDataLoading(false);
     }
   }, []);
 
@@ -1142,6 +1145,7 @@ export function useServyxApp() {
     notifications,
     unreadNotificationsCount,
     markNotificationAsRead,
-    clearAllNotifications
+    clearAllNotifications,
+    isDataLoading
   };
 }

@@ -50,6 +50,7 @@ interface DashboardViewProps {
   appNotifications: any[];
   onMarkNotificationAsRead: (id: string) => void;
   onClearNotifications: () => void;
+  isDataLoading: boolean;
 }
 
 export default function DashboardView({ 
@@ -70,7 +71,8 @@ export default function DashboardView({
   onOpenSearch,
   appNotifications,
   onMarkNotificationAsRead,
-  onClearNotifications
+  onClearNotifications,
+  isDataLoading
 }: DashboardViewProps) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -84,7 +86,7 @@ export default function DashboardView({
     ];
   }, [isCompanyIncomplete, products, orders, cashSessionsCount]);
 
-  const showOnboarding = onboardingSteps.some(s => !s.completed);
+  const showOnboarding = !isDataLoading && onboardingSteps.some(s => !s.completed);
 
   const notifications = useMemo(() => {
     const list: { id: string, type: 'BIRTHDAY' | 'STOCK' | 'ALERT', title: string, message: string, icon: any, color: string, moduleId?: string, isRead?: boolean, originalId?: string }[] = [];
