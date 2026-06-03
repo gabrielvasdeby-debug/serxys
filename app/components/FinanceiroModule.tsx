@@ -114,7 +114,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
   const [customStartDate, setCustomStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [customEndDate, setCustomEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [receivablesSearch, setReceivablesSearch] = useState('');
-  const [expenseMonthFilter, setExpenseMonthFilter] = useState<string>('all');
+  const [expenseMonthFilter, setExpenseMonthFilter] = useState<string>(format(new Date(), 'yyyy-MM'));
 
   // Bloqueio de acesso para não-ADM
   if (profile.type !== 'ADM' && profile.role !== 'ADM') {
@@ -793,11 +793,14 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     periodTransactions.filter(t => t.type === 'saida').forEach(t => {
       const descLower = t.description?.toLowerCase() || '';
       const technicalKeywords = ['peça', 'peca', 'estoque', 'fornecedor', 'compra', 'bateria', 'tela', 'componente', 'insumo'];
+      const nonExpenseKeywords = ['sangria', 'retirada', 'transferência', 'transferencia', 'depósito', 'deposito', 'fechamento', 'troco'];
+      
       const isTechnical = technicalKeywords.some(kw => descLower.includes(kw));
+      const isNonExpense = nonExpenseKeywords.some(kw => descLower.includes(kw));
 
       if (isTechnical) {
         cogsExpenses += t.value || 0;
-      } else {
+      } else if (!isNonExpense) {
         opexExpenses += t.value || 0;
       }
     });
@@ -1515,16 +1518,21 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                   <h2 className="text-xl font-bold flex items-center gap-2">
                     <ArrowDownRight className="text-red-500" /> <span className="hidden sm:inline">Contas a Pagar</span><span className="sm:hidden text-lg">A Pagar</span>
                   </h2>
-                  <select 
-                    value={expenseMonthFilter}
-                    onChange={(e) => setExpenseMonthFilter(e.target.value)}
-                    className="bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-2.5 text-zinc-400 focus:outline-none focus:border-white/20 transition-all hover:bg-white/5 capitalize cursor-pointer outline-none"
-                  >
-                    <option value="all" className="bg-[#141414] text-white">Todos os Meses</option>
-                    {expenseMonths.map(m => (
-                      <option key={m} value={m} className="bg-[#141414] text-white capitalize">{format(parseISO(m + '-01'), "MMMM yyyy", { locale: ptBR })}</option>
-                    ))}
-                  </select>
+                  <div className="relative group">
+                    <select 
+                      value={expenseMonthFilter}
+                      onChange={(e) => setExpenseMonthFilter(e.target.value)}
+                      className="appearance-none bg-zinc-900 border-2 border-zinc-700 text-sm font-black uppercase tracking-widest rounded-xl pl-4 pr-10 py-3 text-white focus:outline-none focus:border-amber-500 transition-all cursor-pointer shadow-xl ring-1 ring-black/5"
+                    >
+                      <option value="all" className="bg-[#141414] text-white">Todos os Meses</option>
+                      {expenseMonths.map(m => (
+                        <option key={m} value={m} className="bg-[#141414] text-white capitalize">{format(parseISO(m + '-01'), "MMMM yyyy", { locale: ptBR })}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-hover:text-white transition-colors">
+                      <Calendar size={16} />
+                    </div>
+                  </div>
                 </div>
                 <button 
                   onClick={() => setIsExpenseModalOpen(true)}
