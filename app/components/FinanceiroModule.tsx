@@ -792,7 +792,12 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     // 2. Transações de saída categorizadas
     periodTransactions.filter(t => t.type === 'saida').forEach(t => {
       const descLower = t.description?.toLowerCase() || '';
-      const technicalKeywords = ['peça', 'peca', 'estoque', 'fornecedor', 'compra', 'bateria', 'tela', 'componente', 'insumo'];
+      const technicalKeywords = [
+        'peça', 'peca', 'estoque', 'fornecedor', 'compra', 'bateria', 'tela', 
+        'componente', 'insumo', 'suprimento', 'suprimentos', 'luva', 'luvas', 
+        'capa', 'capinha', 'película', 'pelicula', 'cabo', 'carregador', 'conector', 
+        'dock', 'placa', 'ci', 'adesivo', 'adesiva', 'acessório', 'acessorio', 'notebook'
+      ];
       const nonExpenseKeywords = ['sangria', 'retirada', 'transferência', 'transferencia', 'depósito', 'deposito', 'fechamento', 'troco'];
       
       const isTechnical = technicalKeywords.some(kw => descLower.includes(kw));
