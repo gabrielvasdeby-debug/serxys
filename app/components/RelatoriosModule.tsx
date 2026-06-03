@@ -43,6 +43,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
   const [transactions, setTransactions] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [globalCustomerOsCount, setGlobalCustomerOsCount] = useState<Record<string, number>>({});
 
   // Security check - redundancy
   if (profile.type !== 'ADM' && profile.role !== 'ADM') {
@@ -55,20 +56,50 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
     );
   }
 
-  const fetchData = async () => {
+  const fetchData = async (start: Date, end: Date) => {
     setLoading(true);
     try {
-      const [ordersRes, salesRes, transRes, expensesRes] = await Promise.all([
-        supabase.from('orders').select('*').eq('company_id', profile.company_id),
-        supabase.from('sales').select('*').eq('company_id', profile.company_id),
-        supabase.from('transactions').select('*').eq('company_id', profile.company_id),
-        supabase.from('expenses').select('*').eq('company_id', profile.company_id)
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      const startDay = format(start, 'yyyy-MM-dd');
+      const endDay = format(end, 'yyyy-MM-dd');
+
+      const [ordersRes, salesRes, transRes, expensesRes, allCustomerIdsRes] = await Promise.all([
+        supabase.from('orders')
+          .select('id, created_at, status, financials, customerId, osNumber, service, customer_origin_snapshot')
+          .eq('company_id', profile.company_id)
+          .gte('created_at', startIso)
+          .lte('created_at', endIso),
+        supabase.from('sales')
+          .select('id, date, created_at, customerId, total')
+          .eq('company_id', profile.company_id)
+          .gte('created_at', startIso)
+          .lte('created_at', endIso),
+        supabase.from('transactions')
+          .select('id, type, value, date, created_at, os_id')
+          .eq('company_id', profile.company_id)
+          .gte('date', startDay)
+          .lte('date', endDay),
+        supabase.from('expenses')
+          .select('id, amount, value, due_date, date, created_at, status, paid, is_recurring, description')
+          .eq('company_id', profile.company_id),
+        supabase.from('orders')
+          .select('customerId')
+          .eq('company_id', profile.company_id)
       ]);
 
       setOrders(ordersRes.data || []);
       setSales(salesRes.data || []);
       setTransactions(transRes.data || []);
       setExpenses(expensesRes.data || []);
+      
+      // Armazenamos a contagem global para manter o cálculo de recorrência funcionando
+      const count: Record<string, number> = {};
+      (allCustomerIdsRes.data || []).forEach((o: any) => {
+        if (o.customerId) count[o.customerId] = (count[o.customerId] || 0) + 1;
+      });
+      setGlobalCustomerOsCount(count);
+
     } catch (error) {
       console.error('Error fetching analytics data:', error);
       onShowToast('Erro ao carregar dados dos relatórios');
@@ -112,10 +143,6 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const dateInterval = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
@@ -145,25 +172,19 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
     return { start, end };
   }, [period, dateRange]);
 
+  useEffect(() => {
+    fetchData(dateInterval.start, dateInterval.end);
+  }, [dateInterval]);
+
   const filteredData = useMemo(() => {
     const { start, end } = dateInterval;
 
-    const fOrders = orders.filter(o => {
-      const d = parseISO(o.created_at);
-      return isWithinInterval(d, { start, end });
-    });
+    // As tabelas orders, sales e transactions já estão filtradas no backend pelo `dateInterval`.
+    const fOrders = orders;
+    const fSales = sales;
+    const fTransactions = transactions;
 
-    const fSales = sales.filter(s => {
-      const d = parseISO(s.date);
-      return isWithinInterval(d, { start, end });
-    });
-
-    const fTransactions = transactions.filter(t => {
-      const d = parseISO(t.date || t.created_at);
-      return isWithinInterval(d, { start, end });
-    });
-
-    // Filter expenses within period
+    // Apenas expenses são filtrados localmente por enquanto pois possuem 'due_date', 'date' e 'created_at' complexos.
     const fExpenses = expenses.filter(ex => {
       const dateStr = ex.due_date || ex.date || ex.created_at;
       if (!dateStr) return false;
@@ -289,12 +310,6 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
   const recurrenceStats = useMemo(() => {
     const customerOsCount: Record<string, number> = {};
     
-    // We look at ALL orders to determine if a customer is recurring, 
-    // but we only count those that occurred in the filtered period as "Returning"
-    orders.forEach(o => {
-      customerOsCount[o.customerId] = (customerOsCount[o.customerId] || 0) + 1;
-    });
-
     let newClients = 0;
     let recurringClients = 0;
     const uniqueClientsInPeriod = new Set();
@@ -304,7 +319,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
       uniqueClientsInPeriod.add(o.customerId);
 
       // If they have more than 1 OS total in history, they are recurring
-      if (customerOsCount[o.customerId] > 1) {
+      if (globalCustomerOsCount[o.customerId] > 1) {
         recurringClients++;
       } else {
         newClients++;
@@ -324,7 +339,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
         { name: 'Recorrentes', value: recurringClients, color: '#00E676' }
       ]
     };
-  }, [filteredData, orders]);
+  }, [filteredData, globalCustomerOsCount]);
 
   if (loading) {
     return (
@@ -387,7 +402,7 @@ export default function RelatoriosModule({ profile, onBack, onShowToast, custome
                 <Download size={20} />
               </button>
               <button 
-                 onClick={() => { setIsRefreshing(true); fetchData(); }} 
+                 onClick={() => { setIsRefreshing(true); fetchData(dateInterval.start, dateInterval.end); }} 
                  className={`p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
               >
                 <RefreshCw size={20} />

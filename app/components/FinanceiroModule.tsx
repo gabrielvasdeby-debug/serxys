@@ -130,13 +130,58 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     );
   }
 
+  const currentPeriodDates = useMemo(() => {
+    const now = new Date();
+    let start: Date, end: Date;
+
+    switch (period) {
+      case 'today':
+        start = startOfDay(now);
+        end = endOfDay(now);
+        break;
+      case 'week':
+        start = startOfWeek(now);
+        end = endOfWeek(now);
+        break;
+      case 'month':
+        start = startOfMonth(now);
+        end = endOfMonth(now);
+        break;
+      case 'year':
+        start = startOfYear(now);
+        end = endOfYear(now);
+        break;
+      case 'custom':
+        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
+        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
+        break;
+      default:
+        start = startOfMonth(now);
+        end = endOfMonth(now);
+        break;
+    }
+
+    return { start, end };
+  }, [period, customStartDate, customEndDate]);
+
   useEffect(() => {
     fetchData();
-  }, [orders, customers]);
+  }, [orders, customers, currentPeriodDates, expenseMonthFilter]);
   
   const fetchData = async () => {
     setLoading(true);
     try {
+      const expenseFilterStart = parseISO(`${expenseMonthFilter}-01`);
+      const expenseFilterEnd = endOfMonth(expenseFilterStart);
+
+      // Usamos a maior janela entre o extrato/resumo e a aba de contas a pagar para trazer tudo num request
+      const globalStart = new Date(Math.min(currentPeriodDates.start.getTime(), expenseFilterStart.getTime()));
+      const globalEnd = new Date(Math.max(currentPeriodDates.end.getTime(), expenseFilterEnd.getTime()));
+
+      const startIso = globalStart.toISOString();
+      const endIso = globalEnd.toISOString();
+      const startDay = format(globalStart, 'yyyy-MM-dd');
+      const endDay = format(globalEnd, 'yyyy-MM-dd');
       // Use props orders instead of fetching
       const processedReceivables = (orders || [])
         .filter(order => {
@@ -173,8 +218,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       // Fetch Manual Incomes
       const { data: incomesData } = await supabase
         .from('incomes')
-        .select('*')
+        .select('id, description, amount, date')
         .eq('company_id', profile.company_id)
+        .gte('date', startDay)
+        .lte('date', endDay)
         .order('date', { ascending: false });
       
       const manualReceivables = (incomesData || [])
@@ -196,8 +243,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       // Fetch Expenses
       const { data: expensesData, error: expensesError } = await supabase
         .from('expenses')
-        .select('*')
+        .select('id, description, amount, date, due_date, status, paid, category, supplier, is_recurring')
         .eq('company_id', profile.company_id)
+        .gte('date', startDay) // Consider due_date logic locally, but limit base rows
+        .lte('date', endDay)
         .order('date', { ascending: false });
 
       if (expensesError) {
@@ -251,8 +300,10 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       // Fetch All Transactions (from cashier/caixa)
       const { data: transData, error: transError } = await supabase
         .from('transactions')
-        .select('*')
+        .select('id, type, description, value, date, os_id')
         .eq('company_id', profile.company_id)
+        .gte('date', startDay)
+        .lte('date', endDay)
         .order('date', { ascending: false });
       
       if (transError) {
@@ -698,40 +749,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     onShowToast('PDF gerado com sucesso!');
   };
 
-  const currentPeriodDates = useMemo(() => {
-    const now = new Date();
-    let start: Date, end: Date;
-
-    switch (period) {
-      case 'today':
-        start = startOfDay(now);
-        end = endOfDay(now);
-        break;
-      case 'week':
-        start = startOfWeek(now);
-        end = endOfWeek(now);
-        break;
-      case 'month':
-        start = startOfMonth(now);
-        end = endOfMonth(now);
-        break;
-      case 'year':
-        start = startOfYear(now);
-        end = endOfYear(now);
-        break;
-      case 'custom':
-        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
-        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
-        break;
-      default:
-        start = startOfMonth(now);
-        end = endOfMonth(now);
-        break;
-    }
-
-    return { start, end };
-  }, [period, customStartDate, customEndDate]);
-
+  // currentPeriodDates was moved to the top of the component
   const getFilteredTotals = () => {
     const { start, end } = currentPeriodDates;
 
