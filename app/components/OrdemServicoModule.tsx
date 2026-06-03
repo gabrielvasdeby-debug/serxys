@@ -1372,6 +1372,58 @@ export default function OrdemServicoModule({
     }
   };
 
+  // Fetch full customer order history when expanded (paginação effect)
+  useEffect(() => {
+    if (!expandedCardId) return;
+
+    const fetchCustomerHistory = async () => {
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .eq('customer_id', expandedCardId)
+        .order('created_at', { ascending: false });
+
+      if (data && data.length > 0) {
+        const newOrders = data.map((row: any) => ({
+          id: row.id,
+          companyId: row.company_id,
+          osNumber: row.os_number,
+          customerId: row.customer_id,
+          equipment: row.equipment,
+          checklist: row.checklist,
+          checklistNotes: row.checklist_notes || '',
+          defect: row.defect || '',
+          technicianNotes: row.technician_notes || '',
+          service: row.service || '',
+          financials: row.financials,
+          signatures: row.signatures,
+          status: row.status,
+          priority: row.priority,
+          history: row.history || [],
+          completionData: row.completion_data,
+          productsUsed: row.products_used || [],
+          isVisualChecklist: row.is_visual_checklist,
+          checklistNotPossible: row.checklist_not_possible,
+          budget: row.budget,
+          technicalReport: row.technical_report,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          deliveryForecast: row.delivery_forecast,
+          entryPhotos: row.entry_photos || [],
+        }));
+
+        setOrders(prev => {
+          const map = new Map(prev.map(o => [o.id, o]));
+          newOrders.forEach((no: any) => map.set(no.id, no));
+          return Array.from(map.values());
+        });
+      }
+    };
+
+    fetchCustomerHistory();
+  }, [expandedCardId, profile.company_id, setOrders]);
+
   const handleSaveOS = async (providedId?: string, signaturesOverride?: typeof signatures) => {
     if (!selectedCustomer) {
       onShowToast('ERROR:Selecione um cliente antes de continuar');

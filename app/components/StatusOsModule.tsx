@@ -1037,6 +1037,73 @@ export default function StatusOsModule({
     fetchSuppliers();
   }, []);
 
+  useEffect(() => {
+    const searchLower = searchQuery.toLowerCase().trim();
+    if (searchLower.length < 2) return;
+
+    const performSearch = async () => {
+      const searchNum = searchLower.replace(/\D/g, '');
+      const matchingCustomerIds = customers
+        .filter(c => c.name.toLowerCase().includes(searchLower) || (c.document && c.document.includes(searchLower)))
+        .map(c => c.id);
+
+      let query = supabase.from('orders').select('*').eq('company_id', profile.company_id);
+
+      const orConditions: string[] = [];
+      if (searchNum) orConditions.push(`os_number.eq.${searchNum}`);
+      if (matchingCustomerIds.length > 0) {
+        orConditions.push(`customer_id.in.(${matchingCustomerIds.join(',')})`);
+      }
+      
+      // Also search by equipment text using JSONB operator
+      orConditions.push(`equipment->>brand.ilike.%${searchLower}%`);
+      orConditions.push(`equipment->>model.ilike.%${searchLower}%`);
+
+      query = query.or(orConditions.join(',')).limit(20);
+
+      const { data } = await query;
+      if (data && data.length > 0) {
+        // Formata e faz merge com `orders`
+        const newOrders = data.map((row: any) => ({
+          id: row.id,
+          companyId: row.company_id,
+          osNumber: row.os_number,
+          customerId: row.customer_id,
+          equipment: row.equipment,
+          checklist: row.checklist,
+          checklistNotes: row.checklist_notes || '',
+          defect: row.defect || '',
+          technicianNotes: row.technician_notes || '',
+          service: row.service || '',
+          financials: row.financials,
+          signatures: row.signatures,
+          status: row.status,
+          priority: row.priority,
+          history: row.history || [],
+          completionData: row.completion_data,
+          productsUsed: row.products_used || [],
+          isVisualChecklist: row.is_visual_checklist,
+          checklistNotPossible: row.checklist_not_possible,
+          budget: row.budget,
+          technicalReport: row.technical_report,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          deliveryForecast: row.delivery_forecast,
+          entryPhotos: row.entry_photos || [],
+        }));
+
+        setOrders(prev => {
+          const map = new Map(prev.map(o => [o.id, o]));
+          newOrders.forEach((no: any) => map.set(no.id, no));
+          return Array.from(map.values());
+        });
+      }
+    };
+
+    const timer = setTimeout(performSearch, 600);
+    return () => clearTimeout(timer);
+  }, [searchQuery, profile.company_id, customers, setOrders]);
+
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
       const customer = customers.find(c => c.id === o.customerId);
