@@ -1527,136 +1527,182 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
               </div>
 
               <div className="bg-[#0a0a0a]/80 backdrop-blur-xl overflow-hidden border border-white/5 rounded-[32px] shadow-2xl">
-                {/* Desktop Table View */}
-                <table className="hidden md:table w-full text-left">
-                  <thead className="bg-white/5 text-zinc-500 text-[10px] uppercase font-bold tracking-widest">
-                    <tr>
-                      <th className="px-8 py-4">Data</th>
-                      <th className="px-8 py-4">Descrição</th>
-                      <th className="px-8 py-4">Categoria</th>
-                      <th className="px-8 py-4">Fornecedor</th>
-                      <th className="px-8 py-4">Status</th>
-                      <th className="px-8 py-4 text-right">Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-900">
-                    {(() => {
-                      const sortedExpenses = [...expenses].sort((a, b) => {
-                        // Priority 1: Status (PENDING first)
-                        if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
-                        if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
-                        
-                        // Priority 2: Date
-                        // If PENDING: Ascending (older due first)
-                        // If PAID: Descending (recent first)
-                        const dateA = new Date(a.date).getTime();
-                        const dateB = new Date(b.date).getTime();
-                        
-                        if (a.status === 'PENDING') {
-                          return dateA - dateB;
-                        } else {
-                          return dateB - dateA;
-                        }
-                      });
-
-                      if (sortedExpenses.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={5} className="px-8 py-20 text-center text-zinc-500">Nenhuma despesa cadastrada.</td>
-                          </tr>
-                        );
-                      }
-
-                      return sortedExpenses.map(exp => (
-                        <tr key={exp.id} className="hover:bg-white/[0.03] transition-colors group">
-                          <td className="px-8 py-5 text-sm font-medium text-zinc-400">{format(parseISO(exp.date), 'dd/MM/yyyy')}</td>
-                          <td className="px-8 py-5 text-sm font-bold text-white">{exp.description}</td>
-                          <td className="px-8 py-5">
-                            <span className="text-[10px] font-bold uppercase tracking-widest bg-zinc-800 px-2 py-1 rounded text-zinc-400">{exp.category}</span>
-                          </td>
-                           <td className="px-8 py-5 text-sm text-zinc-400">
-                            <div className="flex items-center gap-2">
-                              {exp.supplier || '-'}
-                              {exp.is_recurring && (
-                                <div className="p-1 bg-[#00E676]/10 text-[#00E676] rounded-md" title="Despesa Recorrente">
-                                  <History size={12} />
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-8 py-5">
-                            <div 
-                              onClick={() => handleToggleExpensePaid(exp)}
-                              className="flex items-center gap-3 cursor-pointer group w-fit bg-[#0A0A0A]/80 hover:bg-[#1A1A1A] p-1.5 pr-3 rounded-full border border-zinc-800 transition-colors"
-                              title={exp.status === 'PENDING' ? 'Marcar como PAGO' : 'Marcar como PENDENTE'}
-                            >
-                              <div className={`relative inline-flex h-5 w-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200 ease-in-out ${exp.status === 'PENDING' ? 'bg-zinc-700' : 'bg-[#00E676]'}`}>
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${exp.status === 'PENDING' ? '-translate-x-2' : 'translate-x-2'}`} />
-                              </div>
-                              <span className={`text-[10px] font-black uppercase tracking-widest ${exp.status === 'PENDING' ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-[#00E676]'}`}>
-                                {exp.status === 'PENDING' ? 'Pendente' : 'Pago'}
-                              </span>
-                            </div>
-                          </td>
-                          <td className={`px-8 py-5 text-sm font-bold text-right ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
-                            R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      ))
-                    })()}
-                  </tbody>
-                </table>
-
-                {/* Mobile Card View for Expenses */}
-                <div className="md:hidden bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 rounded-[24px] shadow-2xl mt-4 overflow-hidden divide-y divide-white/5">
+                {/* Desktop Table View - Grouped by Month */}
+                <div className="hidden md:block">
                   {(() => {
-                    const sortedExpenses = [...expenses].sort((a, b) => {
-                      if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
-                      if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
-                      const dateA = new Date(a.date).getTime();
-                      const dateB = new Date(b.date).getTime();
-                      return a.status === 'PENDING' ? dateA - dateB : dateB - dateA;
-                    });
+                    const sortedExpenses = [...expenses].sort((a, b) =>
+                      new Date(b.date).getTime() - new Date(a.date).getTime()
+                    );
 
                     if (sortedExpenses.length === 0) {
+                      return (
+                        <div className="px-8 py-20 text-center text-zinc-500">Nenhuma despesa cadastrada.</div>
+                      );
+                    }
+
+                    // Group by year-month
+                    const groups: Record<string, Expense[]> = {};
+                    sortedExpenses.forEach(exp => {
+                      const key = format(parseISO(exp.date), 'yyyy-MM');
+                      if (!groups[key]) groups[key] = [];
+                      groups[key].push(exp);
+                    });
+
+                    return Object.entries(groups)
+                      .sort(([a], [b]) => b.localeCompare(a)) // most recent first
+                      .map(([monthKey, exps]) => {
+                        const monthLabel = format(parseISO(monthKey + '-01'), "MMMM 'de' yyyy", { locale: ptBR });
+                        const monthTotal = exps.reduce((acc, e) => acc + e.amount, 0);
+                        const monthPaid = exps.filter(e => e.status !== 'PENDING').reduce((acc, e) => acc + e.amount, 0);
+                        const monthPending = exps.filter(e => e.status === 'PENDING').reduce((acc, e) => acc + e.amount, 0);
+                        const sortedExps = [...exps].sort((a, b) => {
+                          if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+                          if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+                          return new Date(a.date).getTime() - new Date(b.date).getTime();
+                        });
+
+                        return (
+                          <div key={monthKey}>
+                            {/* Month Header */}
+                            <div className="px-8 py-3 bg-white/[0.02] border-b border-white/5 flex items-center justify-between sticky top-0 backdrop-blur-xl z-10">
+                              <div className="flex items-center gap-3">
+                                <Calendar size={14} className="text-[#00E676]" />
+                                <span className="text-xs font-black uppercase tracking-widest text-zinc-300 capitalize">{monthLabel}</span>
+                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{exps.length} {exps.length === 1 ? 'despesa' : 'despesas'}</span>
+                              </div>
+                              <div className="flex items-center gap-4 text-[10px] font-bold">
+                                {monthPaid > 0 && <span className="text-emerald-500">✓ Pago: R$ {monthPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                                {monthPending > 0 && <span className="text-amber-400">● Pendente: R$ {monthPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                                <span className="text-zinc-500">Total: R$ {monthTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                              </div>
+                            </div>
+                            <table className="w-full text-left">
+                              <tbody className="divide-y divide-white/[0.03]">
+                                {sortedExps.map(exp => (
+                                  <tr key={exp.id} className="hover:bg-white/[0.03] transition-colors group">
+                                    <td className="px-8 py-4 text-sm font-medium text-zinc-400 w-32">{format(parseISO(exp.date), 'dd/MM/yyyy')}</td>
+                                    <td className="px-8 py-4 text-sm font-bold text-white">{exp.description}</td>
+                                    <td className="px-8 py-4">
+                                      <span className="text-[10px] font-bold uppercase tracking-widest bg-zinc-800/80 border border-white/5 px-2 py-1 rounded-full text-zinc-400">{exp.category}</span>
+                                    </td>
+                                    <td className="px-8 py-4 text-sm text-zinc-400">
+                                      <div className="flex items-center gap-2">
+                                        {exp.supplier || '-'}
+                                        {exp.is_recurring && (
+                                          <div className="p-1 bg-[#00E676]/10 text-[#00E676] rounded-md" title="Despesa Recorrente">
+                                            <History size={12} />
+                                          </div>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-8 py-4">
+                                      <div
+                                        onClick={() => handleToggleExpensePaid(exp)}
+                                        className="flex items-center gap-3 cursor-pointer group w-fit bg-[#0A0A0A]/80 hover:bg-[#1A1A1A] p-1.5 pr-3 rounded-full border border-zinc-800 transition-colors"
+                                        title={exp.status === 'PENDING' ? 'Marcar como PAGO' : 'Marcar como PENDENTE'}
+                                      >
+                                        <div className={`relative inline-flex h-5 w-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200 ease-in-out ${exp.status === 'PENDING' ? 'bg-zinc-700' : 'bg-[#00E676]'}`}>
+                                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${exp.status === 'PENDING' ? '-translate-x-2' : 'translate-x-2'}`} />
+                                        </div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${exp.status === 'PENDING' ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-[#00E676]'}`}>
+                                          {exp.status === 'PENDING' ? 'Pendente' : 'Pago'}
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td className={`px-8 py-4 text-sm font-bold text-right ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
+                                      R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      });
+                  })()}
+                </div>
+
+                {/* Mobile Card View - Grouped by Month */}
+                <div className="md:hidden">
+                  {(() => {
+                    if (expenses.length === 0) {
                       return <div className="p-8 text-center text-zinc-500 text-sm">Nenhuma despesa para exibir.</div>;
                     }
 
-                    return sortedExpenses.map(exp => (
-                      <div key={exp.id} className="p-4 hover:bg-white/[0.02] transition-colors flex flex-col gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-zinc-900 border border-zinc-800/50 ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
-                             <ArrowDownRight size={18} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                               <p className="text-sm font-bold text-white truncate">{exp.description}</p>
-                               <span className="text-[10px] text-zinc-500 font-medium shrink-0">{format(parseISO(exp.date), 'dd/MM/yyyy')}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-2 mt-1">
-                               <div className="flex items-center gap-2 min-w-0">
-                                  <span className="text-[9px] font-bold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-widest truncate">{exp.category}</span>
-                                  {exp.supplier && <span className="text-[9px] text-zinc-500 truncate">• {exp.supplier}</span>}
-                               </div>
-                               <div className="text-right shrink-0">
-                                  <p className={`text-sm font-black ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
-                                    R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                  </p>
-                               </div>
-                            </div>
-                          </div>
-                        </div>
+                    // Group by year-month
+                    const groups: Record<string, Expense[]> = {};
+                    [...expenses]
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .forEach(exp => {
+                        const key = format(parseISO(exp.date), 'yyyy-MM');
+                        if (!groups[key]) groups[key] = [];
+                        groups[key].push(exp);
+                      });
 
-                        <div className="mt-1 pt-3 border-t border-zinc-800/50">
-                           <button 
-                             onClick={() => handleToggleExpensePaid(exp)}
-                             className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${exp.status === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/20'}`}
-                           >
-                             {exp.status === 'PENDING' ? 'Marcar Pago' : 'Marcar Pendente'}
-                           </button>
-                        </div>
-                      </div>
-                    ));
+                    return Object.entries(groups)
+                      .sort(([a], [b]) => b.localeCompare(a))
+                      .map(([monthKey, exps]) => {
+                        const monthLabel = format(parseISO(monthKey + '-01'), "MMMM 'de' yyyy", { locale: ptBR });
+                        const monthPaid = exps.filter(e => e.status !== 'PENDING').reduce((acc, e) => acc + e.amount, 0);
+                        const monthPending = exps.filter(e => e.status === 'PENDING').reduce((acc, e) => acc + e.amount, 0);
+                        const sortedExps = [...exps].sort((a, b) => {
+                          if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+                          if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+                          return new Date(a.date).getTime() - new Date(b.date).getTime();
+                        });
+
+                        return (
+                          <div key={monthKey}>
+                            {/* Month Header Mobile */}
+                            <div className="px-4 py-3 bg-white/[0.03] border-b border-white/5 sticky top-0 backdrop-blur-xl z-10">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Calendar size={12} className="text-[#00E676]" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 capitalize">{monthLabel}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-[9px] font-bold">
+                                  {monthPaid > 0 && <span className="text-emerald-500">✓ R$ {monthPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                                  {monthPending > 0 && <span className="text-amber-400">● R$ {monthPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="divide-y divide-white/5">
+                              {sortedExps.map(exp => (
+                                <div key={exp.id} className="p-4 hover:bg-white/[0.02] transition-colors flex flex-col gap-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-zinc-900 border border-zinc-800/50 ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
+                                      <ArrowDownRight size={18} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <p className="text-sm font-bold text-white truncate">{exp.description}</p>
+                                        <span className="text-[10px] text-zinc-500 font-medium shrink-0">{format(parseISO(exp.date), 'dd/MM')}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-2 mt-1">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="text-[9px] font-bold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-widest truncate">{exp.category}</span>
+                                          {exp.supplier && <span className="text-[9px] text-zinc-500 truncate">• {exp.supplier}</span>}
+                                        </div>
+                                        <p className={`text-sm font-black shrink-0 ${exp.status === 'PENDING' ? 'text-amber-500' : 'text-red-400'}`}>
+                                          R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="mt-1 pt-3 border-t border-zinc-800/50">
+                                    <button
+                                      onClick={() => handleToggleExpensePaid(exp)}
+                                      className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${exp.status === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/20'}`}
+                                    >
+                                      {exp.status === 'PENDING' ? 'Marcar Pago' : 'Marcar Pendente'}
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      });
                   })()}
                 </div>
               </div>
