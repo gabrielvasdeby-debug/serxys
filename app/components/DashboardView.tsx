@@ -76,6 +76,15 @@ export default function DashboardView({
 }: DashboardViewProps) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [canEvaluateOnboarding, setCanEvaluateOnboarding] = useState(false);
+
+  // Aguarda ao menos um ciclo de render após isDataLoading=false
+  // para garantir que products/orders/cashSessionsCount já foram commitados pelo React
+  useEffect(() => {
+    if (!isDataLoading) {
+      setCanEvaluateOnboarding(true);
+    }
+  }, [isDataLoading]);
 
   const onboardingSteps = useMemo(() => {
     return [
@@ -86,7 +95,7 @@ export default function DashboardView({
     ];
   }, [isCompanyIncomplete, products, orders, cashSessionsCount]);
 
-  const showOnboarding = !isDataLoading && onboardingSteps.some(s => !s.completed);
+  const showOnboarding = canEvaluateOnboarding && onboardingSteps.some(s => !s.completed);
 
   const notifications = useMemo(() => {
     const list: { id: string, type: 'BIRTHDAY' | 'STOCK' | 'ALERT', title: string, message: string, icon: any, color: string, moduleId?: string, isRead?: boolean, originalId?: string }[] = [];
