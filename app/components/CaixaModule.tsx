@@ -100,6 +100,9 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
   const [customers, setCustomers] = useState<{id: string, name: string}[]>([]);
   const [activeTab, setActiveTab] = useState<'fluxo' | 'vendas'>('fluxo');
   const [sales, setSales] = useState<Sale[]>([]);
+  const [staleOpenSession, setStaleOpenSession] = useState<any | null>(null);
+  const [staleStats, setStaleStats] = useState<{ moves: number; balance: number } | null>(null);
+  const [showStaleAlert, setShowStaleAlert] = useState(false);
   useEffect(() => {
     if (initialView === 'PDV' && currentSession?.status === 'open') {
       setIsQuickSaleOpen(true);
@@ -142,6 +145,83 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
     const open = (s as CashSession[]).find((sess: CashSession) => sess.status === 'open');
     setCurrentSession(open || null);
   }, [fetchLoading, data, fetchError]);
+
+  // Helper para diferença de dias entre datas do caixa
+  const getDaysDifference = (dateStr1: string, dateStr2: string) => {
+    try {
+      const d1 = new Date(dateStr1 + 'T00:00:00');
+      const d2 = new Date(dateStr2 + 'T00:00:00');
+      const diffTime = Math.abs(d2.getTime() - d1.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    } catch {
+      return 1;
+    }
+  };
+
+  // Verificar se existe algum caixa aberto de dias anteriores
+  useEffect(() => {
+    if (!profile.company_id) return;
+    
+    const checkStaleOpenSession = async () => {
+      try {
+        const { data: openSessions, error } = await supabase
+          .from('cash_sessions')
+          .select('*')
+          .eq('company_id', profile.company_id)
+          .eq('status', 'open')
+          .order('opened_at', { ascending: true }); // O mais antigo primeiro
+
+        if (error) throw error;
+        
+        if (openSessions && openSessions.length > 0) {
+          const openSess = openSessions[0];
+          
+          // Buscar movimentações e calcular o saldo
+          const { data: transData } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('company_id', profile.company_id)
+            .eq('date', openSess.date);
+
+          const movesCount = transData ? transData.length : 0;
+          const initial = Number(openSess.opening_balance || 0);
+          
+          const entriesVal = (transData || [])
+            .filter((t: any) => t.type === 'entrada')
+            .reduce((acc: number, t: any) => acc + Number(t.value || 0), 0);
+          const exitsVal = (transData || [])
+            .filter((t: any) => t.type === 'saida')
+            .reduce((acc: number, t: any) => acc + Number(t.value || 0), 0);
+          const balanceVal = initial + entriesVal - exitsVal;
+
+          setStaleOpenSession({
+            ...openSess,
+            initialValue: initial,
+            openingTime: openSess.opened_at ? new Date(openSess.opened_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''
+          });
+          setStaleStats({
+            moves: movesCount,
+            balance: balanceVal
+          });
+          
+          // Exibe o alerta apenas se for de um dia diferente de hoje
+          const todayStr = new Date().toISOString().split('T')[0];
+          if (openSess.date !== todayStr) {
+            setShowStaleAlert(true);
+          }
+        } else {
+          setStaleOpenSession(null);
+          setStaleStats(null);
+          setShowStaleAlert(false);
+        }
+      } catch (err) {
+        console.error('Erro ao verificar sessões de caixa abertas:', err);
+      }
+    };
+
+    checkStaleOpenSession();
+  }, [profile.company_id, selectedDate]);
 
   const totals = useMemo<Totals>(() => {
     const initial = currentSession?.initialValue || 0;
@@ -380,16 +460,38 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
   const handleExportPastSession = async (session: CashSession) => {
     try {
-      const { data: transData } = await supabase.from('transactions').select('*').eq('date', session.date);
-      const trans = (transData || []).map(t => ({
+      const [transRes, salesRes] = await Promise.all([
+        supabase.from('transactions').select('*').eq('date', session.date),
+        supabase.from('sales').select('*').eq('date', session.date)
+      ]);
+
+      const trans = (transRes.data || []).map(t => ({
         id: t.id,
         type: t.type,
         description: t.description,
         value: Number(t.value),
         paymentMethod: t.payment_method,
         date: t.date,
-        time: t.time
+        time: t.time,
+        osId: t.os_id,
+        userId: t.user_id,
+        createdAt: t.created_at
       })) as Transaction[];
+
+      const mappedSales = (salesRes.data || []).map((s: any) => ({
+        id: s.id,
+        saleNumber: s.sale_number,
+        date: s.date,
+        time: s.time,
+        items: s.items || [],
+        total: Number(s.total),
+        paymentMethod: s.payment_method,
+        customerName: s.customer_name,
+        company_id: s.company_id,
+        userId: s.user_id,
+        sessionId: s.session_id,
+        createdAt: s.created_at,
+      })) as Sale[];
 
       const pastTotals: Totals = {
         initial: session.initialValue || 0,
@@ -406,7 +508,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
       pastTotals.balance = pastTotals.entries - pastTotals.exits;
       pastTotals.cashInHand = pastTotals.initial + (pastTotals.entriesByType['Dinheiro'] || 0) - trans.filter(t => t.type === 'saida' && t.paymentMethod === 'Dinheiro').reduce((acc, t) => acc + (t.value || 0), 0);
 
-      generateCashReportPDF(session, trans, pastTotals, companySettings);
+      generateCashReportPDF(session, trans, pastTotals, mappedSales, companySettings);
     } catch (error: any) {
       console.error('Erro na exportação:', error);
       onShowToast('Erro ao exportar relatório');
@@ -795,6 +897,24 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
           </div>
         </div>
       </header>
+
+      {currentSession?.status === 'open' && currentSession.date !== today && (
+        <div className="bg-amber-600 border-b border-amber-500 text-white px-4 py-3 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 shadow-lg z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-white shrink-0 animate-bounce" />
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-amber-100">Alerta de Caixa em Atraso</p>
+              <p className="text-xs font-semibold text-white mt-0.5">
+                Data Operacional: <span className="font-black underline">{new Date(currentSession.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span> | 
+                Data Atual: <span className="font-black">{new Date().toLocaleDateString('pt-BR')}</span>
+              </p>
+            </div>
+          </div>
+          <span className="bg-black/20 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shrink-0">
+            Há {getDaysDifference(currentSession.date, today)} {getDaysDifference(currentSession.date, today) === 1 ? 'dia' : 'dias'} sem fechamento
+          </span>
+        </div>
+      )}
 
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 overflow-y-auto md:overflow-hidden min-h-0 pb-20 md:pb-4">
         {loading ? (
@@ -1267,7 +1387,7 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
                           onShowToast('Nenhuma sessão ativa para exportar.');
                           return;
                         }
-                        generateCashReportPDF(currentSession, transactions, totals, companySettings);
+                        generateCashReportPDF(currentSession, transactions, totals, sales, companySettings);
                         onShowToast('Gerando PDF...');
                       }}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-zinc-100 text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all active:scale-95 shrink-0 shadow-lg"
@@ -1289,7 +1409,73 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
             onClose={() => setIsOpeningModalOpen(false)}
             onConfirm={handleOpenCash}
             initialDate={selectedDate}
+            companyId={profile.company_id as string}
           />
+        )}
+        {showStaleAlert && staleOpenSession && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#141414] border border-red-500/30 rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-zinc-700/50 flex items-center gap-3 bg-red-500/5">
+                <AlertCircle className="text-red-500 w-6 h-6 shrink-0 animate-pulse" />
+                <h2 className="text-lg font-black tracking-tight text-red-500 uppercase">Atenção: Caixa em Aberto</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <p className="text-sm font-medium text-zinc-300 leading-relaxed">
+                  Existe um caixa que foi deixado aberto no dia anterior. Deseja continuar operando nele ou encerrá-lo antes de prosseguir?
+                </p>
+                
+                <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500 font-bold uppercase tracking-wider">Aberto desde:</span>
+                    <span className="text-white font-black">
+                      {new Date(staleOpenSession.opened_at).toLocaleDateString('pt-BR')} às {staleOpenSession.openingTime}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500 font-bold uppercase tracking-wider">Movimentações:</span>
+                    <span className="text-white font-black">{staleStats?.moves || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500 font-bold uppercase tracking-wider">Saldo Atual:</span>
+                    <span className="text-emerald-400 font-black">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(staleStats?.balance || 0)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                  <button
+                    onClick={() => {
+                      setSelectedDate(staleOpenSession.date);
+                      setShowStaleAlert(false);
+                      onShowToast(`Retomando caixa do dia ${new Date(staleOpenSession.date + 'T12:00:00').toLocaleDateString('pt-BR')}`);
+                    }}
+                    className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-xl text-xs uppercase tracking-widest transition-all"
+                  >
+                    Continuar Caixa
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedDate(staleOpenSession.date);
+                      setShowStaleAlert(false);
+                      setIsClosingModalOpen(true);
+                    }}
+                    className="w-full py-3.5 bg-[#1F1F1F] hover:bg-zinc-800 text-white font-black rounded-xl text-xs uppercase tracking-widest border border-zinc-700 transition-all"
+                  >
+                    Encerrar Caixa
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowStaleAlert(false);
+                    }}
+                    className="w-full py-3.5 bg-transparent hover:bg-white/5 text-zinc-500 hover:text-zinc-300 font-bold rounded-xl text-[10px] uppercase tracking-widest transition-all"
+                  >
+                    Abrir Novo Caixa Mesmo Assim
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
         {isClosingModalOpen && (
           <CashClosingModal 
@@ -1588,10 +1774,34 @@ export default function CaixaModule({ profile, companySettings, onBack, onShowTo
 
 // Sub-components with persistent styles
 
-function OpeningModal({ onClose, onConfirm, initialDate }: { onClose: () => void, onConfirm: (val: number, date: string) => Promise<void>, initialDate?: string }) {
+function OpeningModal({ onClose, onConfirm, initialDate, companyId }: { onClose: () => void, onConfirm: (val: number, date: string) => Promise<void>, initialDate?: string, companyId: string }) {
   const [value, setValue] = useState('');
   const [date, setDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
   const [isOpening, setIsOpening] = useState(false);
+  const [lastClosedBalance, setLastClosedBalance] = useState<number | null>(null);
+  const [hasChosenOption, setHasChosenOption] = useState(false);
+
+  useEffect(() => {
+    const fetchLastClosed = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cash_sessions')
+          .select('closing_balance, date')
+          .eq('company_id', companyId)
+          .eq('status', 'closed')
+          .order('closed_at', { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setLastClosedBalance(Number(data[0].closing_balance || 0));
+        }
+      } catch (err) {
+        console.error('Erro ao obter último caixa fechado:', err);
+      }
+    };
+    fetchLastClosed();
+  }, [companyId]);
 
   const handleConfirm = async () => {
     setIsOpening(true);
@@ -1610,29 +1820,60 @@ function OpeningModal({ onClose, onConfirm, initialDate }: { onClose: () => void
           <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full text-zinc-500"><X size={20} /></button>
         </div>
         <div className="p-6 space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Data do Turno</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-black border border-zinc-700 rounded-2xl px-4 py-4 text-white font-black text-sm focus:outline-none focus:border-emerald-500/50" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Troco Inicial (Dinheiro)</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-black">R$</span>
-              <input autoFocus type="number" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="0,00" className="w-full bg-black border border-zinc-700 rounded-2xl pl-12 pr-4 py-5 text-white text-3xl font-black focus:outline-none focus:border-emerald-500" />
+          {lastClosedBalance !== null && !hasChosenOption && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 space-y-3">
+              <p className="text-xs font-semibold text-emerald-400 leading-relaxed">
+                Seu último caixa foi encerrado com <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(lastClosedBalance)}</strong>. Deseja utilizar este valor como fundo inicial do novo caixa?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setValue(lastClosedBalance.toString());
+                    setHasChosenOption(true);
+                  }}
+                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all"
+                >
+                  Utilizar valor anterior
+                </button>
+                <button
+                  onClick={() => {
+                    setHasChosenOption(true);
+                  }}
+                  className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all"
+                >
+                  Informar outro valor
+                </button>
+              </div>
             </div>
-          </div>
-          <button 
-            disabled={isOpening}
-            onClick={handleConfirm} 
-            className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/10 disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {isOpening ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                Abrindo...
-              </>
-            ) : 'Abrir caixa'}
-          </button>
+          )}
+
+          {(lastClosedBalance === null || hasChosenOption) && (
+            <>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Data do Turno</label>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-black border border-zinc-700 rounded-2xl px-4 py-4 text-white font-black text-sm focus:outline-none focus:border-emerald-500/50" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Troco Inicial (Dinheiro)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-black">R$</span>
+                  <input autoFocus type="number" step="0.01" value={value} onChange={e => setValue(e.target.value)} placeholder="0,00" className="w-full bg-black border border-zinc-700 rounded-2xl pl-12 pr-4 py-5 text-white text-3xl font-black focus:outline-none focus:border-emerald-500" />
+                </div>
+              </div>
+              <button 
+                disabled={isOpening}
+                onClick={handleConfirm} 
+                className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/10 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isOpening ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Abrindo...
+                  </>
+                ) : 'Abrir caixa'}
+              </button>
+            </>
+          )}
         </div>
       </motion.div>
     </div>
@@ -1751,9 +1992,9 @@ function TransactionModal({ type, selectedDate, suppliers, onClose, onShowToast,
 }
 
 function CashClosingModal({ totals, session, onClose, onConfirm }: { totals: Totals, session: CashSession, onClose: () => void, onConfirm: (d: ClosingData) => Promise<void>, transactions: any[] }) {
-  const [finalValue, setFinalValue] = useState(totals.cashInHand.toFixed(2));
+  const expectedValue = totals.initial + totals.entries - totals.exits;
+  const [finalValue, setFinalValue] = useState(expectedValue.toFixed(2));
   const [isClosing, setIsClosing] = useState(false);
-  const expectedValue = totals.cashInHand;
   const finalNum = parseFloat(finalValue) || 0;
   const difference = finalNum - expectedValue;
 
@@ -1773,59 +2014,91 @@ function CashClosingModal({ totals, session, onClose, onConfirm }: { totals: Tot
     }
   };
 
+  const absDiff = Math.abs(difference);
+  let statusColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+  let statusLabel = 'Sem diferença';
+  if (absDiff > 0.01 && absDiff <= 10) {
+    statusColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    statusLabel = 'Pequena diferença';
+  } else if (absDiff > 10) {
+    statusColor = 'bg-red-500/10 text-red-400 border-red-500/20';
+    statusLabel = 'Diferença relevante';
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#141414] border border-zinc-700 rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl my-4">
-        <div className="p-6 border-b border-zinc-700 flex items-center justify-between bg-red-500/5">
-          <h2 className="text-xl font-black tracking-tight text-red-500">Fechamento de Caixa</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#141414] border border-zinc-700/80 rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl my-4">
+        <div className="p-6 border-b border-zinc-700/50 flex items-center justify-between bg-red-500/5">
+          <h2 className="text-lg font-black uppercase tracking-tight text-red-500">Fechamento de Caixa</h2>
           <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full text-zinc-500"><X size={20} /></button>
         </div>
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-6">
 
-          {/* Summary of totals */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl text-center">
-              <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Entradas</p>
-              <p className="text-sm font-black text-white">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}</p>
-            </div>
-            <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-2xl text-center">
-              <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-1">Saídas</p>
-              <p className="text-sm font-black text-white">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}</p>
-            </div>
-            <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-2xl text-center">
-              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Saldo</p>
-              <p className="text-sm font-black text-white">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.balance)}</p>
-            </div>
-          </div>
-
-          {/* Payment method breakdown */}
-          <div className="bg-black/40 border border-zinc-700/50 rounded-2xl p-4 space-y-2">
-            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3">Entradas por Método</p>
-            {['Dinheiro', 'PIX', 'Débito', 'Crédito', 'Link'].map(m => (
-              <div key={m} className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-zinc-400">{m}</span>
-                <span className={`text-[11px] font-black ${(totals.entriesByType[m] || 0) > 0 ? 'text-white' : 'text-zinc-500'}`}>
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entriesByType[m] || 0)}
+          {/* Resumo Operacional */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Resumo Operacional</p>
+            <div className="bg-black/40 border border-zinc-700/50 rounded-2xl p-4 space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-zinc-400 font-bold">FUNDO INICIAL</span>
+                <span className="font-black text-white">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.initial)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-zinc-400 font-bold">ENTRADAS</span>
+                <span className="font-black text-emerald-400">+{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-zinc-400 font-bold">SAÍDAS</span>
+                <span className="font-black text-red-400">-{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.exits)}</span>
+              </div>
+              <div className="border-t border-zinc-800 pt-2 flex justify-between items-center text-xs">
+                <span className="text-zinc-300 font-black">RESULTADO OPERACIONAL</span>
+                <span className={`font-black ${(totals.entries - totals.exits) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.entries - totals.exits)}
                 </span>
               </div>
-            ))}
+            </div>
           </div>
 
-          {/* Cash in hand reconciliation */}
+          {/* Caixa Físico Esperado */}
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 flex justify-between items-center">
+            <div>
+              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">CAIXA FÍSICO ESPERADO</p>
+              <p className="text-[10px] text-zinc-500 font-bold mt-0.5">Fundo Inicial + Entradas - Saídas</p>
+            </div>
+            <p className="text-lg font-black text-emerald-400">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expectedValue)}
+            </p>
+          </div>
+
+          {/* Valor Contado */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Dinheiro Real no Caixa (contar notas)</label>
-            <input
-              autoFocus
-              type="number"
-              step="0.01"
-              value={finalValue}
-              onChange={e => setFinalValue(e.target.value)}
-              className="w-full bg-black border border-zinc-700 rounded-2xl px-4 py-4 text-white text-2xl font-black focus:outline-none focus:border-red-500"
-            />
+            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Valor contado no caixa</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-black text-zinc-500">R$</span>
+              <input
+                autoFocus
+                type="number"
+                step="0.01"
+                value={finalValue}
+                onChange={e => setFinalValue(e.target.value)}
+                className="w-full bg-black border border-zinc-700/60 rounded-2xl pl-12 pr-4 py-4 text-white text-2xl font-black focus:outline-none focus:border-red-500"
+              />
+            </div>
             {finalValue !== '' && (
-              <p className={`text-xs font-bold ${difference === 0 ? 'text-emerald-500' : difference > 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                {difference === 0 ? '✓ Sem diferença' : difference > 0 ? `Sobra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(difference)}` : `Falta de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.abs(difference))}`}
-              </p>
+              <div className={`border rounded-2xl p-4 flex items-center justify-between transition-all ${statusColor}`}>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest">Diferença</p>
+                  <p className="text-xs font-bold mt-0.5">
+                    {difference === 0 ? 'Conferência bate perfeitamente' : difference > 0 ? `Sobra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(difference)}` : `Falta de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.abs(difference))}`}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 bg-white/10 rounded-full border border-white/5">{statusLabel}</span>
+                  <p className="text-base font-black mt-0.5">
+                    {difference > 0 ? '+' : ''}{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(difference)}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 

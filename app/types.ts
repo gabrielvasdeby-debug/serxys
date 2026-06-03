@@ -217,6 +217,10 @@ export interface CashSession {
   closingTime?: string;
   closingUserName?: string;
   date?: string;
+  total_entries?: number;
+  total_exits?: number;
+  difference?: number;
+  expected_balance?: number;
   [key: string]: any;
 }
 

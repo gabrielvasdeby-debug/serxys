@@ -96,6 +96,10 @@ export const useCaixaData = (companyId: string, date: string) => {
         closingUserName: s.closed_by_name || '',
         finalValue: s.closing_balance,
         company_id: s.company_id,
+        total_entries: s.total_entries ? Number(s.total_entries) : 0,
+        total_exits: s.total_exits ? Number(s.total_exits) : 0,
+        difference: s.difference ? Number(s.difference) : 0,
+        expected_balance: s.expected_balance ? Number(s.expected_balance) : 0,
       }));
 
       const mappedSales = (salesRes.data || []).map((s: any) => ({
