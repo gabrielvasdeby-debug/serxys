@@ -65,7 +65,8 @@ export default function ServyxApp() {
     notifications,
     unreadNotificationsCount,
     markNotificationAsRead,
-    clearAllNotifications
+    clearAllNotifications,
+    isDataLoading
   } = useServyxApp();
 
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
