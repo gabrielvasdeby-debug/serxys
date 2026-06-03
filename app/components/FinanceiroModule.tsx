@@ -141,6 +141,13 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         .filter(order => {
           const fin = order.financials || {};
           const total = fin.totalValue || (fin as any).total || 0;
+          
+          // Excluir status inválidos ou não aprovados de contas a receber
+          const invalidStatuses = ['Orçamento Cancelado', 'Orçamento Recusado', 'Sem Reparo', 'Orçamento em Elaboração'];
+          if (invalidStatuses.includes(order.status)) {
+            return false;
+          }
+          
           return total > 0; // Show all orders with a value
         })
         .map(order => {
@@ -504,19 +511,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
 
   const handleExportPDF = () => {
     // 1. Get filtered list
-    const now = new Date();
-    let start: Date, end: Date;
-    switch (period) {
-      case 'today': start = startOfDay(now); end = endOfDay(now); break;
-      case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
-      case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
-      case 'year': start = startOfYear(now); end = endOfYear(now); break;
-      case 'custom':
-        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
-        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
-        break;
-      default: start = startOfMonth(now); end = endOfMonth(now); break;
-    }
+    const { start, end } = currentPeriodDates;
 
     const list = [
       ...transactions.map(t => ({ ...t, source: 'caixa' })),
@@ -702,7 +697,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     onShowToast('PDF gerado com sucesso!');
   };
 
-  const getFilteredTotals = () => {
+  const currentPeriodDates = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
 
@@ -733,6 +728,12 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         break;
     }
 
+    return { start, end };
+  }, [period, customStartDate, customEndDate]);
+
+  const getFilteredTotals = () => {
+    const { start, end } = currentPeriodDates;
+
     const periodExpenses = expenses.filter(e => {
         const d = parseISO(e.date);
         return isWithinInterval(d, { start, end });
@@ -743,30 +744,80 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
         return isWithinInterval(d, { start, end });
     });
 
-    const paidExpensesTotal = periodExpenses.filter(e => e.status !== 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
+    // Filtro do contas a receber aplicando período (Stage 1)
+    const periodReceivables = receivables.filter(r => {
+      try {
+        const d = parseISO(r.dueDate);
+        return isWithinInterval(d, { start, end });
+      } catch {
+        return false;
+      }
+    });
+
+    // Faturamento bruto segmentado (Stage 2)
+    let osRevenue = 0;
+    let salesRevenue = 0;
+    let avulsoRevenue = 0;
+
+    periodTransactions.filter(t => t.type === 'entrada').forEach(t => {
+      const descLower = t.description?.toLowerCase() || '';
+      const isOs = !!t.osId || descLower.includes('os') || descLower.includes('pagamento os');
+      const isSale = descLower.startsWith('venda #') || descLower.includes('venda #');
+
+      if (isOs) {
+        osRevenue += t.value || 0;
+      } else if (isSale) {
+        salesRevenue += t.value || 0;
+      } else {
+        avulsoRevenue += t.value || 0;
+      }
+    });
+
+    const totalRevenue = osRevenue + salesRevenue + avulsoRevenue;
+
+    // Despesas segmentadas (OPEX vs COGS) (Stage 3)
+    let opexExpenses = 0;
+    let cogsExpenses = 0;
+
+    // 1. Categorias das duplicatas pagas
+    periodExpenses.filter(e => e.status !== 'PENDING').forEach(e => {
+      if (e.category === 'Produtos') {
+        cogsExpenses += e.amount || 0;
+      } else {
+        opexExpenses += e.amount || 0;
+      }
+    });
+
+    // 2. Transações de saída categorizadas
+    periodTransactions.filter(t => t.type === 'saida').forEach(t => {
+      const descLower = t.description?.toLowerCase() || '';
+      const technicalKeywords = ['peça', 'peca', 'estoque', 'fornecedor', 'compra', 'bateria', 'tela', 'componente', 'insumo'];
+      const isTechnical = technicalKeywords.some(kw => descLower.includes(kw));
+
+      if (isTechnical) {
+        cogsExpenses += t.value || 0;
+      } else {
+        opexExpenses += t.value || 0;
+      }
+    });
+
+    const totalGasto = opexExpenses + cogsExpenses;
+
     const pendingExpensesTotal = periodExpenses.filter(e => e.status === 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
-
-    const transactionsEntryTotal = periodTransactions.filter(t => t.type === 'entrada').reduce((acc, curr) => acc + curr.value, 0);
-    const transactionsExitTotal = periodTransactions.filter(t => t.type === 'saida').reduce((acc, curr) => acc + curr.value, 0);
-
-    // Total Revenue is Entries from Transactions (Sales/OS Payments)
-    const totalRevenue = transactionsEntryTotal;
-    // Total Expense is Exits from Transactions + Paid Expenses from bills
-    const totalGasto = transactionsExitTotal + paidExpensesTotal;
-
-    const pendingReceivablesTotal = receivables.reduce((acc, curr) => acc + curr.remainingAmount, 0);
+    const pendingReceivablesTotal = periodReceivables.reduce((acc, curr) => acc + curr.remainingAmount, 0);
 
     return { 
       revenue: totalRevenue, 
+      osRevenue,
+      salesRevenue,
+      avulsoRevenue,
       expenses: totalGasto, 
+      opexExpenses,
+      cogsExpenses,
+      operatingResult: totalRevenue - opexExpenses,
       pendingExpenses: pendingExpensesTotal, 
       pendingReceivables: pendingReceivablesTotal,
-      profit: totalRevenue - totalGasto,
-      transactionSubtotal: {
-        entries: transactionsEntryTotal,
-        exits: transactionsExitTotal,
-        billExits: paidExpensesTotal
-      }
+      profit: totalRevenue - opexExpenses - cogsExpenses,
     };
   };
   const stats = getFilteredTotals();
@@ -778,20 +829,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       { name: 'Saídas', value: stats.expenses, color: '#f87171' }
     ].filter(d => d.value > 0);
 
-    // 2. Area Data: Daily evolution of Revenue
-    const now = new Date();
-    let start: Date, end: Date;
-    switch (period) {
-      case 'today': start = startOfDay(now); end = endOfDay(now); break;
-      case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
-      case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
-      case 'year': start = startOfYear(now); end = endOfYear(now); break;
-      case 'custom':
-        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
-        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
-        break;
-      default: start = startOfMonth(now); end = endOfMonth(now); break;
-    }
+    // 2. Area Data: Daily evolution
+    const { start, end } = currentPeriodDates;
 
     const days = eachDayOfInterval({ start, end });
     const areaData = days.map(day => {
@@ -813,7 +852,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
     });
 
     return { pieData, areaData };
-  }, [stats, transactions, expenses, period]);
+  }, [stats, transactions, expenses, currentPeriodDates]);
 
   const expenseTotals = useMemo(() => {
     const total = expenses.reduce((acc, curr) => acc + curr.amount, 0);
@@ -864,84 +903,139 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6 sm:space-y-8">
-        
-        {/* Stat Cards from Resumo - Agora Globais e responsivas em Grid no mobile */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+          {/* Faturamento Bruto */}
           <div 
             onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('ENTRADAS'); }}
-            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'ENTRADAS' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/5 hover:border-emerald-500/20'}`}
+            className={`cursor-pointer glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'ENTRADAS' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/5 hover:border-emerald-500/20'}`}
           >
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                <TrendingUp size={16} className="sm:hidden" /><TrendingUp size={20} className="hidden sm:block" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
+                <TrendingUp size={16} />
               </div>
-              <span className="text-[8px] sm:text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-2 py-1 rounded-lg">Entradas</span>
+              <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-2 py-0.5 rounded">Faturamento</span>
             </div>
-            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">Recebido</h3>
-            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Faturamento Bruto</h3>
+            <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <div className="mt-1.5 pt-1.5 border-t border-white/5 space-y-0.5 text-[9px] text-zinc-500 font-bold">
+              <div className="flex justify-between"><span>OS:</span><span className="text-zinc-400">R$ {stats.osRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+              <div className="flex justify-between"><span>Vendas:</span><span className="text-zinc-400">R$ {stats.salesRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+              <div className="flex justify-between"><span>Avulsos:</span><span className="text-zinc-400">R$ {stats.avulsoRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+            </div>
           </div>
 
+          {/* Custos Técnicos (COGS) */}
           <div 
             onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('SAIDAS'); }}
-            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'SAIDAS' ? 'border-red-500/50 bg-red-500/5' : 'border-white/5 hover:border-red-500/20'}`}
+            className={`cursor-pointer glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'SAIDAS' ? 'border-red-500/50 bg-red-500/5' : 'border-white/5 hover:border-red-500/20'}`}
           >
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
-                <TrendingDown size={16} className="sm:hidden" /><TrendingDown size={20} className="hidden sm:block" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center">
+                <TrendingDown size={16} />
               </div>
-              <span className="text-[8px] sm:text-[9px] font-bold text-red-500 uppercase tracking-widest bg-red-500/5 px-2 py-1 rounded-lg">Saídas</span>
+              <span className="text-[8px] font-bold text-red-400 uppercase tracking-widest bg-red-500/5 px-2 py-0.5 rounded">COGS</span>
             </div>
-            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">Pago</h3>
-            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {stats.expenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Custos Técnicos</h3>
+            <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {stats.cogsExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-[9px] text-zinc-500 font-medium mt-1 leading-normal">Peças, componentes e insumos consumidos nos reparos.</p>
           </div>
 
+          {/* Despesas Operacionais (OPEX) */}
           <div 
             onClick={() => setActiveTab('PAGAR')}
-            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5 hover:border-amber-500/20'}`}
+            className={`cursor-pointer glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5 hover:border-amber-500/20'}`}
           >
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center">
-                <History size={16} className="sm:hidden" /><History size={20} className="hidden sm:block" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
+                <TrendingDown size={16} />
               </div>
-              <span className="text-[8px] sm:text-[9px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/5 px-2 py-1 rounded-lg truncate max-w-[60px]">Pendência</span>
+              <span className="text-[8px] font-bold text-amber-400 uppercase tracking-widest bg-amber-500/5 px-2 py-0.5 rounded">OPEX</span>
             </div>
-            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">A Pagar</h3>
-            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Despesas Operacionais</h3>
+            <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {stats.opexExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-[9px] text-zinc-500 font-medium mt-1 leading-normal">Aluguel, água, energia, salários e infraestrutura geral.</p>
           </div>
 
+          {/* Resultado Operacional */}
           <div 
-            onClick={() => setActiveTab('RECEBER')}
-            className={`cursor-pointer glass-panel p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'RECEBER' ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 hover:border-blue-500/20'}`}
+            className={`glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border border-white/5 hover:border-blue-500/20 transition-colors`}
           >
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
-                <ArrowUpRight size={16} className="sm:hidden" /><ArrowUpRight size={20} className="hidden sm:block" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
+                <DollarSign size={16} />
               </div>
-              <span className="text-[8px] sm:text-[9px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/5 px-2 py-1 rounded-lg">Futuras</span>
+              <span className="text-[8px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/5 px-2 py-0.5 rounded">Operacional</span>
             </div>
-            <h3 className="text-zinc-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">A Receber</h3>
-            <p className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">R$ {((stats as any).pendingReceivables || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Resultado Operacional</h3>
+            <p className={`text-base sm:text-lg font-bold tracking-tight truncate ${stats.operatingResult >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
+              R$ {stats.operatingResult.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-[9px] text-zinc-500 font-medium mt-1 leading-normal">Faturamento Bruto menos despesas de funcionamento.</p>
           </div>
 
+          {/* Resultado Líquido */}
           <div 
             onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('ALL'); }}
-            className={`cursor-pointer col-span-2 lg:col-span-1 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border relative overflow-hidden group transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'ALL' ? 'bg-[#00E676]/10 border-[#00E676]/50' : 'bg-[#00E676]/5 border-[#00E676]/20 hover:border-[#00E676]/50'}`}
+            className={`cursor-pointer p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border relative overflow-hidden group transition-colors ${stats.profit >= 0 ? 'bg-[#00E676]/10 border-[#00E676]/50' : 'bg-red-500/10 border-red-500/50'}`}
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[#00E676]/10 blur-3xl -mr-12 -mt-12 rounded-full group-hover:bg-[#00E676]/20 transition-all" />
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#00E676]/20 text-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,230,118,0.2)]">
-                  <DollarSign size={16} className="sm:hidden" /><DollarSign size={20} className="hidden sm:block" />
+            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-2xl -mr-10 -mt-10 rounded-full" />
+            <div className="relative z-10 flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between mb-2">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-lg ${stats.profit >= 0 ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-red-500/20 text-red-400'}`}>
+                  <DollarSign size={16} />
                 </div>
-                <span className="text-[8px] sm:text-[9px] font-bold text-[#00E676] uppercase tracking-widest bg-[#00E676]/10 px-2 py-1 rounded-lg">Saldo</span>
+                <span className={`text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${stats.profit >= 0 ? 'text-[#00E676] bg-[#00E676]/10' : 'text-red-400 bg-red-500/10'}`}>Líquido</span>
               </div>
               <div>
-                <h3 className="text-[#00E676]/70 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1">Lucro Líquido</h3>
-                <p className={`text-xl sm:text-2xl font-black tracking-tight truncate ${stats.profit >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
+                <h3 className={`text-[9px] font-bold uppercase tracking-widest ${stats.profit >= 0 ? 'text-[#00E676]/70' : 'text-red-400/70'}`}>Resultado Líquido</h3>
+                <p className={`text-base sm:text-lg font-black tracking-tight truncate ${stats.profit >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
                   R$ {stats.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Capital de Giro e Previsões (A Receber / A Pagar) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+          {/* Card A Receber */}
+          <div 
+            onClick={() => setActiveTab('RECEBER')}
+            className={`cursor-pointer glass-panel p-5 rounded-[24px] border transition-all ${activeTab === 'RECEBER' ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 hover:border-blue-500/20'}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center">
+                  <ArrowUpRight size={16} />
+                </div>
+                <div>
+                  <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">A Receber no Período</h4>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">OS e receitas manuais pendentes</p>
+                </div>
+              </div>
+              <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/5 px-2 py-0.5 rounded">Previsão</span>
+            </div>
+            <p className="text-xl font-black text-blue-400">R$ {stats.pendingReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+
+          {/* Card A Pagar */}
+          <div 
+            onClick={() => setActiveTab('PAGAR')}
+            className={`cursor-pointer glass-panel p-5 rounded-[24px] border transition-all ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5 hover:border-amber-500/20'}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-amber-500/10 text-amber-500 rounded-lg flex items-center justify-center">
+                  <History size={16} />
+                </div>
+                <div>
+                  <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">A Pagar no Período</h4>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Despesas registradas pendentes</p>
+                </div>
+              </div>
+              <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/5 px-2 py-0.5 rounded">Pendências</span>
+            </div>
+            <p className="text-xl font-black text-amber-400">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
         </div>
 
@@ -1047,15 +1141,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                   </thead>
                   <tbody className="divide-y divide-zinc-900 text-sm">
                     {(() => {
-                      const now = new Date();
-                      let start: Date, end: Date;
-                      switch (period) {
-                        case 'today': start = startOfDay(now); end = endOfDay(now); break;
-                        case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
-                        case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
-                        case 'year': start = startOfYear(now); end = endOfYear(now); break;
-                        default: start = startOfMonth(now); end = endOfMonth(now); break;
-                      }
+                      const { start, end } = currentPeriodDates;
 
                       const list = [
                         ...transactions.map(t => ({ ...t, source: 'caixa' })),
@@ -1116,19 +1202,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 {/* Mobile Card Layout */}
                 <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
                   {(() => {
-                    const now = new Date();
-                    let start: Date, end: Date;
-                    switch (period) {
-                      case 'today': start = startOfDay(now); end = endOfDay(now); break;
-                      case 'week': start = startOfWeek(now); end = endOfWeek(now); break;
-                      case 'month': start = startOfMonth(now); end = endOfMonth(now); break;
-                      case 'year': start = startOfYear(now); end = endOfYear(now); break;
-                      case 'custom':
-                        start = parseISO(customStartDate || format(startOfMonth(now), 'yyyy-MM-dd'));
-                        end = endOfDay(parseISO(customEndDate || format(endOfMonth(now), 'yyyy-MM-dd')));
-                        break;
-                      default: start = startOfMonth(now); end = endOfMonth(now); break;
-                    }
+                    const { start, end } = currentPeriodDates;
 
                     const list = [
                       ...transactions.map(t => ({ ...t, source: 'caixa' })),
