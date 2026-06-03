@@ -877,25 +877,29 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
             </div>
           </div>
           
-          <div className="hidden md:flex w-full sm:w-auto bg-[#121212] p-1 rounded-2xl border border-zinc-800/50 overflow-hidden">
-            <div className="flex w-full overflow-x-auto custom-scrollbar sm:scrollbar-hide shrink-0 gap-1">
+          {/* Tabs Floating Island */}
+          <div className="hidden md:flex w-full sm:w-auto bg-[#0a0a0a]/80 backdrop-blur-xl p-1.5 rounded-[20px] border border-white/5 shadow-2xl">
+            <div className="flex w-full overflow-x-auto custom-scrollbar sm:scrollbar-hide shrink-0 gap-1.5">
               <button 
                 onClick={() => setActiveTab('EXTRATO')} 
-                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'EXTRATO' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
+                className={`relative flex-1 sm:flex-none px-5 sm:px-8 py-3 sm:py-2.5 rounded-2xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest whitespace-nowrap overflow-hidden group ${activeTab === 'EXTRATO' ? 'text-black shadow-lg shadow-emerald-500/20' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
               >
-                Fluxo de Caixa
+                {activeTab === 'EXTRATO' && <div className="absolute inset-0 bg-gradient-to-r from-[#00E676] to-emerald-400 opacity-100" />}
+                <span className="relative z-10">Fluxo de Caixa</span>
               </button>
               <button 
                 onClick={() => setActiveTab('RECEBER')} 
-                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'RECEBER' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
+                className={`relative flex-1 sm:flex-none px-5 sm:px-8 py-3 sm:py-2.5 rounded-2xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest whitespace-nowrap overflow-hidden group ${activeTab === 'RECEBER' ? 'text-black shadow-lg shadow-emerald-500/20' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
               >
-                Receber
+                {activeTab === 'RECEBER' && <div className="absolute inset-0 bg-gradient-to-r from-[#00E676] to-emerald-400 opacity-100" />}
+                <span className="relative z-10">Receber</span>
               </button>
               <button 
                 onClick={() => setActiveTab('PAGAR')} 
-                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === 'PAGAR' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-zinc-500 hover:text-white'}`}
+                className={`relative flex-1 sm:flex-none px-5 sm:px-8 py-3 sm:py-2.5 rounded-2xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest whitespace-nowrap overflow-hidden group ${activeTab === 'PAGAR' ? 'text-black shadow-lg shadow-emerald-500/20' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
               >
-                Pagar
+                {activeTab === 'PAGAR' && <div className="absolute inset-0 bg-gradient-to-r from-[#00E676] to-emerald-400 opacity-100" />}
+                <span className="relative z-10">Pagar</span>
               </button>
             </div>
           </div>
@@ -907,88 +911,100 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           {/* Faturamento Bruto */}
           <div 
             onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('ENTRADAS'); }}
-            className={`cursor-pointer glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'ENTRADAS' ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/5 hover:border-emerald-500/20'}`}
+            className={`cursor-pointer relative overflow-hidden p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] ${activeTab === 'EXTRATO' && extratoFilter === 'ENTRADAS' ? 'border-emerald-500/50 bg-emerald-500/10 shadow-[0_0_30px_-10px_rgba(16,185,129,0.2)]' : 'bg-gradient-to-br from-white/[0.03] to-transparent border-white/5 hover:border-emerald-500/30'}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                <TrendingUp size={16} />
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-8 h-8 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center ring-1 ring-emerald-500/20">
+                  <TrendingUp size={16} />
+                </div>
+                <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Faturamento</span>
               </div>
-              <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-2 py-0.5 rounded">Faturamento</span>
-            </div>
-            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Faturamento Bruto</h3>
-            <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <div className="mt-1.5 pt-1.5 border-t border-white/5 space-y-0.5 text-[9px] text-zinc-500 font-bold">
-              <div className="flex justify-between"><span>OS:</span><span className="text-zinc-400">R$ {stats.osRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
-              <div className="flex justify-between"><span>Vendas:</span><span className="text-zinc-400">R$ {stats.salesRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
-              <div className="flex justify-between"><span>Avulsos:</span><span className="text-zinc-400">R$ {stats.avulsoRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+              <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Faturamento Bruto</h3>
+              <p className="text-xl sm:text-2xl font-black text-white tracking-tight truncate mt-1">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <div className="mt-3 pt-3 border-t border-white/5 space-y-1 text-[10px] text-zinc-400 font-medium">
+                <div className="flex justify-between items-center group/item"><span className="transition-colors group-hover/item:text-white">OS:</span><span className="text-white font-bold">R$ {stats.osRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                <div className="flex justify-between items-center group/item"><span className="transition-colors group-hover/item:text-white">Vendas:</span><span className="text-white font-bold">R$ {stats.salesRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                <div className="flex justify-between items-center group/item"><span className="transition-colors group-hover/item:text-white">Avulsos:</span><span className="text-white font-bold">R$ {stats.avulsoRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+              </div>
             </div>
           </div>
 
           {/* Custos Técnicos (COGS) */}
           <div 
             onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('SAIDAS'); }}
-            className={`cursor-pointer glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'EXTRATO' && extratoFilter === 'SAIDAS' ? 'border-red-500/50 bg-red-500/5' : 'border-white/5 hover:border-red-500/20'}`}
+            className={`cursor-pointer relative overflow-hidden p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] ${activeTab === 'EXTRATO' && extratoFilter === 'SAIDAS' ? 'border-red-500/50 bg-red-500/10 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]' : 'bg-gradient-to-br from-white/[0.03] to-transparent border-white/5 hover:border-red-500/30'}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center">
-                <TrendingDown size={16} />
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-8 h-8 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center ring-1 ring-red-500/20">
+                  <TrendingDown size={16} />
+                </div>
+                <span className="text-[8px] font-black text-red-400 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">COGS</span>
               </div>
-              <span className="text-[8px] font-bold text-red-400 uppercase tracking-widest bg-red-500/5 px-2 py-0.5 rounded">COGS</span>
+              <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Custos Técnicos</h3>
+              <p className="text-xl sm:text-2xl font-black text-white tracking-tight truncate mt-1">R$ {stats.cogsExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p className="text-[10px] text-zinc-500 font-medium mt-2 leading-relaxed">Peças, componentes e insumos consumidos nos reparos.</p>
             </div>
-            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Custos Técnicos</h3>
-            <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {stats.cogsExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-[9px] text-zinc-500 font-medium mt-1 leading-normal">Peças, componentes e insumos consumidos nos reparos.</p>
           </div>
 
           {/* Despesas Operacionais (OPEX) */}
           <div 
             onClick={() => setActiveTab('PAGAR')}
-            className={`cursor-pointer glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-colors ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5 hover:border-amber-500/20'}`}
+            className={`cursor-pointer relative overflow-hidden p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/10 shadow-[0_0_30px_-10px_rgba(245,158,11,0.2)]' : 'bg-gradient-to-br from-white/[0.03] to-transparent border-white/5 hover:border-amber-500/30'}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
-                <TrendingDown size={16} />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-8 h-8 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center ring-1 ring-amber-500/20">
+                  <TrendingDown size={16} />
+                </div>
+                <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">OPEX</span>
               </div>
-              <span className="text-[8px] font-bold text-amber-400 uppercase tracking-widest bg-amber-500/5 px-2 py-0.5 rounded">OPEX</span>
+              <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Despesas Operacionais</h3>
+              <p className="text-xl sm:text-2xl font-black text-white tracking-tight truncate mt-1">R$ {stats.opexExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p className="text-[10px] text-zinc-500 font-medium mt-2 leading-relaxed">Aluguel, energia, salários e infraestrutura.</p>
             </div>
-            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Despesas Operacionais</h3>
-            <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {stats.opexExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-[9px] text-zinc-500 font-medium mt-1 leading-normal">Aluguel, água, energia, salários e infraestrutura geral.</p>
           </div>
 
           {/* Resultado Operacional */}
           <div 
-            className={`glass-panel p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border border-white/5 hover:border-blue-500/20 transition-colors`}
+            className={`relative overflow-hidden p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] bg-gradient-to-br from-white/[0.03] to-transparent border-white/5 hover:border-blue-500/30 group`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
-                <DollarSign size={16} />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-8 h-8 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center ring-1 ring-blue-500/20">
+                  <DollarSign size={16} />
+                </div>
+                <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">Operacional</span>
               </div>
-              <span className="text-[8px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/5 px-2 py-0.5 rounded">Operacional</span>
+              <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Resultado Operacional</h3>
+              <p className={`text-xl sm:text-2xl font-black tracking-tight truncate mt-1 ${stats.operatingResult >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
+                R$ {stats.operatingResult.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-[10px] text-zinc-500 font-medium mt-2 leading-relaxed">Faturamento Bruto menos despesas operacionais.</p>
             </div>
-            <h3 className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Resultado Operacional</h3>
-            <p className={`text-base sm:text-lg font-bold tracking-tight truncate ${stats.operatingResult >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
-              R$ {stats.operatingResult.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-medium mt-1 leading-normal">Faturamento Bruto menos despesas de funcionamento.</p>
           </div>
 
           {/* Resultado Líquido */}
           <div 
             onClick={() => { setActiveTab('EXTRATO'); setExtratoFilter('ALL'); }}
-            className={`cursor-pointer p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border relative overflow-hidden group transition-colors ${stats.profit >= 0 ? 'bg-[#00E676]/10 border-[#00E676]/50' : 'bg-red-500/10 border-red-500/50'}`}
+            className={`cursor-pointer relative overflow-hidden p-4 sm:p-5 rounded-[24px] sm:rounded-[32px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] ${stats.profit >= 0 ? 'bg-gradient-to-br from-[#00E676]/10 to-transparent border-[#00E676]/40 shadow-[0_0_40px_-10px_rgba(0,230,118,0.15)]' : 'bg-gradient-to-br from-red-500/10 to-transparent border-red-500/40 shadow-[0_0_40px_-10px_rgba(239,68,68,0.15)]'}`}
           >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-2xl -mr-10 -mt-10 rounded-full" />
+            <div className={`absolute -right-10 -top-10 w-32 h-32 blur-3xl rounded-full ${stats.profit >= 0 ? 'bg-[#00E676]/20' : 'bg-red-500/20'}`} />
             <div className="relative z-10 flex flex-col justify-between h-full">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-lg ${stats.profit >= 0 ? 'bg-[#00E676]/20 text-[#00E676]' : 'bg-red-500/20 text-red-400'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ring-1 shadow-lg ${stats.profit >= 0 ? 'bg-[#00E676]/20 text-[#00E676] ring-[#00E676]/30' : 'bg-red-500/20 text-red-400 ring-red-500/30'}`}>
                   <DollarSign size={16} />
                 </div>
-                <span className={`text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${stats.profit >= 0 ? 'text-[#00E676] bg-[#00E676]/10' : 'text-red-400 bg-red-500/10'}`}>Líquido</span>
+                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${stats.profit >= 0 ? 'text-[#00E676] bg-[#00E676]/10 border-[#00E676]/20' : 'text-red-400 bg-red-500/10 border-red-500/20'}`}>Líquido</span>
               </div>
-              <div>
-                <h3 className={`text-[9px] font-bold uppercase tracking-widest ${stats.profit >= 0 ? 'text-[#00E676]/70' : 'text-red-400/70'}`}>Resultado Líquido</h3>
-                <p className={`text-base sm:text-lg font-black tracking-tight truncate ${stats.profit >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
+              <div className="mt-auto">
+                <h3 className={`text-[10px] font-bold uppercase tracking-widest ${stats.profit >= 0 ? 'text-[#00E676]/80' : 'text-red-400/80'}`}>Resultado Líquido</h3>
+                <p className={`text-2xl sm:text-3xl font-black tracking-tight truncate mt-1 drop-shadow-sm ${stats.profit >= 0 ? 'text-[#00E676]' : 'text-red-400'}`}>
                   R$ {stats.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
@@ -1001,63 +1017,73 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           {/* Card A Receber */}
           <div 
             onClick={() => setActiveTab('RECEBER')}
-            className={`cursor-pointer glass-panel p-5 rounded-[24px] border transition-all ${activeTab === 'RECEBER' ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 hover:border-blue-500/20'}`}
+            className={`cursor-pointer relative overflow-hidden p-5 rounded-[24px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] ${activeTab === 'RECEBER' ? 'border-blue-500/50 bg-blue-500/10 shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)]' : 'bg-gradient-to-br from-white/[0.03] to-transparent border-white/5 hover:border-blue-500/30'}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center">
-                  <ArrowUpRight size={16} />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center ring-1 ring-blue-500/20">
+                    <ArrowUpRight size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">A Receber no Período</h4>
+                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">OS e receitas pendentes</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">A Receber no Período</h4>
-                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">OS e receitas manuais pendentes</p>
-                </div>
+                <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">Previsão</span>
               </div>
-              <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/5 px-2 py-0.5 rounded">Previsão</span>
+              <p className="text-2xl sm:text-3xl font-black text-blue-400 tracking-tight">R$ {stats.pendingReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
-            <p className="text-xl font-black text-blue-400">R$ {stats.pendingReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
 
           {/* Card A Pagar */}
           <div 
             onClick={() => setActiveTab('PAGAR')}
-            className={`cursor-pointer glass-panel p-5 rounded-[24px] border transition-all ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5 hover:border-amber-500/20'}`}
+            className={`cursor-pointer relative overflow-hidden p-5 rounded-[24px] border transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] ${activeTab === 'PAGAR' ? 'border-amber-500/50 bg-amber-500/10 shadow-[0_0_30px_-10px_rgba(245,158,11,0.2)]' : 'bg-gradient-to-br from-white/[0.03] to-transparent border-white/5 hover:border-amber-500/30'}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-amber-500/10 text-amber-500 rounded-lg flex items-center justify-center">
-                  <History size={16} />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center ring-1 ring-amber-500/20">
+                    <History size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">A Pagar no Período</h4>
+                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">Despesas pendentes</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">A Pagar no Período</h4>
-                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Despesas registradas pendentes</p>
-                </div>
+                <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Pendências</span>
               </div>
-              <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/5 px-2 py-0.5 rounded">Pendências</span>
+              <p className="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
-            <p className="text-xl font-black text-amber-400">R$ {stats.pendingExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
         </div>
 
         {/* Period Filters - Global */}
+        {/* Period Filters - Global */}
         <div className="flex flex-col gap-3 w-full mx-auto max-w-4xl">
-          <div className="bg-[#141414] p-1 sm:p-1.5 rounded-2xl border border-zinc-800/50 flex w-full items-center gap-1">
+          <div className="bg-[#0a0a0a]/80 backdrop-blur-md p-1.5 rounded-[20px] border border-white/5 flex w-full items-center gap-1.5 shadow-xl">
             {(['today', 'week', 'month', 'year', 'custom'] as Period[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`flex-1 px-1 sm:px-5 py-2.5 rounded-xl text-[10px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest transition-all text-center whitespace-nowrap ${
+                className={`relative flex-1 px-2 sm:px-5 py-3 sm:py-2.5 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest transition-all text-center whitespace-nowrap overflow-hidden group ${
                   period === p 
-                    ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' 
-                    : 'text-zinc-500 hover:text-white bg-transparent hover:bg-white/5'
+                    ? 'text-black shadow-lg shadow-emerald-500/20' 
+                    : 'text-zinc-500 hover:text-white hover:bg-white/5'
                 }`}
               >
-                {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : p === 'year' ? 'Ano' : (
-                  <>
-                    <span className="sm:hidden flex items-center justify-center"><Calendar size={14} /></span>
-                    <span className="hidden sm:inline">Personalizado</span>
-                  </>
-                )}
+                {period === p && <div className="absolute inset-0 bg-gradient-to-r from-[#00E676] to-emerald-400 opacity-100" />}
+                <span className="relative z-10 flex items-center justify-center gap-1.5">
+                  {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : p === 'year' ? 'Ano' : (
+                    <>
+                      <Calendar size={12} className={period === p ? "text-black" : "text-zinc-500 group-hover:text-white"} />
+                      <span className="hidden sm:inline">Personalizado</span>
+                    </>
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -1127,7 +1153,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </div>
               </div>
 
-              <div className="glass-panel overflow-hidden border-white/5 rounded-[32px]">
+              <div className="bg-[#0a0a0a]/80 backdrop-blur-xl overflow-hidden border border-white/5 rounded-[32px] shadow-2xl">
                 {/* Desktop Table View */}
                 <table className="hidden md:table w-full text-left">
                   <thead className="bg-white/5 text-zinc-500 text-[10px] uppercase font-bold tracking-widest">
@@ -1174,7 +1200,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                       }
 
                       return list.map((m: any) => (
-                        <tr key={m.id} className="hover:bg-white/5 transition-colors group">
+                        <tr key={m.id} className="hover:bg-white/[0.03] transition-colors group">
                           <td className="px-8 py-5 text-zinc-400 font-medium whitespace-nowrap">
                             {format(parseISO(m.date), 'dd/MM/yyyy')}
                           </td>
@@ -1200,7 +1226,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Card Layout */}
-                <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
+                <div className="md:hidden bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 rounded-[24px] shadow-2xl mt-4 overflow-hidden divide-y divide-white/5">
                   {(() => {
                     const { start, end } = currentPeriodDates;
 
@@ -1298,7 +1324,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </div>
               </div>
 
-              <div className="glass-panel overflow-hidden border-white/5 rounded-[32px]">
+              <div className="bg-[#0a0a0a]/80 backdrop-blur-xl overflow-hidden border border-white/5 rounded-[32px] shadow-2xl">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-left">
                   <thead className="bg-white/5 text-zinc-500 text-[10px] uppercase font-bold tracking-widest">
@@ -1345,7 +1371,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                       }
 
                       return sortedReceivables.map(r => (
-                        <tr key={r.id} className="hover:bg-white/5 transition-colors group">
+                        <tr key={r.id} className="hover:bg-white/[0.03] transition-colors group">
                           <td className="px-8 py-5 text-sm font-medium text-zinc-400">
                             {format(parseISO(r.dueDate), 'dd/MM/yyyy')}
                           </td>
@@ -1396,7 +1422,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Cards for Receivables */}
-                <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
+                <div className="md:hidden bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 rounded-[24px] shadow-2xl mt-4 overflow-hidden divide-y divide-white/5">
                   {(() => {
                     const filtered = receivables.filter(r => {
                       if (r.remainingAmount <= 0) return false;
@@ -1500,7 +1526,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </div>
               </div>
 
-              <div className="glass-panel overflow-hidden border-white/5 rounded-[32px]">
+              <div className="bg-[#0a0a0a]/80 backdrop-blur-xl overflow-hidden border border-white/5 rounded-[32px] shadow-2xl">
                 {/* Desktop Table View */}
                 <table className="hidden md:table w-full text-left">
                   <thead className="bg-white/5 text-zinc-500 text-[10px] uppercase font-bold tracking-widest">
@@ -1542,7 +1568,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                       }
 
                       return sortedExpenses.map(exp => (
-                        <tr key={exp.id} className="hover:bg-white/5 transition-colors group">
+                        <tr key={exp.id} className="hover:bg-white/[0.03] transition-colors group">
                           <td className="px-8 py-5 text-sm font-medium text-zinc-400">{format(parseISO(exp.date), 'dd/MM/yyyy')}</td>
                           <td className="px-8 py-5 text-sm font-bold text-white">{exp.description}</td>
                           <td className="px-8 py-5">
@@ -1582,7 +1608,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </table>
 
                 {/* Mobile Card View for Expenses */}
-                <div className="md:hidden bg-[#141414] border border-zinc-800/50 rounded-2xl shadow-sm mt-4 overflow-hidden divide-y divide-zinc-900/50">
+                <div className="md:hidden bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/5 rounded-[24px] shadow-2xl mt-4 overflow-hidden divide-y divide-white/5">
                   {(() => {
                     const sortedExpenses = [...expenses].sort((a, b) => {
                       if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
