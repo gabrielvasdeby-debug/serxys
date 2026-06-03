@@ -10,8 +10,9 @@ import {
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
   Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight, Share2,
-  SlidersHorizontal, Filter, ArrowUpDown
+  SlidersHorizontal, Filter, ArrowUpDown, PlayCircle
 } from 'lucide-react';
+import { compressImageBeforeBase64 } from '../utils/imageCompression';
 import { Customer } from './ClientesModule';
 import { Order, OrderStatus, OrderPriority, OrderCompletionData, BudgetData, BudgetItem, Product } from '../types';
 import PatternLock from './PatternLock';
@@ -440,12 +441,13 @@ export default function StatusOsModule({
       input.onchange = async (e: any) => {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          const base64 = reader.result as string;
-          setReportPhotos(prev => [...prev, base64]);
-        };
+        try {
+          const compressedBase64 = await compressImageBeforeBase64(file, 1280, 0.7);
+          setReportPhotos(prev => [...prev, compressedBase64]);
+        } catch (error) {
+          console.error("Erro na compressão:", error);
+          onShowToast?.("Erro ao processar imagem");
+        }
       };
       input.click();
     } catch (err) {
@@ -888,13 +890,13 @@ export default function StatusOsModule({
         const file = e.target.files[0];
         if (!file) return;
 
-        // Limita tamanho para 800kb aprox
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          const base64 = reader.result as string;
-          setBudgetPhotos(prev => [...prev, base64]);
-        };
+        try {
+          const compressedBase64 = await compressImageBeforeBase64(file, 1280, 0.7);
+          setBudgetPhotos(prev => [...prev, compressedBase64]);
+        } catch (error) {
+          console.error("Erro na compressão:", error);
+          onShowToast?.("Erro ao processar imagem");
+        }
       };
       input.click();
     } catch (err) {

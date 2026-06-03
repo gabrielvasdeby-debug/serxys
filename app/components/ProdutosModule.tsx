@@ -15,7 +15,9 @@ import { supabase } from '../supabase';
 import { Product } from '../types';
 import { subDays, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { applyMaskWithCursor, clearMask } from '../utils/maskUtils';
 import { capFirst } from '../utils/capFirst';
+import { compressImageBeforeBase64 } from '../utils/imageCompression';
 import InfoTooltip from './InfoTooltip';
 import { mutate } from 'swr';
 
@@ -1021,45 +1023,16 @@ function ProductModal({ product, onClose, onSave, onShowToast, categories }: { p
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width);
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height);
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-             ctx.drawImage(img, 0, 0, width, height);
-             const dataUrl = canvas.toDataURL('image/webp', 0.8);
-             setFormData(prev => ({ ...prev, image: dataUrl }));
-          } else {
-             setFormData(prev => ({ ...prev, image: reader.result as string }));
-          }
-        };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImageBeforeBase64(file, 800, 0.8);
+        setFormData(prev => ({ ...prev, image: compressedBase64 }));
+      } catch (error) {
+        console.error("Compression failed in ProdutosModule", error);
+        onShowToast('Falha ao comprimir imagem. Tente novamente.');
+      }
     }
   };
 

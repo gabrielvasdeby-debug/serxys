@@ -24,6 +24,7 @@ import { applyMaskWithCursor } from '../utils/maskUtils';
 import { capFirst } from '../utils/capFirst';
 import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { jsPDF } from 'jspdf';
+import { compressImageBeforeBase64 } from '../utils/imageCompression';
 
 
 interface OrdemServicoModuleProps {
@@ -412,7 +413,7 @@ const CameraCapture = ({ isOpen, onClose, onCapture }: { isOpen: boolean, onClos
     }
   };
 
-  const capture = () => {
+  const capture = async () => {
     if (videoRef.current) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -421,7 +422,12 @@ const CameraCapture = ({ isOpen, onClose, onCapture }: { isOpen: boolean, onClos
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        onCapture(dataUrl);
+        try {
+          const compressed = await compressImageBeforeBase64(dataUrl, 1280, 0.7);
+          onCapture(compressed);
+        } catch (e) {
+          onCapture(dataUrl);
+        }
       }
     }
   };
@@ -548,6 +554,13 @@ const DocumentScanner = ({ isOpen, onClose, onCapture }: { isOpen: boolean, onCl
         // For now, standard filter is enough for a clean look
         
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        let finalDataUrl = dataUrl;
+        
+        try {
+          finalDataUrl = await compressImageBeforeBase64(dataUrl, 1280, 0.7);
+        } catch (e) {
+          console.error("Compression failed in scanner", e);
+        }
         
         // Create PDF
         const pdf = new jsPDF({
@@ -556,7 +569,7 @@ const DocumentScanner = ({ isOpen, onClose, onCapture }: { isOpen: boolean, onCl
           format: [canvas.width, canvas.height]
         });
         
-        pdf.addImage(dataUrl, 'JPEG', 0, 0, canvas.width, canvas.height);
+        pdf.addImage(finalDataUrl, 'JPEG', 0, 0, canvas.width, canvas.height);
         const pdfBase64 = pdf.output('datauristring');
         
         onCapture(pdfBase64);
