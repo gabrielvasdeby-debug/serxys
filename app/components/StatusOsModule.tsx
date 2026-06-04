@@ -1049,7 +1049,7 @@ export default function StatusOsModule({
         .filter(c => c.name.toLowerCase().includes(searchLower) || (c.document && c.document.includes(searchLower)))
         .map(c => c.id);
 
-      let query = supabase.from('orders').select('*').eq('company_id', profile.company_id);
+      let query = supabase.from('orders').select('id, os_number, customer_id, equipment, defect, service, financials, status, priority, created_at, delivery_forecast, budget, scanned_os_url, entry_photos').eq('company_id', profile.company_id);
 
       const orConditions: string[] = [];
       if (searchNum) orConditions.push(`os_number.eq.${searchNum}`);
