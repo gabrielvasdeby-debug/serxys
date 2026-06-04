@@ -400,6 +400,8 @@ const STATUS_CONFIG: Record<OrderStatus, { icon: React.ElementType, color: strin
   'Sem Reparo': { icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-500/10' }
 };
 
+const DEFAULT_STATUS_STYLE = { icon: FileText, color: 'text-zinc-400', bg: 'bg-zinc-400/10' };
+
 const PRIORITY_COLORS: Record<OrderPriority, string> = {
   'Baixa': 'bg-zinc-500',
   'Média': 'bg-blue-500',
@@ -2170,7 +2172,7 @@ export default function StatusOsModule({
                     ))
                   ) : group.orders.map(order => {
                     const customer = customers.find(c => c.id === order.customerId);
-                    const cfg = STATUS_CONFIG[order.status];
+                    const cfg = STATUS_CONFIG[order.status] || DEFAULT_STATUS_STYLE;
                     const isLate = order.deliveryForecast && new Date(order.deliveryForecast) < new Date() && !['Reparo Concluído', 'Equipamento Retirado', 'Orçamento Cancelado', 'Sem Reparo'].includes(order.status);
                     
                     let shortName = order.status.split(' ')[0];
@@ -2319,7 +2321,7 @@ export default function StatusOsModule({
                         className="bg-[#262626] border border-zinc-700 hover:border-zinc-500 rounded-sm p-3 sm:p-5 cursor-pointer transition-all hover:bg-[#2A2A2A] hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden flex flex-col gap-1.5 sm:gap-2 min-h-[120px] sm:min-h-[140px]"
                       >
                         {/* Visual Status Indicator on Card Left */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${STATUS_CONFIG[order.status].bg.replace('/10', '/90')}`} />
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${(STATUS_CONFIG[order.status] || DEFAULT_STATUS_STYLE).bg.replace('/10', '/90')}`} />
                         
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -2327,7 +2329,7 @@ export default function StatusOsModule({
                               OS {order.osNumber.toString().padStart(4, '0')}
                             </span>
                             {(activeStatus === 'ALL' || groupBy !== 'nenhum') && (
-                              <span className={`text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter ${STATUS_CONFIG[order.status].bg} ${STATUS_CONFIG[order.status].color}`}>
+                              <span className={`text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter ${(STATUS_CONFIG[order.status] || DEFAULT_STATUS_STYLE).bg} ${(STATUS_CONFIG[order.status] || DEFAULT_STATUS_STYLE).color}`}>
                                 {order.status}
                               </span>
                             )}
@@ -2487,8 +2489,8 @@ export default function StatusOsModule({
                           onClick={() => { setSelectedOrder(o); setIsGlobalSearchOpen(false); setGlobalSearchQuery(''); }}
                           className="w-full flex items-center gap-5 p-4 rounded-md hover:bg-zinc-800/80 transition-all border border-transparent hover:border-zinc-700 group/item text-left"
                         >
-                          <div className={`p-4 rounded-md ${STATUS_CONFIG[o.status].bg} ${STATUS_CONFIG[o.status].color} group-hover/item:scale-110 transition-transform`}>
-                             {React.createElement(STATUS_CONFIG[o.status].icon, { size: 24 })}
+                          <div className={`p-4 rounded-md ${(STATUS_CONFIG[o.status] || DEFAULT_STATUS_STYLE).bg} ${(STATUS_CONFIG[o.status] || DEFAULT_STATUS_STYLE).color} group-hover/item:scale-110 transition-transform`}>
+                             {React.createElement((STATUS_CONFIG[o.status] || DEFAULT_STATUS_STYLE).icon, { size: 24 })}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -2553,8 +2555,8 @@ export default function StatusOsModule({
                       <ChevronLeft size={20} />
                     </button>
                     {/* Número da OS com cor do status */}
-                    <div className={`px-3 py-1.5 rounded-xl ${STATUS_CONFIG[selectedOrder.status].bg} border border-white/[0.08]`}>
-                      <span className={`text-[15px] font-black font-mono tracking-wider ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <div className={`px-3 py-1.5 rounded-xl ${(STATUS_CONFIG[selectedOrder.status] || DEFAULT_STATUS_STYLE).bg} border border-white/[0.08]`}>
+                      <span className={`text-[15px] font-black font-mono tracking-wider ${(STATUS_CONFIG[selectedOrder.status] || DEFAULT_STATUS_STYLE).color}`}>
                         OS {selectedOrder.osNumber?.toString().padStart(4, '0') || '---'}
                       </span>
                     </div>
@@ -2565,7 +2567,7 @@ export default function StatusOsModule({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className={`text-[11px] px-2.5 py-1.5 rounded-xl font-black uppercase tracking-wider border border-white/[0.06] bg-white/[0.04] ${STATUS_CONFIG[selectedOrder.status].color}`}>
+                    <span className={`text-[11px] px-2.5 py-1.5 rounded-xl font-black uppercase tracking-wider border border-white/[0.06] bg-white/[0.04] ${(STATUS_CONFIG[selectedOrder.status] || DEFAULT_STATUS_STYLE).color}`}>
                       {selectedOrder.status}
                     </span>
                     <button onClick={() => setSelectedOrder(null)} className="w-9 h-9 flex items-center justify-center bg-white/[0.05] border border-white/[0.06] rounded-xl text-zinc-400 hover:text-white transition-all">
@@ -2663,14 +2665,28 @@ export default function StatusOsModule({
                         if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
                         const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}` : `${window.location.origin}/os/${selectedOrder.id}`;
                         
-                        const whatsappMessage = osSettings.whatsappMessages[selectedOrder.status as any]
-                          .replace(/\[cliente\]/g, customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente')
+                        const messageTemplate = osSettings?.whatsappMessages?.['Entrada Registrada'] || `Olá [nome_cliente]! Sua OS [numero_os] foi registrada. Acompanhe: [link_os]`;
+                        const message = messageTemplate
+                          .replace(/\[nome_cliente\]/g, customer.name)
+                          .replace(/\[cliente\]/g, customer.name)
+                          .replace(/\[numero_os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
                           .replace(/\[os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
+                          .replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0'))
                           .replace(/\[equipamento\]/g, `${selectedOrder.equipment?.brand || ''} ${selectedOrder.equipment?.model || ''}`.trim())
+                          .replace(/\[marca\]/g, selectedOrder.equipment?.brand || '')
+                          .replace(/\[modelo\]/g, selectedOrder.equipment?.model || '')
+                          .replace(/\[defeito\]/g, selectedOrder.service || 'Manutenção técnica')
+                          .replace(/\[status\]/g, selectedOrder.status)
+                          .replace(/\[valor_total\]/g, `R$ ${(selectedOrder.financials?.totalValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`)
                           .replace(/\[valor\]/g, `R$ ${(selectedOrder.financials?.totalValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`)
-                          .replace(/\[link\]/g, portalUrl);
+                          .replace(/\[data_entrada\]/g, new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR'))
+                          .replace(/\[link_os\]/g, portalUrl)
+                          .replace(/\[link\]/g, portalUrl)
+                          .replace(/{link}/g, portalUrl)
+                          .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
+                          .replace(/{empresa}/g, companySettings.name || 'Servyx');
 
-                        setWhatsappModal({ isOpen: true, message: whatsappMessage, customerPhone: customer.whatsapp });
+                        setWhatsappModal({ isOpen: true, message, customerPhone: customer.whatsapp });
                       }}
                       disabled={isPrinting}
                       className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-[#00E676]/10 border border-[#00E676]/30 rounded-sm text-[#00E676] hover:bg-[#00E676]/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
@@ -2707,7 +2723,7 @@ export default function StatusOsModule({
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-all mx-0.5 ${
                           isActive 
-                            ? `${STATUS_CONFIG[selectedOrder.status].bg} ${STATUS_CONFIG[selectedOrder.status].color}` 
+                            ? `${(STATUS_CONFIG[selectedOrder.status] || DEFAULT_STATUS_STYLE).bg} ${(STATUS_CONFIG[selectedOrder.status] || DEFAULT_STATUS_STYLE).color}` 
                             : 'text-zinc-600 hover:text-zinc-300 bg-transparent'
                         }`}
                       >
