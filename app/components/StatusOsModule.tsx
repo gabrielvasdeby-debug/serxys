@@ -473,7 +473,7 @@ export default function StatusOsModule({
   const [isFetchingFullOrder, setIsFetchingFullOrder] = useState(false);
 
   useEffect(() => {
-    if (selectedOrder?.id && (!selectedOrder.history || !selectedOrder.completionData || !selectedOrder.signatures || !selectedOrder.checklist || !selectedOrder.productsUsed)) {
+    if (selectedOrder?.id && !(selectedOrder as any)._isFull && (!selectedOrder.history || !selectedOrder.completionData || !selectedOrder.signatures || !selectedOrder.checklist || !selectedOrder.productsUsed)) {
       const fetchFullOrder = async () => {
         setIsFetchingFullOrder(true);
         try {
@@ -483,8 +483,9 @@ export default function StatusOsModule({
             .eq('id', selectedOrder.id)
             .single();
           if (data && !error) {
-            setSelectedOrder(data as Order);
-            setOrders(prev => prev.map(o => o.id === data.id ? data as Order : o));
+            const fullOrder = { ...data, _isFull: true };
+            setSelectedOrder(fullOrder as any);
+            setOrders(prev => prev.map(o => o.id === data.id ? fullOrder as any : o));
           }
         } catch (err) {
           console.error('Erro ao buscar dados completos da OS:', err);
