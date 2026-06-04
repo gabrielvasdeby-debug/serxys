@@ -470,6 +470,31 @@ export default function StatusOsModule({
   const [orderToQuickStatus, setOrderToQuickStatus] = useState<Order | null>(null);
   const [printMode, setPrintMode] = useState<'a4' | 'thermal' | 'warranty' | 'warranty-thermal' | 'laudo' | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isFetchingFullOrder, setIsFetchingFullOrder] = useState(false);
+
+  useEffect(() => {
+    if (selectedOrder?.id && (!selectedOrder.history || !selectedOrder.completionData || !selectedOrder.signatures || !selectedOrder.checklist || !selectedOrder.productsUsed)) {
+      const fetchFullOrder = async () => {
+        setIsFetchingFullOrder(true);
+        try {
+          const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('id', selectedOrder.id)
+            .single();
+          if (data && !error) {
+            setSelectedOrder(data as Order);
+            setOrders(prev => prev.map(o => o.id === data.id ? data as Order : o));
+          }
+        } catch (err) {
+          console.error('Erro ao buscar dados completos da OS:', err);
+        } finally {
+          setIsFetchingFullOrder(false);
+        }
+      };
+      fetchFullOrder();
+    }
+  }, [selectedOrder?.id]);
 
   // Elite Polish: Simulated loading on mount to show skeletons
   useEffect(() => {
@@ -795,7 +820,7 @@ export default function StatusOsModule({
         .update({ 
           budget,
           status: newStatus,
-          history: [...selectedOrder.history, historyEvent],
+          history: [...(selectedOrder.history || []), historyEvent],
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedOrder.id)
@@ -808,7 +833,7 @@ export default function StatusOsModule({
         ...selectedOrder, 
         budget, 
         status: newStatus,
-        history: [...selectedOrder.history, historyEvent]
+        history: [...(selectedOrder.history || []), historyEvent]
       };
       setSelectedOrder(updatedOrder);
       setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updatedOrder : o));
@@ -990,7 +1015,7 @@ export default function StatusOsModule({
         .from('orders')
         .update({
           technical_report: technicalReport,
-          history: [...selectedOrder.history, historyEvent],
+          history: [...(selectedOrder.history || []), historyEvent],
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedOrder.id);
@@ -1000,7 +1025,7 @@ export default function StatusOsModule({
       const updatedOrder = { 
         ...selectedOrder, 
         technicalReport,
-        history: [...selectedOrder.history, historyEvent]
+        history: [...(selectedOrder.history || []), historyEvent]
       };
       setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updatedOrder : o));
       setSelectedOrder(updatedOrder);
@@ -1152,7 +1177,7 @@ export default function StatusOsModule({
       
       const { error } = await supabase.from('orders')
         .update({
-          history: [...selectedOrder.history, historyEvent],
+          history: [...(selectedOrder.history || []), historyEvent],
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedOrder.id);
@@ -1161,7 +1186,7 @@ export default function StatusOsModule({
       
       const updatedOrder = {
         ...selectedOrder,
-        history: [...selectedOrder.history, historyEvent]
+        history: [...(selectedOrder.history || []), historyEvent]
       };
       
       setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updatedOrder : o));
@@ -1193,7 +1218,7 @@ export default function StatusOsModule({
       completionData: completionData || order.completionData,
       productsUsed: productsUsed || order.productsUsed || [],
       history: [
-        ...order.history,
+        ...(order.history || []),
         {
           date: now,
           user: profile.name,
@@ -1347,7 +1372,7 @@ export default function StatusOsModule({
   const updatePaymentStatus = async (order: Order, newPaymentStatus: 'Total' | 'Parcial' | 'Pendente') => {
     const now = new Date().toISOString();
     const updatedHistory = [
-      ...order.history,
+      ...(order.history || []),
       {
         date: now,
         user: profile.name,
@@ -1441,7 +1466,7 @@ export default function StatusOsModule({
       : `Pagamento: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)} (${paymentMethod})`;
 
     const updatedHistory = [
-      ...selectedOrder.history,
+      ...(selectedOrder.history || []),
       {
         date: now,
         user: profile.name,
@@ -2344,12 +2369,12 @@ export default function StatusOsModule({
                                 Assinado
                               </span>
                             )}
-                            {order.budget?.status === 'Aprovado' && order.history.some(h => h.user === 'Cliente (Via Portal)' && h.description.includes('APROVADO')) && (
+                            {order.budget?.status === 'Aprovado' && (order.history || []).some(h => h.user === 'Cliente (Via Portal)' && h.description.includes('APROVADO')) && (
                               <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter bg-emerald-500/10 text-emerald-400/80 w-max border border-emerald-500/10">
                                 Aprovado (Cliente)
                               </span>
                             )}
-                            {order.budget?.status === 'Recusado' && order.history.some(h => h.user === 'Cliente (Via Portal)' && h.description.includes('RECUSADO')) && (
+                            {order.budget?.status === 'Recusado' && (order.history || []).some(h => h.user === 'Cliente (Via Portal)' && h.description.includes('RECUSADO')) && (
                               <span className="text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter bg-red-500/10 text-red-400/80 w-max border border-red-500/10">
                                 Recusado (Cliente)
                               </span>
@@ -2377,7 +2402,7 @@ export default function StatusOsModule({
                             </button>
                             <div className="flex items-center gap-1 sm:gap-1.5 bg-zinc-950/50 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-sm border border-zinc-800 shadow-sm">
                               <User size={8} className="sm:w-2.5 sm:h-2.5 text-zinc-600" />
-                              <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{order.history[0]?.user?.split(' ')[0] || 'Téc'}</span>
+                              <span className="text-[8px] sm:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{(order.history || [])[0]?.user?.split(' ')[0] || 'Téc'}</span>
                             </div>
                           </div>
                         </div>
@@ -3569,7 +3594,7 @@ export default function StatusOsModule({
                        <div className="absolute left-[39px] sm:left-[51px] top-10 bottom-10 w-[1px] bg-gradient-to-b from-transparent via-zinc-800 to-transparent" />
                        
                        {/* Mapeamento reverso dos eventos */}
-                       {[...selectedOrder.history].reverse().map((event, i) => {
+                       {[...(selectedOrder.history || [])].reverse().map((event, i) => {
                          const config = getTimelineConfig(event.description);
                          const EventIcon = config.icon;
                          let relativeTime = '';

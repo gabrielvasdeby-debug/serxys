@@ -320,7 +320,7 @@ export function useServyxApp() {
 
       const [customersRes, ordersRes, settingsResArr, productsRes, companyRes, cashSessionsRes, dismissedNotificationsRes] = await Promise.all([
         supabase.from('customers').select('*').eq('company_id', activeCompanyId).order('name'),
-        supabase.from('orders').select('*').eq('company_id', activeCompanyId).order('created_at', { ascending: false }).range(0, 49),
+        supabase.from('orders').select('id, company_id, customer_id, os_number, status, created_at, updated_at, equipment, service, defect, priority, financials, budget, delivery_forecast, technical_report, entry_photos, is_visual_checklist, checklist_not_possible').eq('company_id', activeCompanyId).order('created_at', { ascending: false }).range(0, 49),
         supabase.from('app_settings').select('*').in('key', ['os_settings', `os_settings_${activeCompanyId}`]),
         supabase.from('products').select('*').eq('company_id', activeCompanyId),
         supabase.from('company_settings').select('*').eq('id', activeCompanyId).single(),
