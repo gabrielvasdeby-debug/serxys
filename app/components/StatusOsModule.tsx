@@ -2932,7 +2932,7 @@ export default function StatusOsModule({
                         ) : (
                           <div className="flex-1">
                           <div className="flex flex-col gap-2">
-                            {Object.entries(selectedOrder.checklist).map(([item, status]) => (
+                            {Object.entries(selectedOrder.checklist || {}).map(([item, status]) => (
                                <div key={item} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.05] transition-colors">
                                 <div className="flex items-center gap-3">
                                   {status === 'works' ? (
