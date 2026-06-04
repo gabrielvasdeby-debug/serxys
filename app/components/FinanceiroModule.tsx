@@ -96,7 +96,7 @@ interface FinanceiroModuleProps {
   onLogActivity?: (module: string, action: string, details: any) => Promise<void>;
 }
 
-type Tab = 'RECEBER' | 'PAGAR' | 'RESUMO' | 'EXTRATO';
+type Tab = 'RECEBER' | 'PAGAR' | 'RESUMO' | 'EXTRATO' | 'RENTABILIDADE';
 type Period = 'today' | 'week' | 'month' | 'year' | 'custom';
 
 export default function FinanceiroModuleView({ profile, onBack, onShowToast, companySettings, orders, customers, onLogActivity }: FinanceiroModuleProps) {
@@ -115,6 +115,8 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
   const [customEndDate, setCustomEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [receivablesSearch, setReceivablesSearch] = useState('');
   const [expenseMonthFilter, setExpenseMonthFilter] = useState<string>(format(new Date(), 'yyyy-MM'));
+  const [rentabilidadeData, setRentabilidadeData] = useState<any[]>([]);
+  const [loadingRentabilidade, setLoadingRentabilidade] = useState(false);
 
   // Bloqueio de acesso para não-ADM
   if (profile.type !== 'ADM' && profile.role !== 'ADM') {
@@ -167,6 +169,69 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
   useEffect(() => {
     fetchData();
   }, [orders, customers, currentPeriodDates, expenseMonthFilter]);
+
+  useEffect(() => {
+    if (activeTab === 'RENTABILIDADE') {
+      fetchRentabilidade();
+    }
+  }, [activeTab, currentPeriodDates, orders]);
+
+  const fetchRentabilidade = async () => {
+    setLoadingRentabilidade(true);
+    try {
+      const { start, end } = currentPeriodDates;
+      
+      const periodOrders = orders.filter(o => o.status === 'Concluída' && o.updatedAt && isWithinInterval(parseISO(o.updatedAt), { start, end }));
+
+      if (periodOrders.length === 0) {
+        setRentabilidadeData([]);
+        setLoadingRentabilidade(false);
+        return;
+      }
+
+      const orderIds = periodOrders.map(o => o.id);
+      
+      // Fetch full order data to get products_used
+      const { data: fullOrders, error } = await supabase
+        .from('orders')
+        .select('id, products_used')
+        .in('id', orderIds);
+
+      if (error) throw error;
+
+      const rentData = periodOrders.map(order => {
+        const fullOrder = fullOrders?.find(fo => fo.id === order.id);
+        const productsUsed = fullOrder?.products_used || order.productsUsed || [];
+        
+        let custoPecas = 0;
+        productsUsed.forEach((p: any) => {
+          const cost = p.cost_price || p.costPrice || p.price || 0;
+          custoPecas += cost * (p.quantity || 1);
+        });
+
+        const valorCobrado = order.financials?.totalValue || 0;
+        const lucroBruto = valorCobrado - custoPecas;
+        const margem = valorCobrado > 0 ? (lucroBruto / valorCobrado) * 100 : 0;
+        const customer = customers.find(c => c.id === order.customerId);
+
+        return {
+          id: order.id,
+          osNumber: order.osNumber,
+          customerName: customer?.name || 'Cliente não identificado',
+          valorCobrado,
+          custoPecas,
+          lucroBruto,
+          margem
+        };
+      });
+
+      setRentabilidadeData(rentData);
+    } catch (err) {
+      console.error('Erro ao buscar dados de rentabilidade:', err);
+    } finally {
+      setLoadingRentabilidade(false);
+    }
+  };
   
   const fetchData = async () => {
     setLoading(true);
@@ -189,7 +254,7 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
           const total = fin.totalValue || (fin as any).total || 0;
           
           // Excluir status inválidos ou não aprovados de contas a receber
-          const invalidStatuses = ['Orçamento Cancelado', 'Orçamento Recusado', 'Sem Reparo', 'Orçamento em Elaboração'];
+          const invalidStatuses = ['Orçamento Cancelado', 'Orçamento Recusado', 'Sem Reparo', 'Orçamento em Elaboração', 'Aguardando Aprovação'];
           if (invalidStatuses.includes(order.status)) {
             return false;
           }
@@ -939,6 +1004,13 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 {activeTab === 'PAGAR' && <div className="absolute inset-0 bg-gradient-to-r from-[#00E676] to-emerald-400 opacity-100" />}
                 <span className="relative z-10">Pagar</span>
               </button>
+              <button 
+                onClick={() => setActiveTab('RENTABILIDADE')} 
+                className={`relative flex-1 sm:flex-none px-5 sm:px-8 py-3 sm:py-2.5 rounded-2xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest whitespace-nowrap overflow-hidden group ${activeTab === 'RENTABILIDADE' ? 'text-black shadow-lg shadow-emerald-500/20' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+              >
+                {activeTab === 'RENTABILIDADE' && <div className="absolute inset-0 bg-gradient-to-r from-[#00E676] to-emerald-400 opacity-100" />}
+                <span className="relative z-10">Rentabilidade</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1188,6 +1260,104 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                 </div>
                 <div className="hidden sm:block text-xs text-zinc-500 font-medium bg-white/5 px-4 py-2 rounded-full border border-white/5">
                   Mostrando entradas e saídas do período
+                </div>
+              </div>
+
+              {/* GRÁFICOS GERENCIAIS */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Gráfico 1: Fluxo de Caixa (Área) */}
+                <div className="bg-[#141414] border border-zinc-800/50 rounded-2xl p-5 lg:col-span-2 flex flex-col">
+                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">Fluxo Diário de Caixa</h3>
+                  <div className="flex-1 min-h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData.areaData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#00E676" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#00E676" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorDespesa" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <XAxis dataKey="date" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `R$ ${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`} />
+                        <RechartsTooltip 
+                          contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', fontSize: '12px' }}
+                          itemStyle={{ fontWeight: 'bold' }}
+                          formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
+                          labelStyle={{ color: '#a1a1aa', marginBottom: '8px' }}
+                        />
+                        <Area type="monotone" dataKey="receita" name="Receitas" stroke="#00E676" strokeWidth={3} fillOpacity={1} fill="url(#colorReceita)" />
+                        <Area type="monotone" dataKey="despesa" name="Despesas" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorDespesa)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Gráfico 2: Faturamento e Despesas (Pizza/Barras) */}
+                <div className="flex flex-col gap-4">
+                  {/* Faturamento */}
+                  <div className="bg-[#141414] border border-zinc-800/50 rounded-2xl p-5 flex-1 flex flex-col justify-center">
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2 text-center">Faturamento por Categoria</h3>
+                    <div className="h-[120px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: 'OS', value: stats.osRevenue, color: '#3b82f6' },
+                              { name: 'Vendas', value: stats.salesRevenue, color: '#00E676' },
+                              { name: 'Avulsos', value: stats.avulsoRevenue, color: '#a855f7' }
+                            ].filter(d => d.value > 0)}
+                            cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={2} dataKey="value"
+                          >
+                            {([
+                              { name: 'OS', value: stats.osRevenue, color: '#3b82f6' },
+                              { name: 'Vendas', value: stats.salesRevenue, color: '#00E676' },
+                              { name: 'Avulsos', value: stats.avulsoRevenue, color: '#a855f7' }
+                            ].filter(d => d.value > 0)).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip 
+                            contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', fontSize: '10px' }}
+                            formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col gap-1 mt-2">
+                      <div className="flex justify-between items-center text-[9px] font-bold"><span className="text-blue-400">● OS</span><span className="text-white">R$ {stats.osRevenue.toLocaleString('pt-BR')}</span></div>
+                      <div className="flex justify-between items-center text-[9px] font-bold"><span className="text-emerald-400">● Vendas</span><span className="text-white">R$ {stats.salesRevenue.toLocaleString('pt-BR')}</span></div>
+                      <div className="flex justify-between items-center text-[9px] font-bold"><span className="text-purple-400">● Avulsos</span><span className="text-white">R$ {stats.avulsoRevenue.toLocaleString('pt-BR')}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Despesas */}
+                  <div className="bg-[#141414] border border-zinc-800/50 rounded-2xl p-5 flex-1 flex flex-col justify-center">
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2 text-center">Despesas</h3>
+                    <div className="h-[120px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={[{ name: 'Despesas', opex: stats.opexExpenses, cogs: stats.cogsExpenses }]} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                          <XAxis dataKey="name" hide />
+                          <YAxis stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(value) => `R$ ${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`} />
+                          <RechartsTooltip 
+                            contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', fontSize: '10px' }}
+                            formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
+                          />
+                          <Bar dataKey="opex" name="Operacional" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="cogs" name="Técnico" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col gap-1 mt-2">
+                      <div className="flex justify-between items-center text-[9px] font-bold"><span className="text-amber-500">● Operacional</span><span className="text-white">R$ {stats.opexExpenses.toLocaleString('pt-BR')}</span></div>
+                      <div className="flex justify-between items-center text-[9px] font-bold"><span className="text-red-400">● Técnico (COGS)</span><span className="text-white">R$ {stats.cogsExpenses.toLocaleString('pt-BR')}</span></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1767,6 +1937,118 @@ export default function FinanceiroModuleView({ profile, onBack, onShowToast, com
                         );
                       });
                   })()}
+                </div>
+              </div>
+            </motion.div>
+          )}
+          {activeTab === 'RENTABILIDADE' && (
+            <motion.div 
+              key="rentabilidade"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <ChartPie className="text-[#00E676]" size={20} /> Rentabilidade por OS
+                </h2>
+              </div>
+
+              {/* Cards de Resumo da Rentabilidade */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Total Faturado</p>
+                  <p className="text-xl font-black text-white">R$ {rentabilidadeData.reduce((acc, r) => acc + r.valorCobrado, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
+                  <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Total Custos (Peças)</p>
+                  <p className="text-xl font-black text-red-400">R$ {rentabilidadeData.reduce((acc, r) => acc + r.custoPecas, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
+                  <p className="text-[10px] font-black text-[#00E676] uppercase tracking-widest mb-1">Lucro Total</p>
+                  <p className="text-xl font-black text-[#00E676]">R$ {rentabilidadeData.reduce((acc, r) => acc + r.lucroBruto, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="bg-[#141414] border border-zinc-800/50 p-5 rounded-2xl">
+                  <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Margem Média</p>
+                  <p className="text-xl font-black text-blue-400">
+                    {rentabilidadeData.length > 0 ? (rentabilidadeData.reduce((acc, r) => acc + r.margem, 0) / rentabilidadeData.length).toFixed(1) : 0}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-[#0a0a0a]/80 backdrop-blur-xl overflow-hidden border border-white/5 rounded-[32px] shadow-2xl">
+                <table className="hidden md:table w-full text-left">
+                  <thead className="bg-white/5 text-zinc-500 text-[10px] uppercase font-bold tracking-widest">
+                    <tr>
+                      <th className="px-8 py-4">OS</th>
+                      <th className="px-8 py-4">Cliente</th>
+                      <th className="px-8 py-4 text-right">Valor Cobrado</th>
+                      <th className="px-8 py-4 text-right">Custo das Peças</th>
+                      <th className="px-8 py-4 text-right">Lucro Bruto</th>
+                      <th className="px-8 py-4 text-right">Margem</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-900 text-sm">
+                    {loadingRentabilidade ? (
+                      <tr>
+                        <td colSpan={6} className="py-20 text-center text-zinc-500">Carregando dados de rentabilidade...</td>
+                      </tr>
+                    ) : rentabilidadeData.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-20 text-center text-zinc-500">Nenhuma OS concluída no período selecionado.</td>
+                      </tr>
+                    ) : (
+                      rentabilidadeData.map(r => (
+                        <tr key={r.id} className="hover:bg-white/[0.03] transition-colors">
+                          <td className="px-8 py-5">
+                            <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-tighter">
+                              OS {String(r.osNumber).padStart(4, '0')}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5 font-bold text-white max-w-[200px] truncate">{r.customerName}</td>
+                          <td className="px-8 py-5 text-right font-black text-white">R$ {r.valorCobrado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          <td className="px-8 py-5 text-right font-black text-red-400">R$ {r.custoPecas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          <td className="px-8 py-5 text-right font-black text-[#00E676]">R$ {r.lucroBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          <td className="px-8 py-5 text-right font-black text-blue-400">{r.margem.toFixed(1)}%</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+                
+                {/* Mobile view */}
+                <div className="md:hidden divide-y divide-white/5">
+                  {loadingRentabilidade ? (
+                    <div className="p-8 text-center text-zinc-500 text-sm">Carregando dados...</div>
+                  ) : rentabilidadeData.length === 0 ? (
+                    <div className="p-8 text-center text-zinc-500 text-sm">Nenhuma OS concluída.</div>
+                  ) : (
+                    rentabilidadeData.map(r => (
+                      <div key={r.id} className="p-4 flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded uppercase tracking-tighter">OS {String(r.osNumber).padStart(4, '0')}</span>
+                          <span className="text-sm font-bold text-white truncate max-w-[200px]">{r.customerName}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-500">Cobrado:</span>
+                          <span className="font-black text-white">R$ {r.valorCobrado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-500">Custo:</span>
+                          <span className="font-black text-red-400">R$ {r.custoPecas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-500">Lucro:</span>
+                          <span className="font-black text-[#00E676]">R$ {r.lucroBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-500">Margem:</span>
+                          <span className="font-black text-blue-400">{r.margem.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </motion.div>
