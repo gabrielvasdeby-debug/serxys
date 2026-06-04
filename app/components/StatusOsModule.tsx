@@ -883,8 +883,8 @@ export default function StatusOsModule({
       .replace(/{cliente}/g, customer.name)
       .replace(/\[numero_os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
       .replace(/{os}/g, selectedOrder.osNumber.toString().padStart(4, '0'))
-      .replace(/\[marca\]/g, selectedOrder.equipment.brand)
-      .replace(/\[modelo\]/g, selectedOrder.equipment.model)
+      .replace(/\[marca\]/g, selectedOrder.equipment?.brand || '')
+      .replace(/\[modelo\]/g, selectedOrder.equipment?.model || '')
       .replace(/\[defeito\]/g, budgetRequiredService || selectedOrder.service || 'Manutenção técnica')
       .replace(/\[status\]/g, selectedOrder.status)
       .replace(/\[valor_total\]/g, new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total))
@@ -2584,7 +2584,7 @@ export default function StatusOsModule({
                   <div className="shrink-0 hidden sm:flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 rounded-xl">
                     <Smartphone size={12} className="text-blue-400/80" />
                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">
-                      {selectedOrder.equipment.model}
+                      {selectedOrder.equipment?.model || 'Não especificado'}
                     </span>
                   </div>
                 </div>
@@ -2663,17 +2663,14 @@ export default function StatusOsModule({
                         if (!customer?.whatsapp) { onShowToast('Cliente sem número de WhatsApp cadastrado'); return; }
                         const portalUrl = companySettings.publicSlug ? `${window.location.origin}/${companySettings.publicSlug}/${selectedOrder.id}` : `${window.location.origin}/os/${selectedOrder.id}`;
                         
-                        const message = (osSettings.whatsappEntryTemplate || `Olá [nome_cliente]! Sua OS [numero_os] ([equipamento]) foi registrada com sucesso em nossa assistência. Acompanhe o status pelo link: [link_os]`)
-                          .replace(/\[nome_cliente\]/g, customer.name)
-                          .replace(/\[numero_os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
-                          .replace(/\[equipamento\]/g, `${selectedOrder.equipment.brand} ${selectedOrder.equipment.model}`)
-                          .replace(/\[data_entrada\]/g, new Date().toLocaleDateString('pt-BR'))
-                          .replace(/\[link_os\]/g, portalUrl)
-                          .replace(/{link}/g, portalUrl)
-                          .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
-                          .replace(/{empresa}/g, companySettings.name || 'Servyx');
+                        const whatsappMessage = osSettings.whatsappMessages[selectedOrder.status as any]
+                          .replace(/\[cliente\]/g, customers.find(c => c.id === selectedOrder.customerId)?.name || 'Cliente')
+                          .replace(/\[os\]/g, selectedOrder.osNumber.toString().padStart(4, '0'))
+                          .replace(/\[equipamento\]/g, `${selectedOrder.equipment?.brand || ''} ${selectedOrder.equipment?.model || ''}`.trim())
+                          .replace(/\[valor\]/g, `R$ ${(selectedOrder.financials?.totalValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`)
+                          .replace(/\[link\]/g, portalUrl);
 
-                        setWhatsappModal({ isOpen: true, message, customerPhone: customer.whatsapp });
+                        setWhatsappModal({ isOpen: true, message: whatsappMessage, customerPhone: customer.whatsapp });
                       }}
                       disabled={isPrinting}
                       className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-[#00E676]/10 border border-[#00E676]/30 rounded-sm text-[#00E676] hover:bg-[#00E676]/20 transition-all text-[10px] font-black uppercase disabled:opacity-30"
@@ -2779,7 +2776,6 @@ export default function StatusOsModule({
                 {activeTab === 'geral' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {/* Client & Equipment Info */}
-                    {/* Client & Equipment Info - stacked vertically */}
                     <div className="grid grid-cols-1 gap-6">
                       
                       <section className="bg-white/[0.02] border-y sm:border border-white/[0.06] p-5 sm:p-6 rounded-none sm:rounded-2xl relative overflow-hidden hover:border-white/[0.1] transition-colors">
@@ -2840,8 +2836,6 @@ export default function StatusOsModule({
                         </div>
                       </section>
 
-
-
                       {/* Aparelho Card */}
                       <section className="bg-white/[0.02] border-y sm:border border-white/[0.06] p-5 sm:p-6 rounded-none sm:rounded-2xl relative overflow-hidden hover:border-white/[0.1] transition-colors">
                         <div className="flex items-center justify-between mb-4">
@@ -2850,53 +2844,52 @@ export default function StatusOsModule({
                           </h3>
                         </div>
                         <div className="space-y-2.5">
-                          <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05] flex items-center justify-between">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[9px] text-zinc-600 uppercase tracking-widest mb-1 font-bold">Aparelho</p>
-                              <p className="text-sm font-bold text-white truncate pr-2">
-                                {selectedOrder.equipment.brand} <span className="text-blue-400">{selectedOrder.equipment.model}</span>
+                          <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05] flex justify-between items-start gap-4">
+                            <div>
+                              <p className="text-white font-bold text-sm sm:text-base leading-tight mb-1">
+                                {selectedOrder.equipment?.brand} <span className="text-blue-400">{selectedOrder.equipment?.model}</span>
                               </p>
                             </div>
-                            {selectedOrder.equipment.serial && (
-                              <div className="shrink-0 text-right pl-3 border-l border-white/[0.05]">
-                                <p className="text-[8px] uppercase font-black text-zinc-600 tracking-widest mb-1">S/N</p>
+                            {selectedOrder.equipment?.serial && (
+                              <div className="text-right shrink-0">
+                                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Nº de Série</p>
                                 <p className="text-[10px] font-mono text-zinc-300 font-bold">{selectedOrder.equipment.serial}</p>
                               </div>
                             )}
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
-                              <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Tipo</p>
-                              <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment.type}</p>
+                          <div className="grid grid-cols-2 gap-3 p-3 bg-black/20 rounded-xl border border-white/5">
+                            <div>
+                              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5 flex items-center gap-1.5"><Laptop size={10} /> Tipo</p>
+                              <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment?.type}</p>
                             </div>
-                            <div className="bg-white/[0.03] rounded-2xl p-3.5 border border-white/[0.05]">
-                              <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-wider mb-1">Cor</p>
-                              <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment.color}</p>
+                            <div>
+                              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5 flex items-center gap-1.5"><Palette size={10} /> Cor</p>
+                              <p className="text-[11px] sm:text-xs text-zinc-300 font-bold truncate">{selectedOrder.equipment?.color}</p>
                             </div>
                           </div>
                           
-                          {selectedOrder.equipment.passwordType !== 'none' && (
-                            <div className="flex items-center justify-between bg-amber-500/5 border border-amber-500/10 rounded-2xl p-3.5">
-                              <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-amber-500/10 rounded-xl">
-                                  <Lock size={12} className="text-amber-500/60" /> 
+                          {selectedOrder.equipment?.passwordType && selectedOrder.equipment.passwordType !== 'none' && (
+                            <div className="mt-3 p-3 bg-black/20 rounded-xl border border-white/5 flex items-center justify-between group">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors">
+                                  <Lock size={14} className="text-zinc-400 group-hover:text-white transition-colors" />
                                 </div>
                                 <div>
-                                  <p className="text-[8px] uppercase font-black text-amber-500/60 tracking-widest leading-none mb-1">
+                                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">
                                     {selectedOrder.equipment.passwordType === 'pattern' ? 'Padrão' : 'Senha'}
                                   </p>
-                                  <p className="text-xs font-bold text-amber-500 leading-none">
+                                  <p className="text-[11px] sm:text-xs text-zinc-300 font-mono font-bold tracking-wider">
                                     {selectedOrder.equipment.passwordType === 'pattern' ? 'Desenho' : selectedOrder.equipment.passwordValue}
                                   </p>
                                 </div>
                               </div>
                               {selectedOrder.equipment.passwordType === 'pattern' && selectedOrder.equipment.passwordValue && (
-                                <button
+                                <button 
                                   onClick={() => setIsPatternModalOpen(true)}
-                                  className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-amber-500/20"
+                                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg text-[9px] font-black uppercase tracking-widest text-zinc-300 transition-all flex items-center gap-1.5"
                                 >
-                                  Ver Padrão
+                                  <Grid size={12} /> Ver Padrão
                                 </button>
                               )}
                             </div>
@@ -3991,7 +3984,7 @@ export default function StatusOsModule({
       </AnimatePresence>
 
       <AnimatePresence>
-        {isPatternModalOpen && selectedOrder && (
+        {isPatternModalOpen && selectedOrder?.equipment && (
           <PatternLock
             isOpen={isPatternModalOpen}
             onClose={() => setIsPatternModalOpen(false)}
