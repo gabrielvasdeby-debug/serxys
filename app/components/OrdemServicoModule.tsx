@@ -1162,39 +1162,79 @@ export default function OrdemServicoModule({
 
   const [isPatternModalOpen, setIsPatternModalOpen] = useState(false);
 
-  // Populate state if editing
+  const [isFetchingFullOrder, setIsFetchingFullOrder] = useState(false);
+
   useEffect(() => {
     if (initialOrder) {
-      setLocalOrder(initialOrder);
-      setStep('DETAILS');
-      const customer = customers.find(c => c.id === initialOrder.customerId);
-      if (customer) setSelectedCustomer(customer);
-      
-      if (initialOrder.equipment) {
-        setEquipment(initialOrder.equipment);
-      }
-      setChecklist(initialOrder.checklist);
-      setChecklistNotPossible(initialOrder.checklistNotPossible || (initialOrder as any).checklist_not_possible || false);
-      setEntryPhotos(initialOrder.entryPhotos || []);
-      setChecklistNotes(initialOrder.checklistNotes || '');
-      setDefect(initialOrder.defect || '');
-      setTechnicianNotes(initialOrder.technicianNotes || '');
-      setService(initialOrder.service || '');
-      setPriority(initialOrder.priority || 'Média');
-      setFinancials({
-        ...initialOrder.financials,
-        paymentMethods: initialOrder.financials?.paymentMethods || ((initialOrder.financials?.amountPaid ?? 0) > 0 ? [{ method: initialOrder.financials?.paymentType || 'Dinheiro', amount: initialOrder.financials?.amountPaid ?? 0 }] : [])
-      });
-      setSignatures(initialOrder.signatures || {
-        technician: null,
-        client: null,
-        isManual: false,
-        mode: 'digital'
-      });
-      setShowVisualChecklist(initialOrder.isVisualChecklist || false);
-      setDeliveryForecast(initialOrder.deliveryForecast || '');
+      const loadFullOrder = async () => {
+        // Se a OS veio de uma listagem leve (sem os campos pesados)
+        if (!initialOrder.history || !initialOrder.checklist || !initialOrder.productsUsed) {
+          setIsFetchingFullOrder(true);
+          try {
+            const { data, error } = await supabase
+              .from('orders')
+              .select('*')
+              .eq('id', initialOrder.id)
+              .single();
+
+            if (data && !error) {
+              const fullOrder = data as Order;
+              setLocalOrder(fullOrder);
+              hydrateForm(fullOrder);
+              
+              // Atualizar na listagem global (opcional mas recomendado)
+              setOrders(prev => prev.map(o => o.id === fullOrder.id ? fullOrder : o));
+            } else {
+              setLocalOrder(initialOrder);
+              hydrateForm(initialOrder);
+            }
+          } catch (error) {
+            console.error('Erro ao carregar OS completa:', error);
+            setLocalOrder(initialOrder);
+            hydrateForm(initialOrder);
+          } finally {
+            setIsFetchingFullOrder(false);
+          }
+        } else {
+          setLocalOrder(initialOrder);
+          hydrateForm(initialOrder);
+        }
+      };
+
+      const hydrateForm = (order: Order) => {
+        setStep('DETAILS');
+        const customer = customers.find(c => c.id === order.customerId);
+        if (customer) setSelectedCustomer(customer);
+
+        if (order.equipment) {
+          setEquipment(order.equipment);
+        }
+        setChecklist(order.checklist);
+        setChecklistNotPossible(order.checklistNotPossible || (order as any).checklist_not_possible || false);
+        setEntryPhotos(order.entryPhotos || []);
+        setChecklistNotes(order.checklistNotes || '');
+        setDefect(order.defect || '');
+        setTechnicianNotes(order.technicianNotes || '');
+        setService(order.service || '');
+        setPriority(order.priority || 'Média');
+        setFinancials({
+          ...order.financials,
+          paymentMethods: order.financials?.paymentMethods || ((order.financials?.amountPaid ?? 0) > 0 ? [{ method: order.financials?.paymentType || 'Dinheiro', amount: order.financials?.amountPaid ?? 0 }] : [])
+        });
+        setSignatures(order.signatures || {
+          technician: null,
+          client: null,
+          isManual: false,
+          mode: 'digital'
+        });
+        setShowVisualChecklist(order.isVisualChecklist || false);
+        setDeliveryForecast(order.deliveryForecast || '');
+      };
+
+      loadFullOrder();
     }
-  }, [initialOrder, customers]);
+  }, [initialOrder, customers, setOrders]);
+
   const [isPatternModalReadOnly, setIsPatternModalReadOnly] = useState(false);
 
   const [whatsappPrompt, setWhatsappPrompt] = useState<{ isOpen: boolean; newStatus: string; orderId?: string }>({ isOpen: false, newStatus: '' });
@@ -1392,7 +1432,20 @@ export default function OrdemServicoModule({
     const fetchCustomerHistory = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          id,
+          company_id,
+          customer_id,
+          os_number,
+          created_at,
+          updated_at,
+          status,
+          equipment,
+          service,
+          defect,
+          financials,
+          priority
+        `)
         .eq('company_id', profile.company_id)
         .eq('customer_id', expandedCardId)
         .order('created_at', { ascending: false });
@@ -1404,26 +1457,26 @@ export default function OrdemServicoModule({
           osNumber: row.os_number,
           customerId: row.customer_id,
           equipment: row.equipment,
-          checklist: row.checklist,
-          checklistNotes: row.checklist_notes || '',
+          checklist: null,
+          checklistNotes: '',
           defect: row.defect || '',
-          technicianNotes: row.technician_notes || '',
+          technicianNotes: '',
           service: row.service || '',
           financials: row.financials,
-          signatures: row.signatures,
+          signatures: null,
           status: row.status,
           priority: row.priority,
-          history: row.history || [],
-          completionData: row.completion_data,
-          productsUsed: row.products_used || [],
-          isVisualChecklist: row.is_visual_checklist,
-          checklistNotPossible: row.checklist_not_possible,
-          budget: row.budget,
-          technicalReport: row.technical_report,
+          history: [],
+          completionData: null,
+          productsUsed: [],
+          isVisualChecklist: false,
+          checklistNotPossible: false,
+          budget: null,
+          technicalReport: null,
           createdAt: row.created_at,
           updatedAt: row.updated_at,
-          deliveryForecast: row.delivery_forecast,
-          entryPhotos: row.entry_photos || [],
+          deliveryForecast: '',
+          entryPhotos: [],
         }));
 
         setOrders(prev => {
@@ -2572,6 +2625,16 @@ export default function OrdemServicoModule({
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 overflow-x-hidden px-0.5"
             >
+              {isFetchingFullOrder ? (
+                <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl px-4 py-16 flex flex-col items-center justify-center gap-4 shadow-xl">
+                  <div className="w-12 h-12 border-4 border-zinc-800 border-t-[#00E676] rounded-full animate-spin" />
+                  <div className="text-center">
+                    <p className="text-white font-bold tracking-wide">Carregando Ordem de Serviço...</p>
+                    <p className="text-zinc-500 text-sm mt-1">Sincronizando dados completos</p>
+                  </div>
+                </div>
+              ) : (
+                <>
               {/* Selected Client Summary */}
               <div className="w-full bg-[#141414] border border-zinc-800/50 rounded-xl px-4 py-3 flex items-center justify-between gap-3 shadow-xl">
                 <div className="flex flex-col min-w-0">
@@ -3871,8 +3934,10 @@ export default function OrdemServicoModule({
               </div>
 
               <div className="pb-32 sm:pb-8" />
-          </motion.div>
-        )}
+              </>
+            )}
+            </motion.div>
+          )}
       </div>
     </main>
 
