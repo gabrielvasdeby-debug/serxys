@@ -1172,8 +1172,8 @@ export default function StatusOsModule({
         (searchNum !== '' && osNumStr.includes(searchNum)) ||
         (customer?.name.toLowerCase().includes(searchLower)) ||
         (customer?.document && customer.document.includes(searchLower)) ||
-        o.equipment.model.toLowerCase().includes(searchLower) ||
-        o.equipment.brand.toLowerCase().includes(searchLower)
+        (o.equipment?.model || '').toLowerCase().includes(searchLower) ||
+        (o.equipment?.brand || '').toLowerCase().includes(searchLower)
       );
     }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders, customers, searchQuery]);
@@ -1283,7 +1283,7 @@ export default function StatusOsModule({
           os_id: order.id,
           os_number: order.osNumber.toString().padStart(4, '0'),
           client_name: customers.find(c => c.id === order.customerId)?.name || 'Cliente',
-          equipment: `${order.equipment.brand} ${order.equipment.model}`,
+          equipment: `${order.equipment?.brand || ''} ${order.equipment?.model || ''}`.trim(),
           service_performed: completionData.servicesPerformed?.trim() || order.service || 'Serviço técnico',
           start_date: completionData.warrantyStartDate || now.split('T')[0],
           end_date: completionData.warrantyEndDate || now.split('T')[0],
@@ -1376,13 +1376,13 @@ export default function StatusOsModule({
           .replace(/{cliente}/g, customer.name)
           .replace(/\[numero_os\]/g, order.osNumber.toString().padStart(4, '0'))
           .replace(/{os}/g, order.osNumber.toString().padStart(4, '0'))
-          .replace(/\[marca\]/g, order.equipment.brand)
-          .replace(/\[modelo\]/g, order.equipment.model)
-          .replace(/\[equipamento\]/g, `${order.equipment.brand} ${order.equipment.model}`)
-          .replace(/\[defeito\]/g, order.defect)
+          .replace(/\[marca\]/g, order.equipment?.brand || '')
+          .replace(/\[modelo\]/g, order.equipment?.model || '')
+          .replace(/\[equipamento\]/g, `${order.equipment?.brand || ''} ${order.equipment?.model || ''}`.trim())
+          .replace(/\[defeito\]/g, order.defect || '')
           .replace(/\[status\]/g, newStatus)
           .replace(/\[data_entrada\]/g, new Date(order.createdAt).toLocaleDateString('pt-BR'))
-          .replace(/\[valor_total\]/g, new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials.totalValue))
+          .replace(/\[valor_total\]/g, new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.financials?.totalValue || 0))
           .replace(/\[link_os\]/g, portalUrl)
           .replace(/{link}/g, portalUrl)
           .replace(/\[nome_assistencia\]/g, companySettings.name || 'Servyx')
@@ -1406,7 +1406,7 @@ export default function StatusOsModule({
       {
         date: now,
         user: profile.name,
-        description: `Status de pagamento alterado de "${order.financials.paymentStatus}" para "${newPaymentStatus}"`
+        description: `Status de pagamento alterado de "${order.financials?.paymentStatus || 'A Receber'}" para "${newPaymentStatus}"`
       }
     ];
 
@@ -1437,7 +1437,7 @@ export default function StatusOsModule({
         customerName: customer?.name,
         customerDocument: customer?.document,
         customerPhone: customer?.whatsapp || customer?.phone,
-        oldStatus: order.financials.paymentStatus,
+        oldStatus: order.financials?.paymentStatus,
         newStatus: newPaymentStatus,
         description: `Atualizou status de pagamento da OS #${order.osNumber.toString().padStart(4, '0')} para ${newPaymentStatus}`
       });
@@ -1482,8 +1482,8 @@ export default function StatusOsModule({
     const disc = parseFloat(discount) || 0;
     
     const currentFinancials = selectedOrder.financials;
-    const newTotal = Math.max(0, (currentFinancials.totalValue || 0) - disc);
-    const newAmountPaid = (currentFinancials.amountPaid || 0) + amount;
+    const newTotal = Math.max(0, (currentFinancials?.totalValue || 0) - disc);
+    const newAmountPaid = (currentFinancials?.amountPaid || 0) + amount;
 
     let newPaymentStatus: 'Total' | 'Parcial' | 'Pendente' = 'Parcial';
     if (newAmountPaid >= newTotal) {
@@ -2257,7 +2257,7 @@ export default function StatusOsModule({
                           </div>
 
                           {/* Equipamento */}
-                          <p className="text-[11px] text-zinc-500 font-medium mb-3 truncate">{order.equipment.brand} {order.equipment.model}</p>
+                          <p className="text-[11px] text-zinc-500 font-medium mb-3 truncate">{order.equipment?.brand} {order.equipment?.model}</p>
 
                           {/* Defeito / Serviço / Total */}
                           <div className="flex justify-between items-end gap-2 mb-4">
@@ -2385,7 +2385,7 @@ export default function StatusOsModule({
                               </button>
                             )}
                           </div>
-                          <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 line-clamp-1 uppercase tracking-tight">{order.equipment.brand} {order.equipment.model}</p>
+                          <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 line-clamp-1 uppercase tracking-tight">{order.equipment?.brand} {order.equipment?.model}</p>
                         </div>
 
                         <div className="pl-2 border-l-2 border-zinc-800 my-0.5">
@@ -2504,8 +2504,8 @@ export default function StatusOsModule({
                     {/* Results: Orders */}
                     {orders.filter(o => 
                       o.osNumber.toString().includes(globalSearchQuery) ||
-                      o.equipment.model.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
-                      o.equipment.serial?.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
+                      (o.equipment?.model || '').toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
+                      (o.equipment?.serial || '').toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
                       customers.find(c => c.id === o.customerId)?.name.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
                       customers.find(c => c.id === o.customerId)?.document?.includes(globalSearchQuery)
                     ).map(o => {
@@ -2524,7 +2524,7 @@ export default function StatusOsModule({
                               <span className="text-xs font-black text-[#00E676] bg-[#00E676]/10 px-2 py-0.5 rounded uppercase tracking-tighter">OS {o.osNumber.toString().padStart(4, '0')}</span>
                               <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{o.status}</span>
                             </div>
-                            <h4 className="text-lg font-black text-zinc-100 group-hover/item:text-white capitalize">{o.equipment.brand} {o.equipment.model}</h4>
+                            <h4 className="text-lg font-black text-zinc-100 group-hover/item:text-white capitalize">{o.equipment?.brand} {o.equipment?.model}</h4>
                             <p className="text-sm text-zinc-500 font-medium">{customer?.name || 'Cliente Desconhecido'}</p>
                           </div>
                           <div className="p-2 bg-zinc-900 border border-zinc-800 rounded-sm opacity-0 group-hover/item:opacity-100 transition-opacity">
@@ -2915,7 +2915,7 @@ export default function StatusOsModule({
                             {selectedOrder.equipment?.serial && (
                               <div className="text-right shrink-0">
                                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Nº de Série</p>
-                                <p className="text-[10px] font-mono text-zinc-300 font-bold">{selectedOrder.equipment.serial}</p>
+                                <p className="text-[10px] font-mono text-zinc-300 font-bold">{selectedOrder.equipment?.serial}</p>
                               </div>
                             )}
                           </div>
@@ -2931,7 +2931,7 @@ export default function StatusOsModule({
                             </div>
                           </div>
                           
-                          {selectedOrder.equipment?.passwordType && selectedOrder.equipment.passwordType !== 'none' && (
+                          {selectedOrder.equipment?.passwordType && selectedOrder.equipment?.passwordType !== 'none' && (
                             <div className="mt-3 p-3 bg-black/20 rounded-xl border border-white/5 flex items-center justify-between group">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors">
@@ -2939,14 +2939,14 @@ export default function StatusOsModule({
                                 </div>
                                 <div>
                                   <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">
-                                    {selectedOrder.equipment.passwordType === 'pattern' ? 'Padrão' : 'Senha'}
+                                    {selectedOrder.equipment?.passwordType === 'pattern' ? 'Padrão' : 'Senha'}
                                   </p>
                                   <p className="text-[11px] sm:text-xs text-zinc-300 font-mono font-bold tracking-wider">
-                                    {selectedOrder.equipment.passwordType === 'pattern' ? 'Desenho' : selectedOrder.equipment.passwordValue}
+                                    {selectedOrder.equipment?.passwordType === 'pattern' ? 'Desenho' : selectedOrder.equipment?.passwordValue}
                                   </p>
                                 </div>
                               </div>
-                              {selectedOrder.equipment.passwordType === 'pattern' && selectedOrder.equipment.passwordValue && (
+                              {selectedOrder.equipment?.passwordType === 'pattern' && selectedOrder.equipment?.passwordValue && (
                                 <button 
                                   onClick={() => setIsPatternModalOpen(true)}
                                   className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg text-[9px] font-black uppercase tracking-widest text-zinc-300 transition-all flex items-center gap-1.5"
@@ -4053,7 +4053,7 @@ export default function StatusOsModule({
             isOpen={isPatternModalOpen}
             onClose={() => setIsPatternModalOpen(false)}
             onSave={() => {}}
-            initialPattern={selectedOrder.equipment.passwordValue}
+            initialPattern={selectedOrder.equipment?.passwordValue}
             readOnly={true}
           />
         )}
