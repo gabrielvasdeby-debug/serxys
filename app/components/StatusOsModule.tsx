@@ -2537,8 +2537,8 @@ export default function StatusOsModule({
                     {/* Empty State */}
                     {orders.filter(o => 
                       o.osNumber.toString().includes(globalSearchQuery) ||
-                      o.equipment.model.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
-                      o.equipment.serial?.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
+                      o.equipment?.model?.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
+                      o.equipment?.serial?.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
                       customers.find(c => c.id === o.customerId)?.name.toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
                       customers.find(c => c.id === o.customerId)?.document?.includes(globalSearchQuery)
                     ).length === 0 && (
@@ -2562,7 +2562,6 @@ export default function StatusOsModule({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm no-print"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -2570,6 +2569,26 @@ export default function StatusOsModule({
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-[#0F0F0F]/98 backdrop-blur-xl border-none sm:border border-white/[0.06] w-full max-w-6xl h-[100dvh] sm:h-[95vh] flex flex-col shadow-2xl no-print overflow-hidden rounded-none sm:rounded-2xl relative"
             >
+              {/* Loading state while fetching full order data */}
+              {(isFetchingFullOrder || !(selectedOrder as any)._isFull) ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-4">
+                  <div className="relative w-14 h-14">
+                    <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-emerald-500 rounded-full animate-spin"></div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white font-black uppercase tracking-widest text-xs">Carregando OS</p>
+                    <p className="text-zinc-500 text-[10px] uppercase mt-1">Aguarde um instante...</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="mt-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white bg-white/[0.05] border border-white/[0.06] rounded-xl transition-all"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              ) : (
+                <>
               {/* === CABEÇALHO DO MODAL === */}
               <div className="shrink-0 border-b border-white/[0.06] bg-[#0A0A0A]/80 relative overflow-hidden px-4 pt-4 pb-3 sm:px-6">
                 {/* TOP ROW */}
@@ -3765,6 +3784,8 @@ export default function StatusOsModule({
                     <span className="text-[8px] font-black uppercase mt-0.5">Whats</span>
                   </button>
                 </div>
+              </>
+              )}
             </motion.div>
           </motion.div>
         )}
