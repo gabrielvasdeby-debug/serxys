@@ -479,15 +479,42 @@ export default function StatusOsModule({
       const fetchFullOrder = async () => {
         setIsFetchingFullOrder(true);
         try {
-          const { data, error } = await supabase
+          const { data: row, error } = await supabase
             .from('orders')
             .select('*')
             .eq('id', selectedOrder.id)
             .single();
-          if (data && !error) {
-            const fullOrder = { ...data, _isFull: true };
-            setSelectedOrder(fullOrder as any);
-            setOrders(prev => prev.map(o => o.id === data.id ? fullOrder as any : o));
+          if (row && !error) {
+            const fullOrder: any = {
+              id: row.id,
+              companyId: row.company_id,
+              osNumber: row.os_number,
+              customerId: row.customer_id,
+              equipment: row.equipment,
+              checklist: row.checklist,
+              checklistNotes: row.checklist_notes || '',
+              defect: row.defect || '',
+              technicianNotes: row.technician_notes || '',
+              service: row.service || '',
+              financials: row.financials,
+              signatures: row.signatures,
+              status: row.status,
+              priority: row.priority,
+              history: row.history || [],
+              completionData: row.completion_data,
+              productsUsed: row.products_used || [],
+              isVisualChecklist: row.is_visual_checklist,
+              checklistNotPossible: row.checklist_not_possible,
+              budget: row.budget,
+              technicalReport: row.technical_report,
+              createdAt: row.created_at,
+              updatedAt: row.updated_at,
+              deliveryForecast: row.delivery_forecast,
+              entryPhotos: row.entry_photos || [],
+              _isFull: true,
+            };
+            setSelectedOrder(fullOrder);
+            setOrders(prev => prev.map(o => o.id === fullOrder.id ? fullOrder : o));
           }
         } catch (err) {
           console.error('Erro ao buscar dados completos da OS:', err);
