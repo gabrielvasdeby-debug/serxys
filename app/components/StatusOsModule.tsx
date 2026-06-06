@@ -3856,8 +3856,10 @@ export default function StatusOsModule({
               </>
               )}
             </motion.div>
+          </StatusOsErrorBoundary>
           </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       {/* Entry Photos Viewer Modal */}
@@ -4112,10 +4114,8 @@ export default function StatusOsModule({
                   </button>
               </div>
             </motion.div>
-          </StatusOsErrorBoundary>
           </motion.div>
-          );
-        })()}
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
