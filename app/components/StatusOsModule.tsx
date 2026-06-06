@@ -10,7 +10,7 @@ import {
   Check, X, CreditCard, Banknote, QrCode, FileText, Grid, Eye, Trash2, LayoutDashboard,
   Calendar, Clock, Wrench, Shield, ShieldCheck, Package, Truck, Inbox, LogOut, Minus, TrendingUp, Printer, ChevronDown, ChevronLeft, Loader2, Pencil,
   Calculator, MessageSquare, Link as LinkIcon, Lock, Signature, Hash, ExternalLink, Camera as CameraIcon, ChevronRight, Share2,
-  SlidersHorizontal, Filter, ArrowUpDown, PlayCircle
+  SlidersHorizontal, Filter, ArrowUpDown, PlayCircle, Laptop
 } from 'lucide-react';
 import { compressImageBeforeBase64 } from '../utils/imageCompression';
 import { Customer } from './ClientesModule';
@@ -29,6 +29,48 @@ import SecurityPortalManager from './SecurityPortalManager';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { addDays, format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+// ============ DEBUG: Error Boundary (TEMPORÁRIO - REMOVER APÓS DIAGNÓSTICO) ============
+class StatusOsErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean; error: any; errorInfo: any}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('🚨 [ERROR BOUNDARY] StatusOsModule CRASH:', error);
+    console.error('🚨 [ERROR BOUNDARY] Stack:', errorInfo?.componentStack);
+    console.error('🚨 [ERROR BOUNDARY] Error message:', error?.message);
+    this.setState({ errorInfo });
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{padding: 40, background: '#1a0000', color: '#ff4444', fontFamily: 'monospace', whiteSpace: 'pre-wrap', maxHeight: '100vh', overflow: 'auto'}}>
+          <h1 style={{fontSize: 24, marginBottom: 16}}>🚨 ERRO CAPTURADO (Debug)</h1>
+          <div style={{marginBottom: 16}}>
+            <strong>Mensagem:</strong> {this.state.error?.message}
+          </div>
+          <div style={{marginBottom: 16}}>
+            <strong>Stack:</strong>
+            <pre style={{fontSize: 11, color: '#ff8888'}}>{this.state.error?.stack}</pre>
+          </div>
+          <div>
+            <strong>Component Stack:</strong>
+            <pre style={{fontSize: 11, color: '#ffaa44'}}>{this.state.errorInfo?.componentStack}</pre>
+          </div>
+          <button onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })} style={{marginTop: 20, padding: '10px 20px', background: '#333', color: 'white', border: '1px solid #555', cursor: 'pointer'}}>
+            Tentar Novamente
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+// ============ FIM DEBUG ============
 
 // Currency Helpers
 const formatToBRL = (value: number) => {
@@ -2557,12 +2599,39 @@ export default function StatusOsModule({
 
       {/* OS Details Modal */}
       <AnimatePresence>
-        {selectedOrder && (
+        {selectedOrder && (() => {
+          // ============ DEBUG LOG (TEMPORÁRIO) ============
+          console.log('🔍 [DEBUG] selectedOrder ao renderizar modal:', {
+            id: selectedOrder.id,
+            osNumber: selectedOrder.osNumber,
+            status: selectedOrder.status,
+            priority: selectedOrder.priority,
+            _isFull: (selectedOrder as any)._isFull,
+            isFetchingFullOrder,
+            equipment: selectedOrder.equipment,
+            equipmentIsNull: selectedOrder.equipment === null,
+            equipmentIsUndefined: selectedOrder.equipment === undefined,
+            financials: selectedOrder.financials,
+            financialsIsNull: selectedOrder.financials === null,
+            budget: selectedOrder.budget,
+            history: selectedOrder.history,
+            historyLength: selectedOrder.history?.length,
+            checklist: selectedOrder.checklist,
+            signatures: selectedOrder.signatures,
+            completionData: selectedOrder.completionData,
+            productsUsed: selectedOrder.productsUsed,
+            customerId: selectedOrder.customerId,
+            customer_id: (selectedOrder as any).customer_id,
+            allKeys: Object.keys(selectedOrder),
+          });
+          // ============ FIM DEBUG LOG ============
+          return (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
+          <StatusOsErrorBoundary>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -4043,8 +4112,10 @@ export default function StatusOsModule({
                   </button>
               </div>
             </motion.div>
+          </StatusOsErrorBoundary>
           </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       <AnimatePresence>

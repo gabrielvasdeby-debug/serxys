@@ -26,6 +26,48 @@ import CountryCodePicker, { countries, Country } from './CountryCodePicker';
 import { jsPDF } from 'jspdf';
 import { compressImageBeforeBase64 } from '../utils/imageCompression';
 
+// ============ DEBUG: Error Boundary (TEMPORÁRIO - REMOVER APÓS DIAGNÓSTICO) ============
+class OrdemServicoErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean; error: any; errorInfo: any}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('🚨 [ERROR BOUNDARY] OrdemServicoModule CRASH:', error);
+    console.error('🚨 [ERROR BOUNDARY] Stack:', errorInfo?.componentStack);
+    console.error('🚨 [ERROR BOUNDARY] Error message:', error?.message);
+    this.setState({ errorInfo });
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{padding: 40, background: '#1a0000', color: '#ff4444', fontFamily: 'monospace', whiteSpace: 'pre-wrap', maxHeight: '100vh', overflow: 'auto'}}>
+          <h1 style={{fontSize: 24, marginBottom: 16}}>🚨 ERRO CAPTURADO EM OrdemServicoModule (Debug)</h1>
+          <div style={{marginBottom: 16}}>
+            <strong>Mensagem:</strong> {this.state.error?.message}
+          </div>
+          <div style={{marginBottom: 16}}>
+            <strong>Stack:</strong>
+            <pre style={{fontSize: 11, color: '#ff8888'}}>{this.state.error?.stack}</pre>
+          </div>
+          <div>
+            <strong>Component Stack:</strong>
+            <pre style={{fontSize: 11, color: '#ffaa44'}}>{this.state.errorInfo?.componentStack}</pre>
+          </div>
+          <button onClick={() => this.props.onReset?.()} style={{marginTop: 20, padding: '10px 20px', background: '#333', color: 'white', border: '1px solid #555', cursor: 'pointer'}}>
+            Tentar Novamente (Voltar)
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+// ============ FIM DEBUG ============
+
 
 interface OrdemServicoModuleProps {
   profile: {
@@ -2086,6 +2128,30 @@ export default function OrdemServicoModule({
 
   return (
     <>
+      <OrdemServicoErrorBoundary onReset={() => onBack()}>
+      {(() => {
+        // ============ DEBUG LOG (TEMPORÁRIO) ============
+        console.log('🔍 [DEBUG] OrdemServicoModule Renderizando. localOrder:', {
+          id: localOrder?.id,
+          osNumber: localOrder?.osNumber,
+          status: localOrder?.status,
+          priority: localOrder?.priority,
+          equipment: localOrder?.equipment,
+          equipmentIsNull: localOrder?.equipment === null,
+          equipmentIsUndefined: localOrder?.equipment === undefined,
+          financials: localOrder?.financials,
+          budget: localOrder?.budget,
+          history: localOrder?.history,
+          checklist: localOrder?.checklist,
+          signatures: localOrder?.signatures,
+          completionData: localOrder?.completionData,
+          productsUsed: localOrder?.productsUsed,
+          customerId: localOrder?.customerId,
+          isFetchingFullOrder,
+          allKeys: localOrder ? Object.keys(localOrder) : []
+        });
+        // ============ FIM DEBUG LOG ============
+        return (
       <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen bg-[#0A0A0A] text-white flex flex-col overflow-hidden z-50 no-print">
         {/* Loading de Impressão */}
         <AnimatePresence>
@@ -4265,6 +4331,9 @@ export default function OrdemServicoModule({
           )}
         </AnimatePresence>
       </div>
+      );
+      })()}
+      </OrdemServicoErrorBoundary>
     </>
   );
 }
